@@ -1,6 +1,14 @@
 #include "Bootloader.h"
 #include "libcomp.h"
 
+#ifdef USE_DEFAULT_BUTTON
+#define BLD_Trigger_GetState() MOD_Button_GetState()
+#elif !defined(BLD_Trigger_GetState)
+#error "Please define BLD_Trigger_GetState() macro"
+#else
+#warning "Use custom macro BLD_Trigger_GetState()"
+#endif
+
 void Bootloader_Tasks(void *pvParameters)
 {
 #ifdef USE_RTOS
@@ -8,12 +16,13 @@ void Bootloader_Tasks(void *pvParameters)
     {
 #endif
         WATCHDOG_TimerClear();
-
-        if(MOD_Button_GetState()==HOLD_PRESS)
+        
+#ifdef BLD_Custom_Tasks
+        BLD_Custom_Tasks();
+#endif
+        
+        if(BLD_Trigger_GetState()==HOLD_PRESS)
         {
-            RX_LED_SetHigh();
-            TX_LED_SetHigh();
-            ST_LED_SetHigh();
             SYSKEY=0x0; //write invalid key to force lock
             SYSKEY=0xAA996655; //write Key1 to SYSKEY
             SYSKEY=0x556699AA; //write Key2 to SYSKEY
