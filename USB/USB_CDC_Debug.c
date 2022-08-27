@@ -25,12 +25,20 @@
 #define RX_LED_SetLow()
 #endif
 
+#ifndef RX_LED_GetValue
+#define RX_LED_GetValue() (0)
+#endif
+
 #ifndef TX_LED_SetHigh
 #define TX_LED_SetHigh()
 #endif
 
 #ifndef TX_LED_SetLow
 #define TX_LED_SetLow()
+#endif
+
+#ifndef TX_LED_GetValue
+#define TX_LED_GetValue() (0)
 #endif
 
 static struct
