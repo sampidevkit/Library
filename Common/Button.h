@@ -29,7 +29,12 @@ extern bt_cxt_t ModeBtCxt;
 
 bt_stt_t BUTTON_GetState(bt_cxt_t *pBtCxt, bool preInput);
 
+#ifdef MOD_GetValue
+#define MOD_Button_GetState()                   BUTTON_GetState(&ModeBtCxt, MOD_GetValue())
+#else
 #define MOD_Button_GetState(input)              BUTTON_GetState(&ModeBtCxt, input)
+#endif
+
 #define MOD_Button_SetSinglePress_Event(pCbSF)  ModeBtCxt.SinglePressCallback=pCbSF
 #define MOD_Button_SetDoublePress_Event(pCbDF)  ModeBtCxt.DoublePressCallback=pCbDF
 #define MOD_Button_SetHoldPress_Event(pCbHF)    ModeBtCxt.HoldPressCallback=pCbHF
