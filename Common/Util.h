@@ -29,6 +29,7 @@ public int str_1st_index(const char *p, char c);
 public char *str_first(const char *p, char c);
 public char *str_last(const char *p, char c);
 public uint32_t Parse(const uint8_t *c, uint8_t num);
+public int32_t Parse2(const uint8_t *c);
 public bool is_printable(uint8_t c);
 public int8_t StrCmp(strcmp_t *pCxt, uint8_t c);
 public bool findSString(uint8_t *pDatain, int LenS, const uint8_t *pSample);

@@ -9,18 +9,29 @@
 #warning "Use custom macro BLD_Trigger_GetState()"
 #endif
 
+
+#ifdef USE_RTOS
+
 void Bootloader_Tasks(void *pvParameters)
 {
-#ifdef USE_RTOS
     while(1)
     {
-#endif
         WATCHDOG_TimerClear();
-        
+#elif defined(TASKMANAGER_H)
+
+new_simple_task_t(Bootloader_Tasks)
+{
+#else
+
+void Bootloader_Tasks(void *pvParameters)
+{
+    WATCHDOG_TimerClear();
+#endif
+
 #ifdef BLD_Custom_Tasks
         BLD_Custom_Tasks();
 #endif
-        
+
         if(BLD_Trigger_GetState()==HOLD_PRESS)
         {
             SYSKEY=0x0; //write invalid key to force lock
@@ -33,5 +44,16 @@ void Bootloader_Tasks(void *pvParameters)
 #ifdef USE_RTOS
         vTaskDelay(1/portTICK_PERIOD_MS);
     }
+#elif defined(TASKMANAGER_H)
+        Task_Done();
+#endif
+}
+
+void Bootloader_Init(void)
+{
+#ifdef USE_RTOS
+#warning "Please implement this code"
+#elif defined(TASKMANAGER_H)
+    TaskManager_Create_NewSimpleTask(Bootloader_Tasks);
 #endif
 }

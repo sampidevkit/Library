@@ -4,14 +4,16 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
-void _mon_putc(char c);
-void USB_CDC_Debug_Tasks(void);
+//void _mon_putc(char c);
+void USB_CDC_Debug_Tasks(void*);
 bool USB_CDC_Debug_Is_RxReady(void);
 bool USB_CDC_Debug_Is_TxReady(void);
 bool USB_CDC_Debug_Is_TxDone(void);
 void USB_CDC_Debug_Write(uint8_t c);
 uint8_t USB_CDC_Debug_Read(void);
+void USB_CDC_Debug_Init(void);
 
 #define __db(...) printf(__VA_ARGS__)
 

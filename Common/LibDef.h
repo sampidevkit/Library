@@ -82,6 +82,7 @@ typedef const char *far_string_t;
 #define PROC_DRV_ERR                    (-2)
 
 #ifdef __XC32
+#include "sys/attribs.h"
 // MIPS memory address convert
 #ifndef KVA_TO_PA
 #define KVA_TO_PA(v)                    ((_paddr_t)(v)&0x1FFFFFFF)
@@ -113,5 +114,173 @@ typedef const char *far_string_t;
 #define BITFIELD_GET(name, value)       (((value)&name ## _MASK)>>name ## _POS)
 
 #define _convert2(type, pt)             (*((type*)pt))
+
+#define NO_INIT                        __attribute__((section(".no_init")))
+#define SECTION(a)                     __attribute__((__section__(a)))
+
+#ifndef   __ASM
+    #define __ASM                      __asm__
+#endif
+#ifndef   __INLINE
+    #define __INLINE                   __inline__
+#endif
+#ifndef   __STATIC_INLINE
+    #define __STATIC_INLINE            static __inline__
+#endif
+#ifndef   __STATIC_FORCEINLINE
+    #define __STATIC_FORCEINLINE       __attribute__((always_inline)) static __inline__
+#endif
+#ifndef   __NO_RETURN
+    #define __NO_RETURN                __attribute__((__noreturn__))
+#endif
+#ifndef   __USED
+    #define __USED                     __attribute__((used))
+#endif
+#ifndef   __WEAK
+    #define __WEAK                     __attribute__((weak))
+#endif
+#ifndef   __PACKED
+    #define __PACKED                   __attribute__((packed, aligned(1)))
+#endif
+#ifndef   __PACKED_STRUCT
+    #define __PACKED_STRUCT            struct __attribute__((packed, aligned(1)))
+#endif
+#ifndef   __PACKED_UNION
+    #define __PACKED_UNION             union __attribute__((packed, aligned(1)))
+#endif
+#ifndef   __COHERENT
+    #define __COHERENT                 __attribute__((coherent))
+#endif
+#ifndef   __ALIGNED
+    #define __ALIGNED(x)               __attribute__((aligned(x)))
+#endif
+#ifndef   __RESTRICT
+    #define __RESTRICT                 __restrict__
+#endif
+
+#define CACHE_LINE_SIZE                (4u)
+#define CACHE_ALIGN
+
+#define CACHE_ALIGNED_SIZE_GET(size)     (size + ((size % CACHE_LINE_SIZE)? (CACHE_LINE_SIZE - (size % CACHE_LINE_SIZE)) : 0))
+
+#ifndef FORMAT_ATTRIBUTE
+   #define FORMAT_ATTRIBUTE(archetype, string_index, first_to_check)  __attribute__ ((format (archetype, string_index, first_to_check)))
+#endif
+
+#ifndef SYS_ASSERT
+#define SYS_ASSERT(test,message)
+#endif
+
+#define MAIN_RETURN int
+#define MAIN_RETURN_CODE(c)     ((MAIN_RETURN)(c))
+
+typedef enum {
+    MAIN_RETURN_FAILURE = -1,
+    MAIN_RETURN_SUCCESS = 0
+} MAIN_RETURN_CODES;
+
+#define SYS_VersionGet( void ) SYS_VERSION
+#define SYS_VersionStrGet( void )   SYS_VERSION_STR
+
+typedef unsigned short int SYS_MODULE_INDEX;
+typedef uintptr_t SYS_MODULE_OBJ;
+
+#define SYS_MODULE_OBJ_INVALID      ((SYS_MODULE_OBJ) -1 )
+#define SYS_MODULE_OBJ_STATIC       ((SYS_MODULE_OBJ) 0 )
+
+typedef enum {
+    SYS_STATUS_ERROR_EXTENDED = -10,
+    /*An unspecified error has occurred.*/
+    SYS_STATUS_ERROR = -1,
+    // The module has not yet been initialized
+    SYS_STATUS_UNINITIALIZED = 0,
+    // An operation is currently in progress
+    SYS_STATUS_BUSY = 1,
+    // Any previous operations have succeeded and the module is ready for
+    // additional operations
+    SYS_STATUS_READY = 2,
+    // Indicates that the module is in a non-system defined ready/run state.
+    // The caller must call the extended status routine for the module in
+    // question to identify the state.
+    SYS_STATUS_READY_EXTENDED = 10
+} SYS_STATUS;
+
+typedef union {
+    uint8_t value;
+
+    struct {
+        // Module-definable field, module-specific usage
+        uint8_t reserved : 4;
+    } sys;
+
+} SYS_MODULE_INIT;
+
+typedef SYS_MODULE_OBJ(* SYS_MODULE_INITIALIZE_ROUTINE) (const SYS_MODULE_INDEX index,
+        const SYS_MODULE_INIT * const init);
+
+typedef void (* SYS_MODULE_REINITIALIZE_ROUTINE) (SYS_MODULE_OBJ object,
+        const SYS_MODULE_INIT * const init);
+
+typedef void (* SYS_MODULE_DEINITIALIZE_ROUTINE) (SYS_MODULE_OBJ object);
+
+typedef SYS_STATUS(* SYS_MODULE_STATUS_ROUTINE) (SYS_MODULE_OBJ object);
+
+typedef void (* SYS_MODULE_TASKS_ROUTINE) (SYS_MODULE_OBJ object);
+
+typedef enum
+{
+    /* Read */
+    DRV_IO_INTENT_READ               /*DOM-IGNORE-BEGIN*/ = 1 << 0 /* DOM-IGNORE-END*/,
+    /* Write */
+    DRV_IO_INTENT_WRITE              /*DOM-IGNORE-BEGIN*/ = 1 << 1 /* DOM-IGNORE-END*/,
+    /* Read and Write*/
+    DRV_IO_INTENT_READWRITE          /*DOM-IGNORE-BEGIN*/ \
+            = DRV_IO_INTENT_READ|DRV_IO_INTENT_WRITE /* DOM-IGNORE-END*/,
+    /* The driver will block and will return when the operation is complete */
+    DRV_IO_INTENT_BLOCKING           /*DOM-IGNORE-BEGIN*/ = 0 << 2 /* DOM-IGNORE-END*/,
+    /* The driver will return immediately */
+    DRV_IO_INTENT_NONBLOCKING        /*DOM-IGNORE-BEGIN*/ = 1 << 2 /* DOM-IGNORE-END*/,
+    /* The driver will support only one client at a time */
+    DRV_IO_INTENT_EXCLUSIVE          /*DOM-IGNORE-BEGIN*/ = 1 << 3 /* DOM-IGNORE-END*/,
+    /* The driver will support multiple clients at a time */
+    DRV_IO_INTENT_SHARED             /*DOM-IGNORE-BEGIN*/ = 0 << 3 /* DOM-IGNORE-END*/
+} DRV_IO_INTENT;
+
+typedef enum
+{
+    /* Indicates that a driver-specific error has occurred. */
+    DRV_CLIENT_STATUS_ERROR_EXTENDED   = -10,
+    /* An unspecified error has occurred.*/
+    DRV_CLIENT_STATUS_ERROR            =  -1,
+    /* The driver is closed, no operations for this client are ongoing,
+    and/or the given handle is invalid. */
+    DRV_CLIENT_STATUS_CLOSED           =   0,
+    /* The driver is currently busy and cannot start additional operations. */
+    DRV_CLIENT_STATUS_BUSY             =   1,
+    /* The module is running and ready for additional operations */
+    DRV_CLIENT_STATUS_READY            =   2,
+    /* Indicates that the module is in a driver-specific ready/run state. */
+    DRV_CLIENT_STATUS_READY_EXTENDED   =  10
+} DRV_CLIENT_STATUS;
+
+#define DRV_IO_ISBLOCKING(intent)          (intent & DRV_IO_INTENT_BLOCKING)
+#define DRV_IO_ISNONBLOCKING(intent)       (intent & DRV_IO_INTENT_NONBLOCKING )
+#define DRV_IO_ISEXCLUSIVE(intent)       (intent & DRV_IO_INTENT_EXCLUSIVE)
+
+typedef enum
+{
+    // Operation does not apply to any buffer
+    DRV_IO_BUFFER_TYPE_NONE      = 0x00,
+    // Operation applies to read buffer
+    DRV_IO_BUFFER_TYPE_READ      = 0x01,
+    // Operation applies to write buffer
+    DRV_IO_BUFFER_TYPE_WRITE     = 0x02,
+    // Operation applies to both read and write buffers
+    DRV_IO_BUFFER_TYPE_RW        = DRV_IO_BUFFER_TYPE_READ|DRV_IO_BUFFER_TYPE_WRITE
+} DRV_IO_BUFFER_TYPES;
+
+typedef uintptr_t DRV_HANDLE;
+
+#define DRV_HANDLE_INVALID  (((DRV_HANDLE) -1))
 
 #endif

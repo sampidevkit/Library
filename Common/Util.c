@@ -364,6 +364,30 @@ public uint32_t Parse(const uint8_t *c, uint8_t num) // <editor-fold defaultstat
     return res;
 } // </editor-fold>
 
+public int32_t Parse2(const uint8_t *c) // <editor-fold defaultstate="collapsed" desc="String parsing">
+{
+    bool minus=0;
+    uint32_t res=0;
+
+    if(*c=='-')
+    {
+        c++;
+        minus=1;
+    }
+
+    while((*c>='0')&&(*c<='9'))
+    {
+        res*=10;
+        res+=(*c-'0');
+        c++;
+    }
+
+    if(minus)
+        res*=(-1);
+
+    return res;
+} // </editor-fold>
+
 public bool is_printable(uint8_t c) // <editor-fold defaultstate="collapsed" desc="Check printable character">
 {
     if((c>=' ')&&(c<='~'))

@@ -1,5 +1,5 @@
-#include "USB_CDC_Debug.h"
 #include "libcomp.h"
+#include "USB_CDC_Debug.h"
 
 #ifdef USB_CDC_DISABLE_LED
 #undef RX_LED_SetHigh
@@ -159,7 +159,13 @@ static inline void USB_CDC_Debug_Tx_Tasks(void) // <editor-fold defaultstate="co
     }
 } // </editor-fold>
 
-void USB_CDC_Debug_Tasks(void) // <editor-fold defaultstate="collapsed" desc="USB CDC Tx tasks">
+#ifdef TASKMANAGER_H
+new_simple_task_t(USB_CDC_Debug_Tasks)
+#else
+
+void USB_CDC_Debug_Tasks(void*)
+#endif
+// <editor-fold defaultstate="collapsed" desc="USB CDC Tx tasks">
 {
     if(__init==0)
     {
@@ -178,6 +184,10 @@ void USB_CDC_Debug_Tasks(void) // <editor-fold defaultstate="collapsed" desc="US
 
     if(TX_LED_GetValue()&&(txBuf.remain>=CDC_DATA_OUT_EP_SIZE))
         TX_LED_SetLow();
+
+#ifdef TASKMANAGER_H
+    Task_Done();
+#endif
 } // </editor-fold>
 
 void _mon_putc(char c) // <editor-fold defaultstate="collapsed" desc="SDTIO stream function">
@@ -240,3 +250,10 @@ uint8_t USB_CDC_Debug_Read(void) // <editor-fold defaultstate="collapsed" desc="
 
     return readValue;
 } // </editor-fold>
+
+void USB_CDC_Debug_Init(void)
+{
+#ifdef TASKMANAGER_H
+    TaskManager_Create_NewSimpleTask(USB_CDC_Debug_Tasks);
+#endif
+}
