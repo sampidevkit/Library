@@ -11,6 +11,7 @@ typedef struct {
 #define StrCmp_Init(cxt, src) do{cxt.idx=0; cxt.pStr=(uint8_t*)src;}while(0)
 
 /* ******************************************************** STRING PROCESSING */
+public size_t slen(const char *pStr);
 public uint8_t UpperCase(uint8_t Data);
 public uint8_t LowerCase(uint8_t Data);
 public void str_uppercase(uint8_t *pData);
@@ -26,14 +27,23 @@ public uint16_t str_nremove(char *p, const char *c);
 public uint8_t str_is_number(char c);
 public uint16_t str_count(const char *p, char c);
 public int str_1st_index(const char *p, char c);
+public int str_n_index(const char *p, char c, int count);
+public const char *str_1st_contain(const char *sub, const char *str);
+public const char *str_n_contain(const char *sub, const char *str, int count);
+public int str_sub(char *des, const char *src, char c1, int count1, int offset1, char c2, int count2, int offset2);
 public char *str_first(const char *p, char c);
 public char *str_last(const char *p, char c);
-public uint32_t Parse(const uint8_t *c, uint8_t num);
-public int32_t Parse2(const uint8_t *c);
+public int32_t IntParse(const uint8_t *c); // NULL input is 0
+public uint32_t UIntParse(const uint8_t *c); // NULL input is 0
+public uint32_t HexParse(const uint8_t *c); // NULL input is 0
+bool is_hex_data(uint8_t b);
 public bool is_printable(uint8_t c);
 public int8_t StrCmp(strcmp_t *pCxt, uint8_t c);
 public bool findSString(uint8_t *pDatain, int LenS, const uint8_t *pSample);
 public bool delSString(uint8_t *pDatain, const uint8_t *pSample);
+
+#define str_sub_between(des, src, c1, count1, c2, count2) str_sub(des, src, c1, count1, 1, c2, count2, -1)
+
 /* ************************************************** CRYPTOGRAPHY PROCESSING */
 uint16_t crc_ccitt(uint16_t crc, const uint8_t *buf_p, size_t size);
 public uint16_t Crc16_Calc(const uint8_t *pData, uint16_t len);

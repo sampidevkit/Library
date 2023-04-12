@@ -9,6 +9,19 @@
 
 // <editor-fold defaultstate="collapsed" desc="String Processing">
 
+public size_t slen(const char *pStr) // <editor-fold defaultstate="collapsed" desc="Calculate length of an ASCII string">
+{
+    size_t len=0;
+
+    while((*pStr!=0)&&(*pStr!=255))
+    {
+        len++;
+        pStr++;
+    }
+
+    return len;
+} // </editor-fold>
+
 public uint8_t UpperCase(uint8_t Data) // <editor-fold defaultstate="collapsed" desc="Convert lower case to upper case">
 {
     if((Data>='a')&&(Data<='z'))
@@ -49,6 +62,7 @@ public bool FindString(uint8_t c, size_t *pIdx, const uint8_t *pStrSample) // <e
 {
     if(c!=0x00)
     {
+LOOP:
         if(c==pStrSample[*pIdx])
         {
             (*pIdx)=(*pIdx)+1;
@@ -58,6 +72,11 @@ public bool FindString(uint8_t c, size_t *pIdx, const uint8_t *pStrSample) // <e
                 *pIdx=0;
                 return 1; // matched
             }
+        }
+        else if(*pIdx>0)
+        {
+            *pIdx=0;
+            goto LOOP;
         }
         else
             *pIdx=0;
@@ -135,10 +154,11 @@ public bool str_cmp_without_case(const uint8_t *pDatain, int Len, const uint8_t 
     return 1;
 } // </editor-fold>
 
-public bool findSString(uint8_t *pDatain, int LenS, const uint8_t *pSample) // <editor-fold defaultstate="collapsed" desc="Find sub-string in string (str_cmp upgrade)">
+public bool findSString(uint8_t *pDatain, int LenS, const uint8_t *pSample) // <editor-fold defaultstate="collapsed" desc="Find sub-string in string">
 {
-    uint8_t LenD=(uint8_t) strlen(pDatain);
-    for(uint8_t i=0; i<LenD; i++)
+    uint8_t i, LenD=(uint8_t) slen((char *) pDatain);
+
+    for(i=0; i<LenD; i++)
     {
         if(pDatain[i]==pSample[0])
         {
@@ -151,26 +171,31 @@ public bool findSString(uint8_t *pDatain, int LenS, const uint8_t *pSample) // <
 
 public bool delSString(uint8_t *pDatain, const uint8_t *pSample) // <editor-fold defaultstate="collapsed" desc="Remove a sub-string in a string just once">
 {
-    uint16_t LenD=strlen(pDatain);
-    uint16_t LenS=strlen(pSample);
-    for(uint16_t i=0; i<LenD; i++)
+    uint8_t i;
+    uint8_t LenD=slen((char *) pDatain);
+    uint8_t LenS=slen((char *) pSample);
+
+    for(i=0; i<LenD; i++)
     {
         if(pDatain[i]==pSample[0])
         {
             if(str_cmp(&pDatain[i], LenS, pSample))
             {
                 uint8_t str_behind[150];
+
                 memset(str_behind, 0x00, 150);
-                strcpy(str_behind, &pDatain[i+LenS]);
+                strcpy((char *) str_behind, (char *) &pDatain[i+LenS]);
                 memset(&pDatain[i], 0x00, LenS);
+
                 if(i==0)
-                    strcpy(pDatain, str_behind);
+                    strcpy((char *) pDatain, (char *) str_behind);
                 else
-                    strcat(pDatain, str_behind);
+                    strcat((char *) pDatain, (char *) str_behind);
                 return 1;
             }
         }
     }
+
     return 0;
 } // </editor-fold>
 
@@ -178,7 +203,7 @@ public int str_remove(char *p, char c) // <editor-fold defaultstate="collapsed" 
 {
     int i, j, len;
 
-    len=(int) strlen(p);
+    len=(int) slen(p);
 
     i=0;
 
@@ -208,7 +233,7 @@ public void str_sremove(char *str, char c, uint8_t amount) // <editor-fold defau
 {
     uint8_t i, j, k, len;
 
-    len=(uint8_t) strlen(str);
+    len=(uint8_t) slen(str);
 
     i=0;
     k=0;
@@ -296,16 +321,106 @@ public int str_1st_index(const char *p, char c) // <editor-fold defaultstate="co
     while(*p!=0x00)
     {
         if(*p==c)
-            goto EXIT;
+            return i;
 
         i++;
         p++;
     }
 
-    i=(-1);
+    return (-1);
+} // </editor-fold>
 
-EXIT:
-    return i;
+public int str_n_index(const char *p, char c, int count) // <editor-fold defaultstate="collapsed" desc="Get index N of a character in a string">
+{
+    int i=0;
+
+    while(count>0)
+    {
+        int j=str_1st_index(&p[i], c);
+
+        if(j>=0)
+            i+=j+1;
+        else
+            return (-1);
+
+        count--;
+    }
+
+    return (i-1);
+} // </editor-fold>
+
+public const char *str_1st_contain(const char *sub, const char *str) // <editor-fold defaultstate="collapsed" desc="Get pointer of the 1st sub-string">
+{
+    int sl=(int) slen(sub);
+    int i=0, j=0;
+
+    while(str[i]!=0)
+    {
+LOOP:
+        if(str[i]==sub[j])
+        {
+            if(++j>=sl)
+                return (&str[i-sl+1]);
+        }
+        else if(j>0)
+        {
+            j=0;
+            goto LOOP;
+        }
+        else
+            j=0;
+
+        i++;
+    }
+
+    return NULL;
+} // </editor-fold>
+
+public const char *str_n_contain(const char *sub, const char *str, int count) // <editor-fold defaultstate="collapsed" desc="Get pointer of the Nth sub-string">
+{
+    const char *i=str;
+
+    while(count>0)
+    {
+        const char *j=str_1st_contain(sub, i);
+
+        if(j!=NULL)
+            i=j+1;
+        else
+            return NULL;
+
+        count--;
+    }
+
+    return (i-1);
+} // </editor-fold>
+
+public int str_sub(char *des, const char *src, char c1, int count1, int offset1, char c2, int count2, int offset2) // <editor-fold defaultstate="collapsed" desc="Get sub-string">
+{
+    int begin, end;
+
+    begin=str_n_index(src, c1, count1)+offset1;
+    //printf("\nbegin: %d", begin);
+
+    if(begin<0)
+    {
+        *des=0;
+        return 0;
+    }
+
+    end=str_n_index(&src[begin], c2, count2)+offset2+1;
+    //printf("\nend: %d", end);
+
+    if(begin<0)
+    {
+        *des=0;
+        return 0;
+    }
+
+    memcpy(des, &src[begin], end);
+    des[end]=0;
+
+    return end;
 } // </editor-fold>
 
 public char *str_first(const char *p, char c) // <editor-fold defaultstate="collapsed" desc="Get pointer of the first index of 'c' in string">
@@ -341,33 +456,13 @@ public char *str_last(const char *p, char c) // <editor-fold defaultstate="colla
     return rslt;
 } // </editor-fold>
 
-public uint32_t Parse(const uint8_t *c, uint8_t num) // <editor-fold defaultstate="collapsed" desc="String parsing">
-{
-    uint32_t res=0;
-
-    while(num--)
-    {
-        if((*c>='0')&&(*c<='9'))
-        {
-            res*=10;
-            res+=(*c-'0');
-        }
-        else
-        {
-            res=0;
-            break;
-        }
-
-        c++;
-    }
-
-    return res;
-} // </editor-fold>
-
-public int32_t Parse2(const uint8_t *c) // <editor-fold defaultstate="collapsed" desc="String parsing">
+public int32_t IntParse(const uint8_t *c) // <editor-fold defaultstate="collapsed" desc="String to signed integer value">
 {
     bool minus=0;
     uint32_t res=0;
+
+    if(c==NULL)
+        return 0;
 
     if(*c=='-')
     {
@@ -386,6 +481,75 @@ public int32_t Parse2(const uint8_t *c) // <editor-fold defaultstate="collapsed"
         res*=(-1);
 
     return res;
+} // </editor-fold>
+
+public uint32_t UIntParse(const uint8_t *c) // <editor-fold defaultstate="collapsed" desc="String to unsigned integer">
+{
+    uint32_t res=0;
+
+    if(c==NULL)
+        return 0;
+
+    while((*c>='0')&&(*c<='9'))
+    {
+        res*=10;
+        res+=(*c-'0');
+        c++;
+    }
+
+    return res;
+} // </editor-fold>
+
+public uint32_t HexParse(const uint8_t *c) // <editor-fold defaultstate="collapsed" desc="String parsing">
+{
+    uint32_t res=0;
+
+    if(c==NULL)
+        return 0;
+
+    while(true)
+    {
+        uint8_t b=*c;
+
+        if((b>='0')&&(b<='9'))
+        {
+            res<<=4;
+            res|=(b-'0');
+        }
+        else
+        {
+            b&=0xDF;
+
+            if((b>='A')&&(b<='F'))
+            {
+                res<<=4;
+                res|=((b-'A')+10);
+            }
+            else
+                break;
+        }
+
+        c++;
+    }
+
+    return res;
+} // </editor-fold>
+
+bool is_hex_data(uint8_t b) // <editor-fold defaultstate="collapsed" desc="Check Intel hex valid data">
+{
+    if(b==':')
+        return 1;
+
+    if((b>='0')&&(b<='9'))
+        return 1;
+
+    if((b>='a')&&(b<='f'))
+        return 1;
+
+    if((b>='A')&&(b<='F'))
+        return 1;
+
+    return 0;
 } // </editor-fold>
 
 public bool is_printable(uint8_t c) // <editor-fold defaultstate="collapsed" desc="Check printable character">
@@ -653,11 +817,11 @@ public int32_t ConvertStr2Integer(const uint8_t *pArr) // <editor-fold defaultst
 public uint32_t StrHex2Int(uint8_t *p) // <editor-fold defaultstate="collapsed" desc="Convert string Hex to integer">
 {
     uint32_t value=0;
-    uint8_t i=strlen(p);
+    uint8_t x, i=slen((char *) p);
 
     if(i<=8&&i!=0)
     {
-        for(uint8_t x=0; x<i; x++)
+        for(x=0; x<i; x++)
         {
             if(p[x]>='0'&&p[x]<='9')
                 p[x]-='0';
@@ -690,7 +854,8 @@ public int BinSearch(const uint8_t *pSource, int Size) // <editor-fold defaultst
 
     while(1)
     {
-        db("\nStep %02d: Left=0x%08X, Right=0x%08X, ", ++step, left, right);
+        step++;
+        db("\nStep %02d: Left=0x%08X, Right=0x%08X, ", step, left, right);
         db("Data=%02X", pSource[left]);
 
         if(pSource[idx]==0xFF)

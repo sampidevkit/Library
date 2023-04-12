@@ -1,0 +1,209 @@
+<mxfile host="Electron" modified="2023-04-12T16:15:42.262Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.1.2 Chrome/106.0.5249.199 Electron/21.4.3 Safari/537.36" etag="dsK5CEwDsyrB40SWyVrh" version="21.1.2" type="device">
+  <diagram name="Page-1" id="5YAccFcPVvyFZiG_vh2h">
+    <mxGraphModel dx="1035" dy="673" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-1" value="0" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="70" y="200" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-38" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="I4qCY5O5LtjlGwn-0m3x-2" target="I4qCY5O5LtjlGwn-0m3x-37">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="130" y="270" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-2" value="1" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="110" y="200" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-3" value="2" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="150" y="200" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-52" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="I4qCY5O5LtjlGwn-0m3x-4" target="I4qCY5O5LtjlGwn-0m3x-51">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-4" value="3" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="190" y="200" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-5" value="..." style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="230" y="200" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-6" value="253" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="270" y="200" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-7" value="254" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="310" y="200" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="I4qCY5O5LtjlGwn-0m3x-8" target="I4qCY5O5LtjlGwn-0m3x-1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="410" y="220" />
+              <mxPoint x="410" y="180" />
+              <mxPoint x="50" y="180" />
+              <mxPoint x="50" y="220" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-8" value="255" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="350" y="200" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-11" value="TMR" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry y="200" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-12" value="CLK" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#0000FF;" vertex="1" parent="1">
+          <mxGeometry y="120" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-15" value="" style="endArrow=classic;html=1;rounded=0;fontColor=#0000FF;strokeColor=#0000FF;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="110" y="120" as="sourcePoint" />
+            <mxPoint x="149.52" y="120" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="130" y="120" />
+              <mxPoint x="130" y="160" />
+              <mxPoint x="150" y="160" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-22" value="" style="endArrow=classic;html=1;rounded=0;fontColor=#0000FF;strokeColor=#0000FF;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="150" y="120" as="sourcePoint" />
+            <mxPoint x="189.52" y="120" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="170" y="120" />
+              <mxPoint x="170" y="160" />
+              <mxPoint x="190" y="160" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-23" value="" style="endArrow=classic;html=1;rounded=0;fontColor=#0000FF;strokeColor=#0000FF;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="190" y="120" as="sourcePoint" />
+            <mxPoint x="229.51999999999998" y="120" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="210" y="120" />
+              <mxPoint x="210" y="160" />
+              <mxPoint x="230" y="160" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-24" value="" style="endArrow=classic;html=1;rounded=0;fontColor=#0000FF;strokeColor=#0000FF;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="270" y="160" as="sourcePoint" />
+            <mxPoint x="269.52" y="120" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="270" y="160" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-25" value="" style="endArrow=classic;html=1;rounded=0;fontColor=#0000FF;strokeColor=#0000FF;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="270" y="120" as="sourcePoint" />
+            <mxPoint x="309.52" y="120" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="290" y="120" />
+              <mxPoint x="290" y="160" />
+              <mxPoint x="310" y="160" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-26" value="" style="endArrow=classic;html=1;rounded=0;fontColor=#0000FF;strokeColor=#0000FF;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="310" y="120" as="sourcePoint" />
+            <mxPoint x="349.52" y="120" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="330" y="120" />
+              <mxPoint x="330" y="160" />
+              <mxPoint x="350" y="160" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-27" value="" style="endArrow=classic;html=1;rounded=0;fontColor=#0000FF;strokeColor=#0000FF;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="350" y="120" as="sourcePoint" />
+            <mxPoint x="389.52" y="120" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="370" y="120" />
+              <mxPoint x="370" y="160" />
+              <mxPoint x="390" y="160" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-28" value="" style="endArrow=classic;html=1;rounded=0;fontColor=#0000FF;strokeColor=#0000FF;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="70" y="120" as="sourcePoint" />
+            <mxPoint x="109.52000000000001" y="120" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="90" y="120" />
+              <mxPoint x="90" y="160" />
+              <mxPoint x="110" y="160" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-29" value="" style="endArrow=classic;html=1;rounded=0;fontColor=#0000FF;strokeColor=#0000FF;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="50" y="160" as="sourcePoint" />
+            <mxPoint x="69.52000000000001" y="120" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="50" y="160" />
+              <mxPoint x="70" y="160" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-30" value="" style="endArrow=none;html=1;rounded=0;dashed=1;fontColor=#0000FF;strokeColor=#0000FF;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="230" y="120" as="sourcePoint" />
+            <mxPoint x="270" y="160" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="250" y="120" />
+              <mxPoint x="250" y="160" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-31" value="" style="endArrow=classic;html=1;rounded=0;startArrow=oval;startFill=1;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="410" y="220" as="sourcePoint" />
+            <mxPoint x="450" y="220" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-32" value="Interrupt" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="450" y="205" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-44" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="I4qCY5O5LtjlGwn-0m3x-37" target="I4qCY5O5LtjlGwn-0m3x-39">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-37" value="Begin" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FF0000;" vertex="1" parent="1">
+          <mxGeometry x="110" y="310" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-39" value="TickCount" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FF0000;" vertex="1" parent="1">
+          <mxGeometry x="270" y="310" width="60" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-41" value="Mỗi giá trị đếm được của timer gọi là 1 tick - Giá trị này tương ứng với số xung clock đã cấp cho timer.&lt;br&gt;&lt;br&gt;Từ tần số clock cấp vào timer, ta có các hằng số sau:&lt;br&gt;&lt;br&gt;TICK_PER_SEC: Số lượng xung clock trong 1s&lt;br&gt;TICK_PER_SEC=FCLK (Hz)&lt;br&gt;&lt;br&gt;TICK_PER_MS: Số lượng xung clock trong 1ms&lt;br&gt;TICK_PER_MS=TICK_PER_SEC/1000&lt;br&gt;&lt;br&gt;TICK_PER_US: Số lượng xung clock trong 1us&lt;br&gt;TICK_PER_US=TICK_PER_MS/1000" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="530" y="40" width="320" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-42" value="" style="endArrow=classic;html=1;rounded=0;startArrow=oval;startFill=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" target="I4qCY5O5LtjlGwn-0m3x-41">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="410" y="139.76999999999998" as="sourcePoint" />
+            <mxPoint x="450" y="139.76999999999998" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-45" value="Lưu giá trị bắt đầu" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="80" y="240" width="50" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-47" value="Tính số tick phải đếm" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="330" y="300" width="70" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-49" value="Định thời t ms" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="175" y="300" width="70" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-50" value="Để định thời &lt;font color=&quot;#ff0000&quot;&gt;t&lt;/font&gt; ms ta thực hiện như sau:&lt;br&gt;(1). Lưu giá trị timer hiện tại vào biến &lt;font color=&quot;#ff0000&quot;&gt;Begin&lt;/font&gt;.&lt;br&gt;(2). Tính số tick phải đếm để được &lt;font color=&quot;#ff0000&quot;&gt;t&lt;/font&gt; ms. Như vậy giá trị &lt;font color=&quot;#ff0000&quot;&gt;TickCount=t*TICK_PER_MS&lt;/font&gt;.&lt;br&gt;(3). Liên tục kiểm tra giá trị timer hiện tại (&lt;font color=&quot;#ff0000&quot;&gt;Now&lt;/font&gt;) với giá trị &lt;font color=&quot;#ff0000&quot;&gt;Begin&lt;/font&gt;. Định thời kết thúc khi &lt;font color=&quot;#ff0000&quot;&gt;Now-Begin&amp;gt;TickCount&lt;/font&gt;.&lt;br&gt;&lt;br&gt;Lưu ý:&lt;br&gt;- Không định thời dài hơn chu kỳ tràn của timer. Ví dụ timer tràn sau 10s thì giá trị định thời cho phép phải &amp;lt;10s.&lt;br&gt;- &lt;font color=&quot;#ff0000&quot;&gt;Begin, Now, TickCount&lt;/font&gt; cùng kích thước với timer (8,16, 32 bit) và là kiểu không dấu để khi các phép toán bị tràn, giá trị tràn không làm ảnh hưởng đến kết quả tính. Ví dụ timer 8-bit có &lt;font color=&quot;#ff0000&quot;&gt;TICK_PER_MS=2&lt;/font&gt;, định thời &lt;font color=&quot;#ff0000&quot;&gt;t=50ms&lt;/font&gt;, giá trị bắt đầu &lt;font color=&quot;#ff0000&quot;&gt;Begin=253&lt;/font&gt;. Ta có:&lt;br&gt;&lt;font color=&quot;#ff0000&quot;&gt;TickCount=t*TICK_PER_MS=50*2=100&lt;/font&gt; (tick)&lt;br&gt;Các phép toán: &lt;font color=&quot;#ff0000&quot;&gt;Now-Begin&lt;/font&gt; như sau:&lt;br&gt;&lt;div&gt;&lt;i&gt;&lt;font color=&quot;#0000ff&quot;&gt;Now=253 =&amp;gt; Now-Begin=253-253=0 &amp;lt; 100 =&amp;gt; Chưa hết giờ&amp;nbsp;&lt;/font&gt;&lt;/i&gt;&lt;/div&gt;&lt;div&gt;&lt;i&gt;&lt;font color=&quot;#0000ff&quot;&gt;Now=254 =&amp;gt; Now-Begin=254-253=1 &amp;lt; 100 =&amp;gt; Chưa hết giờ&lt;/font&gt;&lt;/i&gt;&lt;/div&gt;&lt;div&gt;&lt;i&gt;&lt;font color=&quot;#ff9933&quot;&gt;Now=255 =&amp;gt; Now-Begin=255-253=2 &amp;lt; 100 =&amp;gt; Chưa hết giờ&lt;/font&gt;&lt;/i&gt;&lt;/div&gt;&lt;div&gt;&lt;i&gt;&lt;font color=&quot;#ff9933&quot;&gt;Now=0&amp;nbsp; &amp;nbsp; &amp;nbsp;=&amp;gt; Now-Begin=0-253=&amp;nbsp; &amp;nbsp; 3 &amp;lt; 100 =&amp;gt; Chưa hết giờ&lt;/font&gt;&lt;/i&gt;&lt;/div&gt;&lt;div&gt;&lt;i&gt;&lt;font color=&quot;#0000ff&quot;&gt;Now=1&amp;nbsp; &amp;nbsp; &amp;nbsp;=&amp;gt; Now-Begin=1-253=&amp;nbsp; &amp;nbsp; 4 &amp;lt; 100 =&amp;gt; Chưa hết giờ&lt;/font&gt;&lt;/i&gt;&lt;/div&gt;&lt;div&gt;&lt;i&gt;&lt;font color=&quot;#0000ff&quot;&gt;...&lt;/font&gt;&lt;/i&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;i&gt;&lt;font color=&quot;#0000ff&quot;&gt;Now=95&amp;nbsp; &amp;nbsp;=&amp;gt; Now-Begin=95-253= 98 &amp;lt; 100 =&amp;gt; Chưa hết giờ&lt;/font&gt;&lt;/i&gt;&lt;/div&gt;&lt;div&gt;&lt;i&gt;&lt;font color=&quot;#0000ff&quot;&gt;Now=96&amp;nbsp; &amp;nbsp;=&amp;gt; Now-Begin=96-253= 99 &amp;lt; 100 =&amp;gt; Chưa hết giờ&lt;/font&gt;&lt;/i&gt;&lt;/div&gt;&lt;div&gt;&lt;i&gt;&lt;font color=&quot;#ff0000&quot;&gt;Now=97&amp;nbsp; &amp;nbsp;=&amp;gt; Now-Begin=97-253=100 &amp;gt;= 100 =&amp;gt; Hết giờ&lt;/font&gt;&lt;/i&gt;&lt;/div&gt;&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="50" y="350" width="510" height="330" as="geometry" />
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-51" value="Now" style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;fontColor=#FF0000;" vertex="1" parent="1">
+          <mxGeometry x="190" y="260" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="I4qCY5O5LtjlGwn-0m3x-53" value="Giá trị timer hiện tại" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="230" y="250" width="60" height="40" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

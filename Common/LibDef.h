@@ -81,6 +81,11 @@ typedef const char *far_string_t;
 #define PROC_ERR                        (-1)
 #define PROC_DRV_ERR                    (-2)
 
+#define RESULT_DONE                     0
+#define RESULT_BUSY                     1
+#define RESULT_REBOOT                   2
+#define RESULT_ERR                      (-1)
+
 #ifdef __XC32
 #include "sys/attribs.h"
 // MIPS memory address convert
@@ -97,7 +102,7 @@ typedef const char *far_string_t;
 #define BitSet(x, i)                    x=x|(1<<i)
 #define BitClear(x, i)                  x=x&(~(1<<i))
 
-#define membersof(a)                    ((ssize_t)(sizeof(a)/sizeof((a)[0]))) // Get the number of elements in an array.
+#define membersof(a)                    (sizeof(a)/sizeof((a)[0])) // Get the number of elements in an array.
 #define indexof(e_p, a)                 (e_p-&(a)[0]) // Get the index of given element in an array.
 
 #define container_of(ptr, type, member) ({const typeof(((type *)0)->member ) *__mptr=(ptr); \

@@ -1,0 +1,13 @@
+#ifndef DEBUG_CFG_H
+#define DEBUG_CFG_H
+
+#if(0)
+#include <xc.h>
+
+#define debug_port_write(b) do{while(U3STAbits.UTXBF == 1); U3TXREG=b; while(U3STAbits.TRMT==0);}while(0)
+#else
+#include "USB_CDC_Debug.h"
+
+#define debug_port_write(b) _mon_putc(b)
+#endif
+#endif

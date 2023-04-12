@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-//void _mon_putc(char c);
+void _mon_putc(char c);
 void USB_CDC_Debug_Tasks(void*);
 bool USB_CDC_Debug_Is_RxReady(void);
 bool USB_CDC_Debug_Is_TxReady(void);
