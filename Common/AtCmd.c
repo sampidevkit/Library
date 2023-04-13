@@ -28,22 +28,24 @@
 // Response constants
 const char RES_OK[]="\r\nOK\r\n";
 
-static uint8_t DoNext=0;
 static int RxCount=0;
+static uint8_t ReTry=0;
+static uint8_t DoNext=0;
 static tick_t Tdelay=250;
 static tick_timer_t TickRaw={1, 0, 0};
 buff_t *pAtCmdRxBkBuff;
 
 void ATCMD_Init(buff_t *pRxBuffer)
 {
+    ReTry=0;
     DoNext=0;
     RxCount=0;
+    Tdelay=250;
     pAtCmdRxBkBuff=pRxBuffer;
+    Tick_Timer_Reset(TickRaw);
 
     if(pAtCmdRxBkBuff!=NULL)
         pAtCmdRxBkBuff->Len=0;
-
-    Tick_Timer_Reset(TickRaw);
 }
 
 void ATCMD_SendRaw(const uint8_t *pD, int sz)
@@ -134,7 +136,7 @@ int8_t ATCMD_SendGetDat(const char *pTx, char *pRx, uint16_t firstWait, uint16_t
     return rslt;
 }
 
-int8_t ATCMD_SendGetAck(const char *pTx, const char *pAck, uint16_t firstWait, uint16_t lastWait)
+int8_t ATCMD_SendGetAck(const char *pTx, const char *pAck, uint16_t firstWait, uint16_t lastWait, uint8_t tryCount)
 {
     switch(DoNext)
     {
@@ -146,6 +148,7 @@ int8_t ATCMD_SendGetAck(const char *pTx, const char *pAck, uint16_t firstWait, u
 
         case 0:
             DoNext++;
+            ReTry=0;
 
             if(pAtCmdRxBkBuff!=NULL)
                 pAtCmdRxBkBuff->Len=0;
@@ -172,6 +175,7 @@ int8_t ATCMD_SendGetAck(const char *pTx, const char *pAck, uint16_t firstWait, u
                 if(FindString(c, &RxCount, (uint8_t *) pAck))
                 {
                     DoNext=0;
+                    ReTry=0;
                     return RESULT_DONE;
                 }
             }
@@ -180,16 +184,28 @@ int8_t ATCMD_SendGetAck(const char *pTx, const char *pAck, uint16_t firstWait, u
             {
                 if(Tick_Timer_Is_Over_Ms(TickRaw, firstWait))
                 {
-                    DoNext=0;
-                    __dbs("RX timeout");
-                    return RESULT_ERR;
+                    if(++ReTry>tryCount)
+                    {
+                        ReTry=0;
+                        DoNext=0;
+                        __dbs("RX timeout");
+                        return RESULT_ERR;
+                    }
+                    else
+                        DoNext=2;
                 }
             }
             else if(Tick_Timer_Is_Over_Ms(TickRaw, lastWait))
             {
-                DoNext=0;
-                __dbs("Not found");
-                return RESULT_ERR;
+                if(++ReTry>tryCount)
+                {
+                    ReTry=0;
+                    DoNext=0;
+                    __dbs("Not found");
+                    return RESULT_ERR;
+                }
+                else
+                    DoNext=2;
             }
             break;
     }
