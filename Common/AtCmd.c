@@ -122,7 +122,7 @@ int8_t ATCMD_SendGetDat(const char *pTx, char *pRx, uint16_t firstWait, uint16_t
             DoNext++;
             __dbss("\nTX: ", pTx);
             __dbs("\nRX: ");
-            ATCMD_SendRaw((uint8_t*) pTx, strlen(pTx));
+            ATCMD_SendRaw((uint8_t*) pTx, slen(pTx));
             break;
 
         case 1:
@@ -155,7 +155,7 @@ int8_t ATCMD_SendGetAck(const char *pTx, const char *pAck, uint16_t firstWait, u
 
             __dbss("\nTX: ", pTx);
             __dbs("\nRX: ");
-            ATCMD_SendRaw((uint8_t*) pTx, strlen(pTx));
+            ATCMD_SendRaw((uint8_t*) pTx, slen(pTx));
             break;
 
         case 1:
@@ -196,6 +196,79 @@ int8_t ATCMD_SendGetAck(const char *pTx, const char *pAck, uint16_t firstWait, u
                 }
             }
             else if(Tick_Timer_Is_Over_Ms(TickRaw, lastWait))
+            {
+                if(++ReTry>tryCount)
+                {
+                    ReTry=0;
+                    DoNext=0;
+                    __dbs("Not found");
+                    return RESULT_ERR;
+                }
+                else
+                    DoNext=2;
+            }
+            break;
+    }
+
+    return RESULT_BUSY;
+}
+
+int8_t ATCMD_Test(uint8_t tryCount)
+{
+    switch(DoNext)
+    {
+        default:
+        case 2:
+            if(Tick_Timer_Is_Over_Ms(TickRaw, Tdelay))
+                DoNext=0;
+            break;
+
+        case 0:
+            DoNext++;
+            ReTry=0;
+
+            if(pAtCmdRxBkBuff!=NULL)
+                pAtCmdRxBkBuff->Len=0;
+
+            __dbs("\nAT Test\nRX: ");
+            ATCMD_SendRaw("AT\r", 3);
+            break;
+            
+        case 1:
+            while(ATCMD_Port_IsRxReady())
+            {
+                uint8_t c=ATCMD_Port_Read();
+
+                __dbc(c);
+
+                if(c!=0x00)
+                    Tick_Timer_Reset(TickRaw);
+
+                if(pAtCmdRxBkBuff->pData!=NULL)
+                {
+                    pAtCmdRxBkBuff->pData[pAtCmdRxBkBuff->Len++]=c;
+                    pAtCmdRxBkBuff->pData[pAtCmdRxBkBuff->Len]=0;
+                }
+
+                if(FindString(c, &RxCount, (uint8_t *) RES_OK))
+                {
+                    DoNext=0;
+                    ReTry=0;
+                    return RESULT_DONE;
+                }
+            }
+
+            if(RxCount==0)
+            {
+                if(Tick_Timer_Is_Over_Ms(TickRaw, 250))
+                {
+                    ReTry=0;
+                    DoNext=0;
+                    __dbs("RX timeout");
+                    return RESULT_ERR;
+                }
+            }
+            else if(Tick_Timer_Is_Over_Ms(TickRaw, 50))
             {
                 if(++ReTry>tryCount)
                 {

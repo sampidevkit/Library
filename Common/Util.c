@@ -122,11 +122,12 @@ uint16_t str_len2break(const uint8_t *pData, uint8_t break_byte) // <editor-fold
     return i;
 } // </editor-fold>
 
-public bool str_cmp(const uint8_t *pDatain, int Len, const uint8_t *pSample) // <editor-fold defaultstate="collapsed" desc="Compare sub-string in string">
+public bool str_cmp(const char *pDatain, const char *pSample) // <editor-fold defaultstate="collapsed" desc="Compare sub-string in string">
 {
     int i;
+    int l=slen(pSample);
 
-    for(i=0; i<Len; i++)
+    for(i=0; i<l; i++)
     {
         if(pDatain[i]!=pSample[i])
             return 0;
@@ -154,7 +155,7 @@ public bool str_cmp_without_case(const uint8_t *pDatain, int Len, const uint8_t 
     return 1;
 } // </editor-fold>
 
-public bool findSString(uint8_t *pDatain, int LenS, const uint8_t *pSample) // <editor-fold defaultstate="collapsed" desc="Find sub-string in string">
+public bool findSString(char *pDatain, const char *pSample) // <editor-fold defaultstate="collapsed" desc="Find sub-string in string">
 {
     uint8_t i, LenD=(uint8_t) slen((char *) pDatain);
 
@@ -162,35 +163,36 @@ public bool findSString(uint8_t *pDatain, int LenS, const uint8_t *pSample) // <
     {
         if(pDatain[i]==pSample[0])
         {
-            if(str_cmp(&pDatain[i], LenS, pSample))
+            if(str_cmp(&pDatain[i], pSample))
                 return 1;
         }
     }
+
     return 0;
 } // </editor-fold>
 
-public bool delSString(uint8_t *pDatain, const uint8_t *pSample) // <editor-fold defaultstate="collapsed" desc="Remove a sub-string in a string just once">
+public bool delSString(char *pDatain, const char *pSample) // <editor-fold defaultstate="collapsed" desc="Remove a sub-string in a string just once">
 {
     uint8_t i;
-    uint8_t LenD=slen((char *) pDatain);
-    uint8_t LenS=slen((char *) pSample);
+    uint8_t LenD=(uint8_t) slen(pDatain);
+    uint8_t LenS=(uint8_t) slen(pSample);
 
     for(i=0; i<LenD; i++)
     {
         if(pDatain[i]==pSample[0])
         {
-            if(str_cmp(&pDatain[i], LenS, pSample))
+            if(str_cmp(&pDatain[i], pSample))
             {
                 uint8_t str_behind[150];
 
                 memset(str_behind, 0x00, 150);
-                strcpy((char *) str_behind, (char *) &pDatain[i+LenS]);
+                strcpy(str_behind, &pDatain[i+LenS]);
                 memset(&pDatain[i], 0x00, LenS);
 
                 if(i==0)
-                    strcpy((char *) pDatain, (char *) str_behind);
+                    strcpy(pDatain, str_behind);
                 else
-                    strcat((char *) pDatain, (char *) str_behind);
+                    strcat(pDatain, str_behind);
                 return 1;
             }
         }
@@ -941,19 +943,75 @@ public uint32_t bits_insert_32(uint32_t dst, int position, int size, uint32_t sr
     return (dst);
 } // </editor-fold>
 
-public uint8_t Bcd2Hex(uint8_t i) // <editor-fold defaultstate="collapsed" desc="Convert BCD to ASCII">
+public char Bcd2AHex(uint8_t bcd) // <editor-fold defaultstate="collapsed" desc="Convert BCD to ASCII Hex">
 {
-    i&=0x0F;
+    bcd&=0x0F;
 
-    if(i<10)
-        return (i+'0');
+    if(bcd<10)
+        return (char) (bcd+'0');
     else
     {
-        i-=10;
-        return (i+'A');
+        bcd-=10;
+        return (char) (bcd+'A');
     }
 } // </editor-fold>
 
+public int8_t AHex2Bcd(char ahex) // <editor-fold defaultstate="collapsed" desc="Convert ASCII Hex to BCD">
+{
+    if((ahex>='0')&&(ahex<='9'))
+        return (ahex-'0');
+    else if((ahex>='A')&&(ahex<='F'))
+        return (ahex-'7');
+    else if((ahex>='a')&&(ahex<='f'))
+        return (ahex-'W');
+    else
+    {
+        ahex-=10;
+        return (char) (ahex+'A');
+    }
+} // </editor-fold>
+
+public int Array2AHex(char *des, const uint8_t *src, int len) // <editor-fold defaultstate="collapsed" desc="Convert Array to ASCII Hex">
+{
+    int i;
+
+    for(i=0; i<len; i++)
+    {
+        uint8_t b=*src;
+
+        *des=Bcd2AHex(b>>4);
+        des++;
+        *des=Bcd2AHex(b);
+        src++;
+        des++;
+    }
+    
+    *des=0;
+    
+    return (len<<1);
+} // </editor-fold>
+
+public int AHex2Array(uint8_t *des, const char *src, int len) // <editor-fold defaultstate="collapsed" desc="Convert ASCII Hex to Array">
+{
+    int i;
+    
+    len>>=1;
+
+    for(i=0; i<len; i++)
+    {
+        uint8_t c;
+        
+        c=AHex2Bcd(*src++);
+        c<<=4;
+        c|=AHex2Bcd(*src++);
+        *des=c;
+        des++;
+    }
+
+    *des=0;
+
+    return len;
+} // </editor-fold>
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Date Time">

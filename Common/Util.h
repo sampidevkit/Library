@@ -19,7 +19,7 @@ public void str_lowercase(uint8_t *pData);
 public bool FindString(uint8_t c, size_t *pIdx, const uint8_t *pStrSample);
 uint16_t Copy_Str2Break(const uint8_t *pDatain, uint8_t break_byte, uint8_t *pDataout);
 uint16_t str_len2break(const uint8_t *pData, uint8_t break_byte);
-public bool str_cmp(const uint8_t *pDatain, int Len, const uint8_t *pSample);
+public bool str_cmp(const char *pDatain, const char *pSample);
 public bool str_cmp_without_case(const uint8_t *pDatain, int Len, const uint8_t *pSample);
 public int str_remove(char *p, char c);
 public void str_sremove(char *str, char c, uint8_t amount);
@@ -39,8 +39,8 @@ public uint32_t HexParse(const uint8_t *c); // NULL input is 0
 bool is_hex_data(uint8_t b);
 public bool is_printable(uint8_t c);
 public int8_t StrCmp(strcmp_t *pCxt, uint8_t c);
-public bool findSString(uint8_t *pDatain, int LenS, const uint8_t *pSample);
-public bool delSString(uint8_t *pDatain, const uint8_t *pSample);
+public bool findSString(char *pDatain, const char *pSample);
+public bool delSString(char *pDatain, const char *pSample);
 
 #define str_sub_between(des, src, c1, count1, c2, count2) str_sub(des, src, c1, count1, 1, c2, count2, -1)
 
@@ -66,7 +66,10 @@ public uint32_t bits_reverse_16(uint32_t value);
 public uint32_t bits_reverse_32(uint32_t value);
 public uint32_t bits_mask_32(int width);
 public uint32_t bits_insert_32(uint32_t dst, int position, int size, uint32_t src);
-public uint8_t Bcd2Hex(uint8_t i);
+public char Bcd2AHex(uint8_t bcd);
+public int8_t AHex2Bcd(char ahex);
+public int Array2AHex(char *des, const uint8_t *src, int len);
+public int AHex2Array(uint8_t *des, const char *src, int len);
 ///* **************************************************************** DATE TIME */
 extern const uint8_t DayOfMonth[12];
 public bool CheckLeapYear(uint16_t Year);
