@@ -9,6 +9,23 @@
 
 // <editor-fold defaultstate="collapsed" desc="String Processing">
 
+public void random8(uint8_t *des, int len, uint8_t min, uint8_t max) // <editor-fold defaultstate="collapsed" desc="Generate 8-bit random value">
+{
+    uint8_t step=(max-min)+1;
+
+    while(len>0)
+    {
+        uint16_t val=(0xFF&rand());
+
+        val*=step;
+        val>>=8;
+        val+=min;
+        *des=(uint8_t)val;
+        des++;
+        len--;
+    }
+} // </editor-fold>
+
 public size_t slen(const char *pStr) // <editor-fold defaultstate="collapsed" desc="Calculate length of an ASCII string">
 {
     size_t len=0;
@@ -985,22 +1002,22 @@ public int Array2AHex(char *des, const uint8_t *src, int len) // <editor-fold de
         src++;
         des++;
     }
-    
+
     *des=0;
-    
+
     return (len<<1);
 } // </editor-fold>
 
 public int AHex2Array(uint8_t *des, const char *src, int len) // <editor-fold defaultstate="collapsed" desc="Convert ASCII Hex to Array">
 {
     int i;
-    
+
     len>>=1;
 
     for(i=0; i<len; i++)
     {
         uint8_t c;
-        
+
         c=AHex2Bcd(*src++);
         c<<=4;
         c|=AHex2Bcd(*src++);

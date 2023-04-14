@@ -11,6 +11,7 @@ typedef struct {
 #define StrCmp_Init(cxt, src) do{cxt.idx=0; cxt.pStr=(uint8_t*)src;}while(0)
 
 /* ******************************************************** STRING PROCESSING */
+public void random8(uint8_t *des, int len, uint8_t min, uint8_t max);
 public size_t slen(const char *pStr);
 public uint8_t UpperCase(uint8_t Data);
 public uint8_t LowerCase(uint8_t Data);

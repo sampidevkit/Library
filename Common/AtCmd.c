@@ -148,7 +148,7 @@ int8_t ATCMD_SendGetAck(const char *pTx, const char *pAck, uint16_t firstWait, u
 
         case 0:
             DoNext++;
-            ReTry=0;
+            //ReTry=0;
 
             if(pAtCmdRxBkBuff!=NULL)
                 pAtCmdRxBkBuff->Len=0;
@@ -184,7 +184,7 @@ int8_t ATCMD_SendGetAck(const char *pTx, const char *pAck, uint16_t firstWait, u
             {
                 if(Tick_Timer_Is_Over_Ms(TickRaw, firstWait))
                 {
-                    if(++ReTry>tryCount)
+                    if(++ReTry>=tryCount)
                     {
                         ReTry=0;
                         DoNext=0;
@@ -197,7 +197,7 @@ int8_t ATCMD_SendGetAck(const char *pTx, const char *pAck, uint16_t firstWait, u
             }
             else if(Tick_Timer_Is_Over_Ms(TickRaw, lastWait))
             {
-                if(++ReTry>tryCount)
+                if(++ReTry>=tryCount)
                 {
                     ReTry=0;
                     DoNext=0;
@@ -225,7 +225,7 @@ int8_t ATCMD_Test(uint8_t tryCount)
 
         case 0:
             DoNext++;
-            ReTry=0;
+            //ReTry=0;
 
             if(pAtCmdRxBkBuff!=NULL)
                 pAtCmdRxBkBuff->Len=0;
@@ -270,7 +270,7 @@ int8_t ATCMD_Test(uint8_t tryCount)
             }
             else if(Tick_Timer_Is_Over_Ms(TickRaw, 50))
             {
-                if(++ReTry>tryCount)
+                if(++ReTry>=tryCount)
                 {
                     ReTry=0;
                     DoNext=0;
