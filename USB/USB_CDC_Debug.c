@@ -6,7 +6,9 @@
 #undef RX_LED_SetLow
 #undef TX_LED_SetHigh
 #undef TX_LED_SetLow
+#ifndef DISABLE_LIBRARY_WARNING
 #warning "USB CDC disable LED indicator"
+#endif
 #endif
 
 #ifndef DTR_LED_SetHigh

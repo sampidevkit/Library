@@ -27,25 +27,25 @@
 
 // Response constants
 const char RES_OK[]="\r\nOK\r\n";
+uint8_t AtCmdData[ATCMD_BUFFER_SIZE];
+buff_t AtCmdRxBuff;
 
 static int RxCount=0;
 static uint8_t ReTry=0;
 static uint8_t DoNext=0;
 static tick_t Tdelay=250;
 static tick_timer_t TickRaw={1, 0, 0};
-buff_t *pAtCmdRxBkBuff;
 
-void ATCMD_Init(buff_t *pRxBuffer)
+void ATCMD_Init(void)
 {
     ReTry=0;
     DoNext=0;
     RxCount=0;
     Tdelay=250;
-    pAtCmdRxBkBuff=pRxBuffer;
+    AtCmdRxBuff.Len=0;
+    AtCmdRxBuff.Size=ATCMD_BUFFER_SIZE;
+    AtCmdRxBuff.pData=AtCmdData;
     Tick_Timer_Reset(TickRaw);
-
-    if(pAtCmdRxBkBuff!=NULL)
-        pAtCmdRxBkBuff->Len=0;
 }
 
 void ATCMD_SendRaw(const uint8_t *pD, int sz)
@@ -148,11 +148,7 @@ int8_t ATCMD_SendGetAck(const char *pTx, const char *pAck, uint16_t firstWait, u
 
         case 0:
             DoNext++;
-            //ReTry=0;
-
-            if(pAtCmdRxBkBuff!=NULL)
-                pAtCmdRxBkBuff->Len=0;
-
+            AtCmdRxBuff.Len=0;
             __dbss("\nTX: ", pTx);
             __dbs("\nRX: ");
             ATCMD_SendRaw((uint8_t*) pTx, slen(pTx));
@@ -163,14 +159,16 @@ int8_t ATCMD_SendGetAck(const char *pTx, const char *pAck, uint16_t firstWait, u
             {
                 uint8_t c=ATCMD_Port_Read();
 
-                Tick_Timer_Reset(TickRaw);
                 __dbc(c);
 
-                if(pAtCmdRxBkBuff->pData!=NULL)
-                {
-                    pAtCmdRxBkBuff->pData[pAtCmdRxBkBuff->Len++]=c;
-                    pAtCmdRxBkBuff->pData[pAtCmdRxBkBuff->Len]=0;
-                }
+                if(c!=0x00)
+                    Tick_Timer_Reset(TickRaw);
+
+                AtCmdRxBuff.pData[AtCmdRxBuff.Len++]=c;
+                AtCmdRxBuff.pData[AtCmdRxBuff.Len]=0;
+
+                if((AtCmdRxBuff.Len+1)==AtCmdRxBuff.Size)
+                    AtCmdRxBuff.Len=0;
 
                 if(FindString(c, &RxCount, (uint8_t *) pAck))
                 {
@@ -225,30 +223,26 @@ int8_t ATCMD_Test(uint8_t tryCount)
 
         case 0:
             DoNext++;
-            //ReTry=0;
-
-            if(pAtCmdRxBkBuff!=NULL)
-                pAtCmdRxBkBuff->Len=0;
-
-            __dbs("\nAT Test\nRX: ");
+            AtCmdRxBuff.Len=0;
+            //__dbs("\nAT Test\nRX: ");
             ATCMD_SendRaw("AT\r", 3);
             break;
-            
+
         case 1:
             while(ATCMD_Port_IsRxReady())
             {
                 uint8_t c=ATCMD_Port_Read();
 
-                __dbc(c);
+                //__dbc(c);
 
                 if(c!=0x00)
                     Tick_Timer_Reset(TickRaw);
 
-                if(pAtCmdRxBkBuff->pData!=NULL)
-                {
-                    pAtCmdRxBkBuff->pData[pAtCmdRxBkBuff->Len++]=c;
-                    pAtCmdRxBkBuff->pData[pAtCmdRxBkBuff->Len]=0;
-                }
+                AtCmdRxBuff.pData[AtCmdRxBuff.Len++]=c;
+                AtCmdRxBuff.pData[AtCmdRxBuff.Len]=0;
+
+                if((AtCmdRxBuff.Len+1)==AtCmdRxBuff.Size)
+                    AtCmdRxBuff.Len=0;
 
                 if(FindString(c, &RxCount, (uint8_t *) RES_OK))
                 {
@@ -264,7 +258,7 @@ int8_t ATCMD_Test(uint8_t tryCount)
                 {
                     ReTry=0;
                     DoNext=0;
-                    __dbs("RX timeout");
+                    //__dbs("RX timeout");
                     return RESULT_ERR;
                 }
             }
@@ -274,7 +268,7 @@ int8_t ATCMD_Test(uint8_t tryCount)
                 {
                     ReTry=0;
                     DoNext=0;
-                    __dbs("Not found");
+                    //__dbs("Not found");
                     return RESULT_ERR;
                 }
                 else

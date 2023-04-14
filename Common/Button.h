@@ -32,7 +32,9 @@ bt_stt_t BUTTON_GetState(bt_cxt_t *pBtCxt, bool preInput);
 #ifdef BT_N_GetValue
 #define USE_DEFAULT_BUTTON
 #define MOD_Button_GetState()                   BUTTON_GetState(&ModeBtCxt, BT_N_GetValue())
+#ifndef DISABLE_LIBRARY_WARNING
 #warning "Input of MOD_Button_GetState() function is BT_N_GetValue()"
+#endif
 #else
 #define MOD_Button_GetState(input)              BUTTON_GetState(&ModeBtCxt, input)
 #endif

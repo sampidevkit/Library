@@ -1,6 +1,7 @@
 #ifndef SYSTEMTICK_H
 #define SYSTEMTICK_H
 
+#include <xc.h>
 #include <stdint.h>
 #include <stdbool.h>
 
