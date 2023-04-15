@@ -478,7 +478,7 @@ public char *str_last(const char *p, char c) // <editor-fold defaultstate="colla
 public int32_t IntParse(const uint8_t *c) // <editor-fold defaultstate="collapsed" desc="String to signed integer value">
 {
     bool minus=0;
-    uint32_t res=0;
+    int32_t res=0;
 
     if(c==NULL)
         return 0;

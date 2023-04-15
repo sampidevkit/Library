@@ -78,6 +78,17 @@ void debug_u32(uint32_t b)
         debug_port_write('0');
 }
 
+void debug_i32(int32_t b)
+{
+    if(b<0)
+    {
+        debug_port_write('-');
+        b*=(-1);
+    }
+    
+    debug_u32((uint32_t)b);
+}
+
 void debug_data(uint8_t *pD, int len)
 {
     while(len>0)
