@@ -32,6 +32,7 @@ buff_t AtCmdRxBuff;
 
 static int RxCount=0;
 static uint8_t ReTry=0;
+static uint8_t TestCount=0;
 static uint8_t DoNext=0;
 static tick_t Tdelay=250;
 static tick_timer_t TickRaw={1, 0, 0};
@@ -41,6 +42,7 @@ void ATCMD_Init(void)
     ReTry=0;
     DoNext=0;
     RxCount=0;
+    TestCount=0;
     Tdelay=250;
     AtCmdRxBuff.Len=0;
     AtCmdRxBuff.Size=ATCMD_BUFFER_SIZE;
@@ -213,66 +215,76 @@ int8_t ATCMD_SendGetAck(const char *pTx, const char *pAck, uint16_t firstWait, u
 
 int8_t ATCMD_Test(uint8_t tryCount)
 {
-    switch(DoNext)
+    int8_t rslt;
+    uint8_t type=tryCount>>6;
+
+    tryCount&=0x3F;
+    rslt=ATCMD_SendGetAck("AT\r", RES_OK, 250, 250, 1);
+
+    switch(type)
     {
         default:
-        case 2:
-            if(Tick_Timer_Is_Over_Ms(TickRaw, Tdelay))
-                DoNext=0;
-            break;
-
-        case 0:
-            DoNext++;
-            AtCmdRxBuff.Len=0;
-            //__dbs("\nAT Test\nRX: ");
-            ATCMD_SendRaw("AT\r", 3);
-            break;
-
-        case 1:
-            while(ATCMD_Port_IsRxReady())
+        case ALL_STATE_ON:
+            if(rslt==RESULT_DONE)
             {
-                uint8_t c=ATCMD_Port_Read();
-
-                //__dbc(c);
-
-                if(c!=0x00)
-                    Tick_Timer_Reset(TickRaw);
-
-                AtCmdRxBuff.pData[AtCmdRxBuff.Len++]=c;
-                AtCmdRxBuff.pData[AtCmdRxBuff.Len]=0;
-
-                if((AtCmdRxBuff.Len+1)==AtCmdRxBuff.Size)
-                    AtCmdRxBuff.Len=0;
-
-                if(FindString(c, &RxCount, (uint8_t *) RES_OK))
+                if(++TestCount>=tryCount)
                 {
-                    DoNext=0;
-                    ReTry=0;
+                    TestCount=0;
                     return RESULT_DONE;
                 }
             }
-
-            if(RxCount==0)
+            else if(rslt==RESULT_ERR)
             {
-                if(Tick_Timer_Is_Over_Ms(TickRaw, 250))
+                TestCount=0;
+                return RESULT_ERR;
+            }
+            break;
+
+        case ALL_STATE_OFF:
+            if(rslt==RESULT_DONE)
+            {
+                TestCount=0;
+                return RESULT_ERR;
+            }
+            else if(rslt==RESULT_ERR)
+            {
+                if(++TestCount>=tryCount)
                 {
-                    ReTry=0;
-                    DoNext=0;
-                    //__dbs("RX timeout");
+                    TestCount=0;
+                    return RESULT_DONE;
+                }
+            }
+            break;
+
+        case AT_LEAST_1ON:
+            if(rslt==RESULT_DONE)
+            {
+                TestCount=0;
+                return RESULT_DONE;
+            }
+            else if(rslt==RESULT_ERR)
+            {
+                if(++TestCount>=tryCount)
+                {
+                    TestCount=0;
                     return RESULT_ERR;
                 }
             }
-            else if(Tick_Timer_Is_Over_Ms(TickRaw, 50))
+            break;
+
+        case AT_LEAST_1OFF:
+            if(rslt==RESULT_DONE)
             {
-                if(++ReTry>=tryCount)
+                if(++TestCount>=tryCount)
                 {
-                    ReTry=0;
-                    DoNext=0;
-                    //__dbs("Not found");
+                    TestCount=0;
                     return RESULT_ERR;
                 }
-                else
-                    DoNext=2;
+            }
+            else if(rslt==RESULT_ERR)
+            {
+                TestCount=0;
+                return RESULT_DONE;
             }
             break;
     }

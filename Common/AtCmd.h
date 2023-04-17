@@ -30,7 +30,13 @@ void ATCMD_SendRaw(const uint8_t *pD, int sz);
 int8_t ATCMD_GetRaw(uint8_t *pD, int *pSz, uint16_t firstWait, uint16_t lastWait);
 int8_t ATCMD_SendGetDat(const char *pTx, char *pRx, uint16_t firstWait, uint16_t lastWait);
 int8_t ATCMD_SendGetAck(const char *pTx, const char *pAck, uint16_t firstWait, uint16_t lastWait, uint8_t tryCount);
-int8_t ATCMD_Test(uint8_t tryCount);
+
+int8_t ATCMD_Test(uint8_t tryCount); // Max 63 time
+// tryCount OR (|) options
+#define ALL_STATE_ON    0x00
+#define ALL_STATE_OFF   0x40
+#define AT_LEAST_1ON    0x80
+#define AT_LEAST_1OFF   0xC0
 
 #define ATCMD_GetRxBuffer(idx)  AtCmdRxBuff.pData[idx]
 #define ATCMD_GetRxSize()       AtCmdRxBuff.Size
