@@ -216,7 +216,7 @@ int8_t ATCMD_SendGetAck(const char *pTx, const char *pAck, uint16_t firstWait, u
 int8_t ATCMD_Test(uint8_t tryCount)
 {
     int8_t rslt;
-    uint8_t type=tryCount>>6;
+    uint8_t type=tryCount&0xC0;
 
     tryCount&=0x3F;
     rslt=ATCMD_SendGetAck("AT\r", RES_OK, 250, 250, 1);
