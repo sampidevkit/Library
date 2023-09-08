@@ -28,6 +28,8 @@
 static bool __init=0;
 static uint8_t __len;
 static uint8_t __data[CDC_DATA_OUT_EP_SIZE];
+static tick_timer_t __tkTx={1, 0, 0};
+static tick_timer_t __tkRx={1, 0, 0};
 
 char UART_DTR=USB_CDC_DTR_ACTIVE_LEVEL^1; // extern variable loacted in usb_device_config.h
 
@@ -85,12 +87,17 @@ static inline bool USB_CDC_UART_Is_Ready(void) // <editor-fold defaultstate="col
     else if(Is_Init==0)
     {
         Is_Init=1;
+        UART2_Initialize();
         IEC1bits.U2TXIE=0;
         IEC1bits.U2RXIE=1;
         U2STASET=_U2STA_UTXEN_MASK;
         U2STASET=_U2STA_URXEN_MASK;
         U2MODESET=_U2MODE_ON_MASK;
         DTR_LED_SetHigh();
+        RX_LED_SetHigh();
+        TX_LED_SetHigh();
+        Tick_Timer_Reset(__tkTx);
+        Tick_Timer_Reset(__tkRx);
     }
 
     return Is_Init;
@@ -101,6 +108,7 @@ static inline void USB_CDC_UART_Rx_Tasks(void) // <editor-fold defaultstate="col
     if(!USBHandleBusy(CDCDataOutHandle))
     {
         RX_LED_SetHigh();
+        Tick_Timer_Reset(__tkRx);
         __len=CDC_DATA_IN_EP_SIZE;
 
         if(__len>USBHandleGetLength(CDCDataOutHandle))
@@ -123,6 +131,7 @@ static inline void USB_CDC_UART_Tx_Tasks(void) // <editor-fold defaultstate="col
     while(UART2_IsRxReady())
     {
         TX_LED_SetHigh();
+        Tick_Timer_Reset(__tkTx);
         __data[__len++]=UART2_Read();
 
         if(__len==CDC_DATA_OUT_EP_SIZE)
@@ -162,8 +171,14 @@ void USB_CDC_UART_Tasks(void) // <editor-fold defaultstate="collapsed" desc="USB
     }
 
     if(RX_LED_GetValue()&&(!UART2_IsRxReady()))
-        RX_LED_SetLow();
+    {
+        if(Tick_Timer_Is_Over_Ms(__tkRx, 50))
+            RX_LED_SetLow();
+    }
 
     if(TX_LED_GetValue()&&USBUSARTIsTxTrfReady())
-        TX_LED_SetLow();
+    {
+        if(Tick_Timer_Is_Over_Ms(__tkTx, 50))
+            TX_LED_SetLow();
+    }
 } // </editor-fold>
