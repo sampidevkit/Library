@@ -6,7 +6,6 @@
 #endif
 
 private tick_timer_t Tick={1, 0, 0};
-private task_t WdtTaskCxt;
 
 public void SYS_SoftReset(void) // <editor-fold defaultstate="collapsed" desc="Software reset">
 {

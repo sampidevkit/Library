@@ -1,8 +1,8 @@
 #ifndef BUTTON_H
 #define BUTTON_H
 
-#include <stdint.h>
-#include <stdbool.h>
+#include "LibDef.h"
+#include "Timer/SystemTick.h"
 
 typedef enum {
     NOT_PRESS = 0,
@@ -15,7 +15,7 @@ typedef enum {
 
 typedef struct {
     bt_stt_t DoNext;
-    uint32_t Begin;
+    tick_t Begin;
     void (*SinglePressCallback)(void);
     void (*DoublePressCallback)(void);
     void (*HoldPressCallback)(void);

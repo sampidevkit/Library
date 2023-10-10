@@ -200,9 +200,9 @@ public bool delSString(char *pDatain, const char *pSample) // <editor-fold defau
         {
             if(str_cmp(&pDatain[i], pSample))
             {
-                uint8_t str_behind[150];
+                char str_behind[32];
 
-                memset(str_behind, 0x00, 150);
+                memset(str_behind, 0x00, 32);
                 strcpy(str_behind, &pDatain[i+LenS]);
                 memset(&pDatain[i], 0x00, LenS);
 
