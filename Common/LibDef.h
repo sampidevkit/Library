@@ -12,6 +12,11 @@
 #include <stdarg.h>
 #include <time.h>
 
+#ifdef __AVR
+#include <avr/wdt.h>
+#include <avr/sleep.h>
+#endif
+
 #ifdef __WIN32
 #include <windows.h>
 #define WIN32_LEAN_AND_MEAN

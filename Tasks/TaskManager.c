@@ -80,7 +80,7 @@ public bool TaskManager_SendMessage(fnc_t pTaskFnc, void *pMsg)
                 pCurrTask->pMsg=pMsg;
             }
         }
-        
+
         pCurrTask=pCurrTask->pNext;
     }
 
@@ -89,8 +89,28 @@ public bool TaskManager_SendMessage(fnc_t pTaskFnc, void *pMsg)
     return rslt; // 1-done, 0-busy
 }
 
-public void TaskManager_Init(void)
+public void TaskManager_Init(uint8_t SysPwrMode)
 {
     pCurrTask=NULL;
     TaskCount=0;
+
+    switch(SysPwrMode)
+    {
+        case SYSPWR_IDLE_MODE:
+            set_sleep_mode(0x00); // Idle Sleep Mode enabled
+            break;
+
+        case SYSPWR_STANDBY_MODE:
+            set_sleep_mode(0x01); // Standby Sleep Mode enabled: WDT, RTC run
+            break;
+
+        case SYSPWR_POWER_DOWN_MODE:
+            set_sleep_mode(0x02); // Power-Down Sleep Mode enabled: only PIT & WDT run
+            break;
+
+        default:
+            return;
+    }
+
+    sleep_enable();
 }

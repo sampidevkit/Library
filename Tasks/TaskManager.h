@@ -16,6 +16,18 @@ typedef struct TASK_T {
 extern task_t *pCurrTask;
 extern uint8_t TaskCount;
 
+#ifndef sleep_mode
+#define sleep_mode()
+#endif
+
+#ifndef set_sleep_mode
+#define set_sleep_mode(x)
+#endif
+
+#ifndef sleep_enable
+#define sleep_enable()
+#endif
+
 #define __make_sem_name(x)                  __sem_ ## x
 #define __make_task_cxt(x)                  __TaskCxt_ ## x
 #define __make_tick_cxt(x)                  __TickCxt_ ## x
@@ -43,7 +55,7 @@ extern uint8_t TaskCount;
 
 #define TaskManager()                       if(TaskCount>0){if(pCurrTask->Lock==0) \
                                             {pCurrTask->pFnc(pCurrTask);} \
-                                            pCurrTask=pCurrTask->pNext;}
+                                            pCurrTask=pCurrTask->pNext;} else {sleep_mode();}
 
 #define TaskManager_Count()                 TaskCount
 #define TaskManager_End_AllTasks()          TaskManager_Init()
@@ -83,7 +95,12 @@ extern uint8_t TaskCount;
                                             __make_sem_name(st)=0; (fnc); \
                                             __make_sem_name(st)=1;}while(0)
 
-public void TaskManager_Init(void);
+#define SYSPWR_NORMAL_MODE                  0
+#define SYSPWR_IDLE_MODE                    1
+#define SYSPWR_STANDBY_MODE                 2
+#define SYSPWR_POWER_DOWN_MODE              3
+
+public void TaskManager_Init(uint8_t SysPwrMode);
 public void TaskManager_Add_Task(task_t *pTaskCxt);
 public void TaskManager_Remove_Task(task_t *pTaskCxt);
 public bool TaskManager_SendMessage(fnc_t pTaskFnc, void *pMsg);

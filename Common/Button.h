@@ -3,6 +3,7 @@
 
 #include "LibDef.h"
 #include "Timer/SystemTick.h"
+#include "Button_Cfg.h"
 
 typedef enum {
     NOT_PRESS = 0,

@@ -37,6 +37,7 @@ typedef __UINT16_TYPE__ tick_t;
 
 #define Tick_Reset(cxt)         cxt.Over=1
 #define Tick_Timer_Reset(cxt)   cxt.Over=1
+#define tick_timer_declare(x)   tick_timer_t x={1,0,0}
 
 typedef struct {
     bool Over;
