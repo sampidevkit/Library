@@ -1,9 +1,25 @@
 #include "AP33772.h"
 
-void i2c_read(uint8_t slvAddr, uint8_t cmdAddr, uint8_t len);
-void i2c_write(uint8_t slvAddr, uint8_t cmdAddr, uint8_t len);
+#ifdef USE_AP33772_DEBUG
+#include "Common/debug.h"
+#else
+#define __dbc(c)                
+#define __dbs(str)              
+#define __dbi(x)                
+#define __dbh(x, dg)            
+#define __dbh2(x)               
+#define __dbhs(str, len)        
+#define __dbdata(str, len)      
 
-TwoWire *_i2cPort;
+#define __dbsi(str, x)          
+#define __dbsh(str, x)          
+#define __dbsc(str, c)          
+#define __dbss(str1, str2)      
+#define __dbstime(str, tcxt)    
+#define __dbsdate(str, tcxt)    
+#define __dbsdata(str, pd, len) 
+#endif
+
 uint8_t readBuf[READ_BUFF_LENGTH]={0};
 uint8_t writeBuf[WRITE_BUFF_LENGTH]={0};
 uint8_t numPDO=0; // source PDO number
@@ -17,9 +33,13 @@ EVENT_FLAG_T event_flag={0};
 RDO_DATA_T rdoData={0};
 PDO_DATA_T pdoData[7]={0};
 
-void AP33772_begin()
+void AP33772_Init(void) // <editor-fold defaultstate="collapsed" desc="Initialize">
 {
-    i2c_read(AP33772_ADDRESS, CMD_STATUS, 1); // CMD: Read Status
+    uint8_t i=0;
+
+    writeBuf[i++]=CMD_STATUS;
+    AP33772_I2C_Write(AP33772_ADDRESS, writeBuf, i);
+    AP33772_I2C_Read(AP33772_ADDRESS, readBuf, 1); // CMD: Read Status
     ap33772_status.readStatus=readBuf[0];
 
     if(ap33772_status.isOvp)
@@ -44,24 +64,32 @@ void AP33772_begin()
                 event_flag.negoFail=1;
         }
     }
-    delay(10);
+
+    AP33772_DelayMs(10);
 
     // If negotiation is good, let's load in some PDOs from charger
     if(event_flag.newNegoSuccess)
     {
         event_flag.newNegoSuccess=0;
 
-        i2c_read(AP33772_ADDRESS, CMD_PDONUM, 1); // CMD: Read PDO Number
+        i=0;
+        writeBuf[i++]=CMD_PDONUM;
+        AP33772_I2C_Write(AP33772_ADDRESS, writeBuf, i);
+        AP33772_I2C_Read(AP33772_ADDRESS, readBuf, 1); // CMD: Read PDO Number
         numPDO=readBuf[0];
 
-        i2c_read(AP33772_ADDRESS, CMD_SRCPDO, SRCPDO_LENGTH); // CMD: Read PDOs
+        i=0;
+        writeBuf[i++]=CMD_SRCPDO;
+        AP33772_I2C_Write(AP33772_ADDRESS, writeBuf, i);
+        AP33772_I2C_Read(AP33772_ADDRESS, readBuf, SRCPDO_LENGTH); // CMD: Read PDOs
+
         // copy PDOs to pdoData[]
-        for(uint8_t i=0; i<numPDO; i++)
+        for(i=0; i<numPDO; i++)
         {
-            pdoData[i].byte0=readBuf[i*4];
-            pdoData[i].byte1=readBuf[i*4+1];
-            pdoData[i].byte2=readBuf[i*4+2];
-            pdoData[i].byte3=readBuf[i*4+3];
+            pdoData[i].byte0=readBuf[i<<2]; // i*4
+            pdoData[i].byte1=readBuf[(i<<2)+1]; // i*4+1
+            pdoData[i].byte2=readBuf[(i<<2)+2]; // i*4+2
+            pdoData[i].byte3=readBuf[(i<<2)+3]; // i*4+3
 
             if((pdoData[i].byte3&0xF0)==0xC0) // PPS profile found
             {
@@ -70,20 +98,17 @@ void AP33772_begin()
             }
         }
     }
-}
+} // </editor-fold>
 
-/**
- * @brief Set VBUS voltage
- * @param targetVoltage in mV
- */
-void AP33772_setVoltage(int targetVoltage)
+void AP33772_setVoltage(int targetVoltage) // <editor-fold defaultstate="collapsed" desc="Set VBUS voltage, targetVoltage in mV">
 {
     /*
     Step 1: Check if PPS can satify request voltage
     Step 2: Scan PDOs to see what is the lower closest voltage to request
     Step 3: Compare found PDOs votlage and PPS max voltage
      */
-    uint8_t tempIndex=0;
+    uint8_t i, tempIndex=0;
+
     if(existPPS)
     {
         if((pdoData[PPSindex].pps.maxVoltage*100>=targetVoltage) && (pdoData[PPSindex].pps.minVoltage*100<=targetVoltage)) // PPS exist, voltage satify
@@ -93,14 +118,14 @@ void AP33772_setVoltage(int targetVoltage)
             rdoData.pps.objPosition=PPSindex+1; // index 1
             rdoData.pps.opCurrent=pdoData[PPSindex].pps.maxCurrent;
             rdoData.pps.voltage=reqPpsVolt;
-            writeRDO();
+            AP33772_writeRDO();
             return;
         }
     }
     else
     {
         // Step 2: Scan PDOs to see what is the lower closest voltage to request
-        for(uint8_t i=0; i<numPDO-existPPS; i++)
+        for(i=0; i<numPDO-existPPS; i++)
         {
             if(pdoData[i].fixed.voltage*50<=targetVoltage)
                 tempIndex=i;
@@ -112,7 +137,7 @@ void AP33772_setVoltage(int targetVoltage)
             rdoData.fixed.objPosition=tempIndex+1; // Index 0 to Index 1
             rdoData.fixed.maxCurrent=pdoData[indexPDO].fixed.maxCurrent;
             rdoData.fixed.opCurrent=pdoData[indexPDO].fixed.maxCurrent;
-            writeRDO();
+            AP33772_writeRDO();
             return;
         }
         else // If PPS voltage larger or equal to Fixed PDO
@@ -122,17 +147,13 @@ void AP33772_setVoltage(int targetVoltage)
             rdoData.pps.objPosition=PPSindex+1; // index 1
             rdoData.pps.opCurrent=pdoData[PPSindex].pps.maxCurrent;
             rdoData.pps.voltage=reqPpsVolt;
-            writeRDO();
+            AP33772_writeRDO();
             return;
         }
     }
-}
+} // </editor-fold>
 
-/**
- * @brief Set max current before tripping at wall plug
- * @param targetMaxCurrent in mA
- */
-void AP33772_setMaxCurrent(int targetMaxCurrent)
+void AP33772_setMaxCurrent(int targetMaxCurrent) // <editor-fold defaultstate="collapsed" desc="Set max current before tripping at wall plug, targetMaxCurrent in mA">
 {
     /*
     Step 1: Check if current profile is PPS, check if max current is lower than request
@@ -142,6 +163,7 @@ void AP33772_setMaxCurrent(int targetMaxCurrent)
         If yes, set new max current
         If no, report fault
      */
+
     if(indexPDO==PPSindex)
     {
         if(targetMaxCurrent<=pdoData[PPSindex].pps.maxCurrent*50)
@@ -149,196 +171,164 @@ void AP33772_setMaxCurrent(int targetMaxCurrent)
             rdoData.pps.objPosition=PPSindex+1; // index 1
             rdoData.pps.opCurrent=targetMaxCurrent/50; // 50mA/LBS
             rdoData.pps.voltage=reqPpsVolt;
-            writeRDO();
+            AP33772_writeRDO();
         }
-        else
-        {
-        } // Do nothing
     }
-    else
+    else if(targetMaxCurrent<=pdoData[indexPDO].fixed.maxCurrent*10)
     {
-        if(targetMaxCurrent<=pdoData[indexPDO].fixed.maxCurrent*10)
-        {
-            rdoData.fixed.objPosition=indexPDO+1; // Index 0 to Index 1
-            rdoData.fixed.maxCurrent=targetMaxCurrent/10; // 10mA/LBS
-            rdoData.fixed.opCurrent=targetMaxCurrent/10; // 10mA/LBS
-            writeRDO();
-        }
-        else
-        {
-        } // Do nothing
+        rdoData.fixed.objPosition=indexPDO+1; // Index 0 to Index 1
+        rdoData.fixed.maxCurrent=targetMaxCurrent/10; // 10mA/LBS
+        rdoData.fixed.opCurrent=targetMaxCurrent/10; // 10mA/LBS
+        AP33772_writeRDO();
     }
-}
+} // </editor-fold>
 
-/**
- * @brief Set resistance value of 10K NTC at 25C, 50C, 75C and 100C.
- *          Default is 10000, 4161, 1928, 974Ohm
- * @param TR25, TR50, TR75, TR100 unit in Ohm
- * @attention Blocking function due to long I2C write, min blocking time 15ms
- */
-void AP33772_setNTC(int TR25, int TR50, int TR75, int TR100) // Parameter NOT DONE
+void AP33772_setNTC(int TR25, int TR50, int TR75, int TR100) // <editor-fold defaultstate="collapsed" desc="Set resistance value of 10K NTC">
 {
-    writeBuf[0]=TR25&0xff;
-    writeBuf[1]=(TR25>>8) & 0xff;
-    i2c_write(AP33772_ADDRESS, 0x28, 2);
-    delay(5);
-    writeBuf[0]=TR50&0xff;
-    writeBuf[1]=(TR50>>8) & 0xff;
-    i2c_write(AP33772_ADDRESS, 0x2A, 2);
-    delay(5);
-    writeBuf[0]=TR75&0xff;
-    writeBuf[1]=(TR75>>8) & 0xff;
-    i2c_write(AP33772_ADDRESS, 0x2C, 2);
-    delay(5);
-    writeBuf[0]=TR100&0xff;
-    writeBuf[1]=(TR100>>8) & 0xff;
-    i2c_write(AP33772_ADDRESS, 0x2E, 2);
-}
-
-/**
- * @brief Set target temperature (C) when output power through USB-C is reduced
- *          Default is 120 C
- * @param temperature (unit in Celcius)
- */
-void AP33772_setDeratingTemp(int temperature)
-{
-    writeBuf[0]=temperature;
-    i2c_write(AP33772_ADDRESS, CMD_DRTHR, 1);
-}
-
-void AP33772_setMask(AP33772_MASK flag, bool state)
-{
-    // First read in what is currently in the MASK
-    i2c_read(AP33772_ADDRESS, CMD_MASK, 1);
-    writeBuf[0]=flag|readBuf[0]; // WRONG!, will not be able to turn thing off
-    delay(10); // Short break between read/write
-    i2c_write(AP33772_ADDRESS, CMD_MASK, 1);
-}
-
-void AP33772_i2c_read(uint8_t slvAddr, uint8_t cmdAddr, uint8_t len)
-{
-    // clear readBuffer
-    for(uint8_t i=0; i<READ_BUFF_LENGTH; i++)
-    {
-        readBuf[i]=0;
-    }
+    /**
+     * @brief Set resistance value of 10K NTC at 25C, 50C, 75C and 100C.
+     *          Default is 10000, 4161, 1928, 974Ohm
+     * @param TR25, TR50, TR75, TR100 unit in Ohm
+     * @attention Blocking function due to long I2C write, min blocking time 15ms
+     */
     uint8_t i=0;
-    Wire.beginTransmission(slvAddr); // transmit to device SLAVE_ADDRESS
-    Wire.write(cmdAddr); // sets the command register
-    Wire.endTransmission(); // stop transmitting
 
-    Wire.requestFrom(slvAddr, len); // request len bytes from peripheral device
-    if(len<=Wire.available())
-    { // if len bytes were received
-        while(Wire.available())
-        {
-            readBuf[i]=(byte) Wire.read();
-            i++;
-        }
-    }
-}
+    writeBuf[i++]=CMD_TR25;
+    writeBuf[i++]=TR25&0xff;
+    writeBuf[i++]=(TR25>>8) & 0xff;
+    AP33772_I2C_Write(AP33772_ADDRESS, writeBuf, i);
 
-void AP33772_i2c_write(uint8_t slvAddr, uint8_t cmdAddr, uint8_t len)
+    AP33772_DelayMs(5);
+
+    i=0;
+    writeBuf[i++]=CMD_TR50;
+    writeBuf[i++]=TR50&0xff;
+    writeBuf[i++]=(TR50>>8) & 0xff;
+    AP33772_I2C_Write(AP33772_ADDRESS, writeBuf, i);
+
+    AP33772_DelayMs(5);
+
+    i=0;
+    writeBuf[i++]=CMD_TR75;
+    writeBuf[i++]=TR75&0xff;
+    writeBuf[i++]=(TR75>>8) & 0xff;
+    AP33772_I2C_Write(AP33772_ADDRESS, writeBuf, i);
+
+    AP33772_DelayMs(5);
+
+    i=0;
+    writeBuf[i++]=CMD_TR100;
+    writeBuf[i++]=TR100&0xff;
+    writeBuf[i++]=(TR100>>8) & 0xff;
+    AP33772_I2C_Write(AP33772_ADDRESS, writeBuf, i);
+} // </editor-fold>
+
+void AP33772_setDeratingTemp(int temperature) // <editor-fold defaultstate="collapsed" desc="Set target temperature (C) when output power through USB-C is reduced, temperature (unit in Celcius)">
 {
-    Wire.beginTransmission(slvAddr); // transmit to device SLAVE_ADDRESS
-    Wire.write(cmdAddr); // sets the command register
-    Wire.write(writeBuf, len); // write data with len
-    Wire.endTransmission(); // stop transmitting
+    // Default is 120 C
+    uint8_t i=0;
 
-    // clear readBuffer
-    for(uint8_t i=0; i<WRITE_BUFF_LENGTH; i++)
-    {
-        writeBuf[i]=0;
-    }
-}
+    writeBuf[i++]=CMD_DRTHR;
+    writeBuf[i++]=temperature;
+    AP33772_I2C_Write(AP33772_ADDRESS, writeBuf, i);
+} // </editor-fold>
 
-/**
- * @brief Write the desire power profile back to the power source
- */
-void AP33772_writeRDO()
+void AP33772_setMask(AP33772_MASK flag, bool state) // <editor-fold defaultstate="collapsed" desc="Set mask">
 {
-    writeBuf[3]=rdoData.byte3;
-    writeBuf[2]=rdoData.byte2;
-    writeBuf[1]=rdoData.byte1;
-    writeBuf[0]=rdoData.byte0;
-    i2c_write(AP33772_ADDRESS, CMD_RDO, 4); // CMD: Write RDO
-}
+    uint8_t i=0;
+    // First read in what is currently in the MASK
+    writeBuf[i++]=CMD_MASK;
+    AP33772_I2C_Write(AP33772_ADDRESS, writeBuf, i);
+    AP33772_I2C_Read(AP33772_ADDRESS, readBuf, 1);
+    AP33772_DelayMs(10); // Short break between read/write
+    i=0;
+    writeBuf[i++]=CMD_MASK;
+    writeBuf[i++]=flag|readBuf[0]; // WRONG!, will not be able to turn thing off
+    AP33772_I2C_Write(AP33772_ADDRESS, writeBuf, i);
+} // </editor-fold>
 
-/**
- * @brief Read VBUS voltage
- * @return voltage in mV
- */
-int AP33772_readVoltage()
+void AP33772_writeRDO(void) // <editor-fold defaultstate="collapsed" desc="Write the desire power profile back to the power source">
 {
-    i2c_read(AP33772_ADDRESS, CMD_VOLTAGE, 1);
-    return readBuf[0] * 80; // I2C read return 80mV/LSB
-}
+    uint8_t i=0;
 
-/**
- * @brief Read VBUS current
- * @return current in mA
- */
-int AP33772_readCurrent()
-{
-    i2c_read(AP33772_ADDRESS, CMD_CURRENT, 1);
-    return readBuf[0] * 16; // I2C read return 24mA/LSB
-}
+    writeBuf[i++]=CMD_RDO;
+    writeBuf[i++]=rdoData.byte0;
+    writeBuf[i++]=rdoData.byte1;
+    writeBuf[i++]=rdoData.byte2;
+    writeBuf[i++]=rdoData.byte3;
 
-/**
- * @brief Read NTC temperature
- * @return tempearture in C
- */
-int AP33772_readTemp()
+    AP33772_I2C_Write(AP33772_ADDRESS, writeBuf, i); // CMD: Write RDO
+} // </editor-fold>
+
+int AP33772_readVoltage(void) // <editor-fold defaultstate="collapsed" desc="Read VBUS voltage in mV">
 {
-    i2c_read(AP33772_ADDRESS, CMD_TEMP, 1);
+    uint8_t i=0;
+
+    writeBuf[i++]=CMD_VOLTAGE;
+    AP33772_I2C_Write(AP33772_ADDRESS, writeBuf, i);
+    AP33772_I2C_Read(AP33772_ADDRESS, readBuf, 1);
+
+    return ((int) readBuf[0]*80); // I2C read return 80mV/LSB
+} // </editor-fold>
+
+int AP33772_readCurrent(void) // <editor-fold defaultstate="collapsed" desc="Read VBUS current in mA">
+{
+    uint8_t i=0;
+
+    writeBuf[i++]=CMD_CURRENT;
+    AP33772_I2C_Write(AP33772_ADDRESS, writeBuf, i);
+    AP33772_I2C_Read(AP33772_ADDRESS, readBuf, 1);
+
+    return ((int) readBuf[0]<<4); // readBuf[0] * 16, I2C read return 24mA/LSB
+} // </editor-fold>
+
+int AP33772_readTemp(void) // <editor-fold defaultstate="collapsed" desc="Read NTC temperature in C degree">
+{
+    uint8_t i=0;
+
+    writeBuf[i++]=CMD_TEMP;
+    AP33772_I2C_Write(AP33772_ADDRESS, writeBuf, i);
+    AP33772_I2C_Read(AP33772_ADDRESS, readBuf, 1);
+
     return readBuf[0]; // I2C read return 1C/LSB
-}
+} // </editor-fold>
 
-/**
- * @brief Hard reset the power supply. Will temporary cause power outage
- */
-void AP33772_reset()
+void AP33772_reset(void) // <editor-fold defaultstate="collapsed" desc="Hard reset the power supply. Will temporary cause power outage">
 {
-    writeBuf[0]=0x00;
-    writeBuf[1]=0x00;
-    writeBuf[2]=0x00;
-    writeBuf[3]=0x00;
-    i2c_write(AP33772_ADDRESS, CMD_RDO, 4);
-}
+    uint8_t i=0;
 
-/**
- * @brief Debug code to quickly check power supply profile PDOs
- */
-void AP33772_printPDO()
+    writeBuf[i++]=CMD_RDO;
+    writeBuf[i++]=0x00;
+    writeBuf[i++]=0x00;
+    writeBuf[i++]=0x00;
+    writeBuf[i++]=0x00;
+    AP33772_I2C_Write(AP33772_ADDRESS, writeBuf, i);
+} // </editor-fold>
+
+void AP33772_printPDO(void) // <editor-fold defaultstate="collapsed" desc="Debug code to quickly check power supply profile PDOs">
 {
-    __dbs("Source PDO Number = ");
-    __dbs(numPDO);
-    __dbsln();
+    uint8_t i;
 
-    for(uint8_t i=0; i<numPDO; i++)
+    __dbsi("\nSource PDO Number= ", numPDO);
+
+    for(i=0; i<numPDO; i++)
     {
         if((pdoData[i].byte3&0xF0)==0xC0) // PPS PDO
         {
-            __dbs("PDO[");
-            __dbs(i+1); // PDO position start from 1
-            __dbs("] - PPS : ");
-            __dbs((float) (pdoData[i].pps.minVoltage) * 100/1000);
-            __dbs("V~");
-            __dbs((float) (pdoData[i].pps.maxVoltage) * 100/1000);
-            __dbs("V @ ");
-            __dbs((float) (pdoData[i].pps.maxCurrent) * 50/1000);
-            __dbsln("A");
+            __dbsi("\nPDO[", i+1); // PDO position start from 1
+            __dbsi("]-PPS: ", pdoData[i].pps.minVoltage/10); // pdoData[i].pps.minVoltage*100/1000
+            __dbsi("V ~ ", pdoData[i].pps.maxVoltage/10); // pdoData[i].pps.maxVoltage*100/1000
+            __dbsi("V @ ", pdoData[i].pps.maxCurrent/20); // pdoData[i].pps.maxCurrent*50/1000
+            __dbs("A");
         }
         else if((pdoData[i].byte3&0xC0)==0x00) // Fixed PDO
         {
-            __dbs("PDO[");
-            __dbs(i+1);
-            __dbs("] - Fixed : ");
-            __dbs((float) (pdoData[i].fixed.voltage) * 50/1000);
-            __dbs("V @ ");
-            __dbs((float) (pdoData[i].fixed.maxCurrent) * 10/1000);
-            __dbsln("A");
+            __dbsi("\nPDO[", i+1);
+            __dbsi("]-Fixed: ", pdoData[i].fixed.voltage/20); // pdoData[i].fixed.voltage*50/1000
+            __dbsi("V @ ", pdoData[i].fixed.maxCurrent/100); // pdoData[i].fixed.maxCurrent*10/1000
+            __dbs("A");
         }
     }
-    __dbsln("===============================================");
-}
+
+    __dbs("\n===============================================\n");
+} // </editor-fold>

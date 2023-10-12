@@ -4,22 +4,28 @@
 #include "Common/LibDef.h"
 #include "AP33772_Cfg.h"
 
-#define CMD_SRCPDO 0x00
-#define CMD_PDONUM 0x1C
-#define CMD_STATUS 0x1D
-#define CMD_MASK 0x1E
-#define CMD_VOLTAGE 0x20
-#define CMD_CURRENT 0x21
-#define CMD_TEMP 0x22
-#define CMD_OCPTHR 0x23
-#define CMD_OTPTHR 0x24
-#define CMD_DRTHR 0x25
-#define CMD_RDO 0x30
+#define CMD_SRCPDO          0x00 // RO-Power Data Object (PDO) used to expose PD Source (SRC) power capabilities. Total length is 28 bytes
+#define CMD_PDONUM          0x1C // RO-Valid source PDO number
+#define CMD_STATUS          0x1D // RC-AP33772 status
+#define CMD_MASK            0x1E // RW-Interrupt enable mask
+#define CMD_VOLTAGE         0x20 // RO-VBUS voltage, LSB 80mV
+#define CMD_CURRENT         0x21 // RO-VBUS current, LSB 24mA
+#define CMD_TEMP            0x22 // RO-Temperature, Unit: °C
+#define CMD_OCPTHR          0x23 // RW-OCP threshold, LSB 50mA
+#define CMD_OTPTHR          0x24 // RW-OTP threshold, Unit: °C
+#define CMD_DRTHR           0x25 // RW-De-rating threshold, Unit: °C
+#define CMD_TR25            0x28 // RW-Thermal Resistance @25°C, Unit: ?
+#define CMD_TR50            0x2A // RW-Thermal Resistance @50°C, Unit: ?
+#define CMD_TR75            0x2C // RW-Thermal Resistance @75°C, Unit: ?
+#define CMD_TR100           0x2E // RW-Thermal Resistance @100°C, Unit: ?
+#define CMD_RDO             0x30 // WO-Request Data Object (RDO) is use to request power capabilities
+#define CMD_VID             0x34 // RW-Vendor ID, reserved for future applications
+#define CMD_PID             0x36 // RW-Product ID, reserved for future applications
 
-#define AP33772_ADDRESS 0x51
-#define READ_BUFF_LENGTH     30
-#define WRITE_BUFF_LENGTH    6
-#define SRCPDO_LENGTH        28
+#define AP33772_ADDRESS     0x51 // 7-bit slaver address
+#define SRCPDO_LENGTH       28
+#define READ_BUFF_LENGTH    30
+#define WRITE_BUFF_LENGTH   6
 
 typedef enum {
     READY_EN = 1 << 0, // 0000 0001
@@ -45,8 +51,10 @@ typedef struct {
             uint8_t isOtp : 1;
             uint8_t isDr : 1;
         };
+
         uint8_t readStatus;
     };
+
     uint8_t readVolt; // LSB: 80mV
     uint8_t readCurr; // LSB: 24mA
     uint8_t readTemp; // unit: 1C
@@ -63,6 +71,7 @@ typedef struct {
             uint8_t negoFail : 1;
             uint8_t reserved_1 : 4;
         };
+
         uint8_t negoEvent;
     };
 
@@ -75,6 +84,7 @@ typedef struct {
             uint8_t dr : 1;
             uint8_t reserved_2 : 4;
         };
+
         uint8_t protectEvent;
     };
 } EVENT_FLAG_T;
@@ -107,6 +117,7 @@ typedef struct {
             uint8_t byte2;
             uint8_t byte3;
         };
+
         unsigned long data;
     };
 } PDO_DATA_T;
@@ -138,26 +149,22 @@ typedef struct {
             uint8_t byte2;
             uint8_t byte3;
         };
+
         unsigned long data;
     };
 } RDO_DATA_T;
 
-class AP33772 {
-public:
-    AP33772(TwoWire &wire = Wire);
-    void begin();
-    void setVoltage(int targetVoltage); // Unit in mV
-    void setMaxCurrent(int targetMaxCurrent); // Unit in mA
-    void setNTC(int TR25, int TR50, int TR75, int TR100);
-    void setDeratingTemp(int temperature);
-    void setMask(AP33772_MASK flag, bool state);
-    void writeRDO();
-    int readVoltage();
-    int readCurrent();
-    int readTemp();
-    void printPDO();
-    void reset();
-
-};
+void AP33772_Init(void);
+void AP33772_setVoltage(int targetVoltage); // Unit in mV
+void AP33772_setMaxCurrent(int targetMaxCurrent); // Unit in mA
+void AP33772_setNTC(int TR25, int TR50, int TR75, int TR100);
+void AP33772_setDeratingTemp(int temperature);
+void AP33772_setMask(AP33772_MASK flag, bool state);
+void AP33772_writeRDO(void);
+int AP33772_readVoltage(void);
+int AP33772_readCurrent(void);
+int AP33772_readTemp(void);
+void AP33772_printPDO(void);
+void AP33772_reset(void);
 
 #endif
