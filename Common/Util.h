@@ -32,8 +32,8 @@ public int str_n_index(const char *p, char c, int count);
 public const char *str_1st_contain(const char *sub, const char *str);
 public const char *str_n_contain(const char *sub, const char *str, int count);
 public int str_sub(char *des, const char *src, char c1, int count1, int offset1, char c2, int count2, int offset2);
-public char *str_first(const char *p, char c);
-public char *str_last(const char *p, char c);
+public char *str_first(char *p, char c);
+public char *str_last(char *p, char c);
 public int32_t IntParse(const uint8_t *c); // NULL input is 0
 public uint32_t UIntParse(const uint8_t *c); // NULL input is 0
 public uint32_t HexParse(const uint8_t *c); // NULL input is 0
@@ -43,14 +43,14 @@ public int8_t StrCmp(strcmp_t *pCxt, uint8_t c);
 public bool findSString(char *pDatain, const char *pSample);
 public bool delSString(char *pDatain, const char *pSample);
 
-#define str_sub_between(des, src, c1, count1, c2, count2) str_sub(des, src, c1, count1, 1, c2, count2, -1)
+#define str_sub_between(des, src, c1, count1, c2, count2) str_sub((char *)(des), (const char *)(src), c1, count1, 1, c2, count2, -1)
 
 /* ************************************************** CRYPTOGRAPHY PROCESSING */
 uint16_t crc_ccitt(uint16_t crc, const uint8_t *buf_p, size_t size);
 public uint16_t Crc16_Calc(const uint8_t *pData, uint16_t len);
 public uint16_t Mask(uint8_t *pData, uint16_t len);
 public uint16_t UnMask(uint8_t *pData, uint16_t len);
-public uint8_t CalcSum8(const void *pData, uint16_t len);
+public uint8_t CalcSum8(void *pData, uint16_t len);
 /* ****************************************************** DATA TYPE CONVERTER */
 public uint32_t Swap_nBits(uint32_t Value, uint8_t nBit);
 public uint16_t Swap_2Bytes(uint16_t Value);
@@ -78,4 +78,6 @@ public uint8_t Calc_DayOfWeek(uint32_t Day, uint32_t Month, uint32_t Year);
 public uint8_t Dec2BCD(uint8_t hexvalue);
 public uint8_t BCD2Dec(uint8_t bcdvalue);
 
+public uint16_t iir(uint32_t *prev, uint16_t current, uint8_t hardness);
+    
 #endif

@@ -20,7 +20,7 @@ public void random8(uint8_t *des, int len, uint8_t min, uint8_t max) // <editor-
         val*=step;
         val>>=8;
         val+=min;
-        *des=(uint8_t)val;
+        *des=(uint8_t) val;
         des++;
         len--;
     }
@@ -200,10 +200,10 @@ public bool delSString(char *pDatain, const char *pSample) // <editor-fold defau
         {
             if(str_cmp(&pDatain[i], pSample))
             {
-                char str_behind[32];
+                char str_behind[150];
 
-                memset(str_behind, 0x00, 32);
-                strcpy(str_behind, &pDatain[i+LenS]);
+                memset(str_behind, 0x00, 150);
+                strcpy(str_behind, (const char *) &pDatain[i+LenS]);
                 memset(&pDatain[i], 0x00, LenS);
 
                 if(i==0)
@@ -430,7 +430,7 @@ public int str_sub(char *des, const char *src, char c1, int count1, int offset1,
     end=str_n_index(&src[begin], c2, count2)+offset2+1;
     //printf("\nend: %d", end);
 
-    if(begin<0)
+    if(end<0)
     {
         *des=0;
         return 0;
@@ -442,34 +442,31 @@ public int str_sub(char *des, const char *src, char c1, int count1, int offset1,
     return end;
 } // </editor-fold>
 
-public char *str_first(const char *p, char c) // <editor-fold defaultstate="collapsed" desc="Get pointer of the first index of 'c' in string">
+public char *str_first(char *p, char c) // <editor-fold defaultstate="collapsed" desc="Get pointer of the first index of 'c' in string">
 {
-    char *pD=(char *) p;
-
-    while(*pD!=0x00)
+    while(*p!=0x00)
     {
-        if(*pD==c)
-            return pD;
+        if(*p==c)
+            return p;
 
-        pD++;
+        p++;
     }
 
     return NULL;
 } // </editor-fold>
 
-public char *str_last(const char *p, char c) // <editor-fold defaultstate="collapsed" desc="Get pointer of the last index of 'c' in string">
+public char *str_last(char *p, char c) // <editor-fold defaultstate="collapsed" desc="Get pointer of the last index of 'c' in string">
 {
-    char *pD, *rslt;
+    char *rslt;
 
     rslt=NULL;
-    pD=(char *) p;
 
-    while(*pD!=0x00)
+    while(*p!=0x00)
     {
-        if(*pD==c)
-            rslt=pD;
+        if(*p==c)
+            rslt=p;
 
-        pD++;
+        p++;
     }
 
     return rslt;
@@ -478,7 +475,7 @@ public char *str_last(const char *p, char c) // <editor-fold defaultstate="colla
 public int32_t IntParse(const uint8_t *c) // <editor-fold defaultstate="collapsed" desc="String to signed integer value">
 {
     bool minus=0;
-    uint32_t res=0;
+    int32_t res=0;
 
     if(c==NULL)
         return 0;
@@ -724,7 +721,7 @@ public uint16_t UnMask(uint8_t *pData, uint16_t len) // <editor-fold defaultstat
     return (len-1);
 } // </editor-fold>
 
-public uint8_t CalcSum8(const void *pData, uint16_t len) // <editor-fold defaultstate="collapsed" desc="Calculate 8-bit sumary">
+public uint8_t CalcSum8(void *pData, uint16_t len) // <editor-fold defaultstate="collapsed" desc="Calculate 8-bit sumary">
 {
     uint8_t sum=0;
     uint8_t *pD=(uint8_t *) pData;
@@ -847,12 +844,15 @@ public uint32_t StrHex2Int(uint8_t *p) // <editor-fold defaultstate="collapsed" 
             else if(p[x]>='A'&&p[x]<='F')
                 p[x]-='7';
             else
-                return 0;
+                return value;
+            
             value<<=4;
             value|=p[x];
         }
+        
         return value;
     }
+    
     return 0;
 }// </editor-fold>
 
@@ -1074,3 +1074,24 @@ public uint8_t BCD2Dec(uint8_t bcdvalue) // <editor-fold defaultstate="collapsed
 } // </editor-fold>
 
 // </editor-fold>
+
+public uint16_t iir(uint32_t *prev, uint16_t current, uint8_t hardness) // <editor-fold defaultstate="collapsed" desc="IIR Filter">
+{
+    uint32_t ir;
+    uint32_t tmp;
+
+    tmp=current<<4; //current*16;
+
+    if(tmp > *prev)
+    {
+        ir=(tmp- *prev) >> (hardness-1);
+        *prev+=(ir>>1); //ir/2;
+    }
+    else
+    {
+        ir=(*prev-tmp) >> (hardness-1);
+        *prev-=(ir>>1); //ir/2;
+    }
+
+    return (uint16_t) (*prev>>4); //(*prev/16);
+} // </editor-fold>
