@@ -157,9 +157,10 @@ typedef struct {
 void AP33772_Init(void);
 void AP33772_setVoltage(int targetVoltage); // Unit in mV
 void AP33772_setMaxCurrent(int targetMaxCurrent); // Unit in mA
-void AP33772_setNTC(int TR25, int TR50, int TR75, int TR100);
-void AP33772_setDeratingTemp(int temperature);
-void AP33772_setMask(AP33772_MASK flag, bool state);
+void AP33772_setNTC(int TR25, int TR50, int TR75, int TR100); // Unit in Ohm
+void AP33772_setDeratingTemp(int temperature); // Unit in C degree
+void AP33772_setOTPThreshold(int temperature); // Unit in C degree
+void AP33772_setMask(AP33772_MASK flag);
 void AP33772_writeRDO(void);
 int AP33772_readVoltage(void);
 int AP33772_readCurrent(void);

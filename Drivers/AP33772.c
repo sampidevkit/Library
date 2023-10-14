@@ -37,6 +37,15 @@ void AP33772_Init(void) // <editor-fold defaultstate="collapsed" desc="Initializ
 {
     uint8_t i=0;
 
+    // Reset chip
+    writeBuf[i++]=CMD_RDO;
+    writeBuf[i++]=0x00;
+    writeBuf[i++]=0x00;
+    writeBuf[i++]=0x00;
+    writeBuf[i++]=0x00;
+    AP33772_I2C_Write(AP33772_ADDRESS, writeBuf, i);
+
+    i=0;
     writeBuf[i++]=CMD_STATUS;
     AP33772_I2C_Write(AP33772_ADDRESS, writeBuf, i);
     AP33772_I2C_Read(AP33772_ADDRESS, readBuf, 1); // CMD: Read Status
@@ -233,7 +242,16 @@ void AP33772_setDeratingTemp(int temperature) // <editor-fold defaultstate="coll
     AP33772_I2C_Write(AP33772_ADDRESS, writeBuf, i);
 } // </editor-fold>
 
-void AP33772_setMask(AP33772_MASK flag, bool state) // <editor-fold defaultstate="collapsed" desc="Set mask">
+void AP33772_setOTPThreshold(int temperature) // <editor-fold defaultstate="collapsed" desc="Set target temperature (C) when over temperature, temperature (unit in Celcius)">
+{
+    uint8_t i=0;
+
+    writeBuf[i++]=CMD_OTPTHR;
+    writeBuf[i++]=temperature;
+    AP33772_I2C_Write(AP33772_ADDRESS, writeBuf, i);
+} // </editor-fold>
+
+void AP33772_setMask(AP33772_MASK flag) // <editor-fold defaultstate="collapsed" desc="Set mask">
 {
     uint8_t i=0;
     // First read in what is currently in the MASK
