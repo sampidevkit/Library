@@ -16,9 +16,7 @@ typedef struct PORT_CXT {
 #define MAX_TX_DATA_PER_PORT 8
 #endif
 
-#if(NUM_OF_DOWNSTREAM_PORTS>0)
-extern const port_cxt_t DownStreamPortCxt[NUM_OF_DOWNSTREAM_PORTS];
-#endif
+extern const port_cxt_t DownStreamPort[NUM_OF_DOWNSTREAM_PORTS]; // Defined in UartMultiflexer_Cfg.c
 
 void UartMux_Tasks(void *);
 

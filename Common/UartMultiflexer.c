@@ -32,15 +32,16 @@ new_simple_task_t(UartMux_Tasks)
 void UartMux_Tasks(void *pvParameters)
 {
 #endif
-        uint8_t i, c;
+        uint8_t c, SOF;
 
+        /* **************************************************** Transmit Data */
         if(UpStreamPort_IsRxReady())
         {
             c=UpStreamPort_ReadByte();
 
             if(RxCxt.DoNext==0)
             {
-                if(c==0xFC)
+                if(c==0xFC) // Start of frame
                 {
                     RxCxt.DoNext=1;
                     RxCxt.PortIdx=0;
@@ -51,31 +52,31 @@ void UartMux_Tasks(void *pvParameters)
             {
                 switch(c)
                 {
-                    case 0xFC:
+                    case 0xFC: // Repeat Start of frame
                         RxCxt.DoNext=1;
                         RxCxt.PortIdx=0;
                         RxCxt.Stuffing=0;
                         break;
 
-                    case 0xFD:
+                    case 0xFD: // Change port index
                         RxCxt.Stuffing=0;
 
                         if(RxCxt.PortIdx<NUM_OF_DOWNSTREAM_PORTS)
                             RxCxt.PortIdx++;
                         break;
 
-                    case 0xFE:
+                    case 0xFE: // End of frame
                         RxCxt.DoNext=0;
                         break;
 
-                    case 0x20:
-                        RxCxt.Stuffing^=1;
+                    case 0x20: // Stuffing byte
+                        RxCxt.Stuffing=1;
                         break;
 
                     default:
                         if(RxCxt.PortIdx<NUM_OF_DOWNSTREAM_PORTS)
                         {
-                            while(!DownStreamPortCxt[RxCxt.PortIdx].isTxReady());
+                            while(!DownStreamPort[RxCxt.PortIdx].isTxReady());
 
                             if(RxCxt.Stuffing==1)
                             {
@@ -83,65 +84,63 @@ void UartMux_Tasks(void *pvParameters)
                                 c^=0x20;
                             }
 
-                            DownStreamPortCxt[RxCxt.PortIdx].WriteByte(c);
+                            DownStreamPort[RxCxt.PortIdx].WriteByte(c);
                         }
                         break;
                 }
             }
         }
-
-        for(TxCxt.PortIdx=0; TxCxt.PortIdx<NUM_OF_DOWNSTREAM_PORTS; TxCxt.PortIdx++)
+        /* ***************************************************** Receive Data */
+        for(TxCxt.PortIdx=0, SOF=0; TxCxt.PortIdx<NUM_OF_DOWNSTREAM_PORTS; TxCxt.PortIdx++)
         {
-            if(DownStreamPortCxt[TxCxt.PortIdx].isRxReady())
-                break;
-        }
-
-        if(TxCxt.PortIdx>=NUM_OF_DOWNSTREAM_PORTS)
-            return;
-        // Send Start frame
-        while(!UpStreamPort_IsTxReady());
-        UpStreamPort_IsTxReady(0xFC);
-        // Send Data
-        for(TxCxt.PortIdx=0; TxCxt.PortIdx<NUM_OF_DOWNSTREAM_PORTS; TxCxt.PortIdx++)
-        {
-            TxCxt.ByteCount=0;
-
-            while(DownStreamPortCxt[TxCxt.PortIdx].isRxReady())
+            if(DownStreamPort[TxCxt.PortIdx].isRxReady())
             {
-                c=DownStreamPortCxt[TxCxt.PortIdx].ReadByte();
-
-                switch(c)
+                if(SOF==0)
                 {
-                    case 0xFC:
-                    case 0xFD:
-                    case 0xFE:
-                    case 0x20:
-                        while(!UpStreamPort_IsTxReady());
-                        UpStreamPort_IsTxReady(0x20);
-                        c^=20;
-                        break;
+                    SOF=1;
+                    // Send Start frame
+                    while(!UpStreamPort_IsTxReady());
+                    UpStreamPort_IsTxReady(0xFC);
+                }
+                // Send Data
+                TxCxt.ByteCount=0;
 
-                    default:
+                while(DownStreamPort[TxCxt.PortIdx].isRxReady())
+                {
+                    c=DownStreamPort[TxCxt.PortIdx].ReadByte();
+
+                    switch(c)
+                    {
+                        case 0xFC:
+                        case 0xFD:
+                        case 0xFE:
+                        case 0x20:
+                            while(!UpStreamPort_IsTxReady());
+                            UpStreamPort_IsTxReady(0x20);
+                            c^=20;
+                            break;
+
+                        default:
+                            break;
+                    }
+
+                    while(!UpStreamPort_IsTxReady());
+                    UpStreamPort_IsTxReady(c);
+
+                    if(++TxCxt.ByteCount>=MAX_TX_DATA_PER_PORT)
                         break;
                 }
-
+                // Send port breaker
+                if((TxCxt.PortIdx+1)<NUM_OF_DOWNSTREAM_PORTS)
+                {
+                    while(!UpStreamPort_IsTxReady());
+                    UpStreamPort_IsTxReady(0xFD);
+                }
+                // Send End of frame
                 while(!UpStreamPort_IsTxReady());
-                UpStreamPort_IsTxReady(c);
-
-                if(++TxCxt.ByteCount>=MAX_TX_DATA_PER_PORT)
-                    break;
-            }
-            // Send port breaker
-            if((TxCxt.PortIdx+1)<NUM_OF_DOWNSTREAM_PORTS)
-            {
-                while(!UpStreamPort_IsTxReady());
-                UpStreamPort_IsTxReady(0xFD);
+                UpStreamPort_IsTxReady(0xFE);
             }
         }
-        // Send End frame
-        while(!UpStreamPort_IsTxReady());
-        UpStreamPort_IsTxReady(0xFE);
-        
 #ifdef USE_RTOS
         vTaskDelay(1/portTICK_PERIOD_MS);
     }
