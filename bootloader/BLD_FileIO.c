@@ -35,7 +35,7 @@ private const uint8_t Info[]=
 #endif
 };
 
-#define BLD_NVM_INFO_LEN (strlen(Info)-1) //((sizeof(Info) / sizeof((Info)[0]))-1)
+#define BLD_NVM_INFO_LEN (strlen((char *)Info)-1) //((sizeof(Info) / sizeof((Info)[0]))-1)
 
 // </editor-fold>
 

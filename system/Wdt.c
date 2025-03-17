@@ -23,7 +23,7 @@ public void SYS_SoftReset(void) // <editor-fold defaultstate="collapsed" desc="S
     // implement your code
 #endif
     
-    while(1);
+    while(dummy!=0);
 } // </editor-fold>
 
 public new_simple_task_t(WDT_Tasks) // <editor-fold defaultstate="collapsed" desc="WDT tasks">
