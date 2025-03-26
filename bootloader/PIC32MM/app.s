@@ -1,5 +1,5 @@
 /*
-    ** file: bld_pic32mm_app.S
+    ** file: app.s
 */
 #include <xc.h>
 #include "BLD_Target_Device.h"
