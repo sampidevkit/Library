@@ -1,13 +1,8 @@
 #ifndef BLD_NVM_H
 #define	BLD_NVM_H
 
-#include "Common/LibDef.h"
-
-#ifdef COMMON_LIB_CFG
-#include "Common_Lib_Cfg.h"
-#else
-#include "BLD_Nvm_Cfg.h"
-#endif
+#include "common/libdef.h"
+#include "project.h"
 
 #ifndef bld_nvm_write_log
 #define bld_nvm_write_log(...)

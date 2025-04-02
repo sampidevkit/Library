@@ -1,4 +1,4 @@
-#include "VCP_Debug.h"
+#include "mcc_usb_device_vcp_debug.h"
 
 private uint8_t CdcPortIdx=0;
 private port_txbuf_t VcpDbgTxBuf={.next=0};

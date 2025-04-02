@@ -1,4 +1,4 @@
-#include "TaskManager.h"
+#include "taskmanager.h"
 
 #define __debug(...) //printf(__VA_ARGS__)
 

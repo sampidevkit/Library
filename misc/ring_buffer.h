@@ -1,7 +1,7 @@
-#ifndef RINGBUFFER_H
-#define RINGBUFFER_H
+#ifndef RING_BUFFER_H
+#define RING_BUFFER_H
 
-#include "Common/LibDef.h"
+#include "common/libdef.h"
 
 typedef struct {
     size_t Size;

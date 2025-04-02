@@ -1,7 +1,8 @@
-#ifndef TASKMANAGER_H
-#define TASKMANAGER_H
+#ifndef TASK_MANAGER_H
+#define TASK_MANAGER_H
 
-#include "Common/LibDef.h"
+#include "common/libdef.h"
+#include "project_cfg.h"
 
 typedef void (*fnc_t)(void *);
 

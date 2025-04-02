@@ -1,5 +1,4 @@
-#include "Wdt.h"
-#include "libcomp.h"
+#include "soft_wdt.h"
 
 #ifndef SYSTEM_RegUnlock
 #define SYSTEM_RegUnlock()

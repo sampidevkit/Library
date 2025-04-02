@@ -1,13 +1,8 @@
-#ifndef SST25VF_H
-#define	SST25VF_H
+#ifndef SPI_FLASH_H
+#define	SPI_FLASH_H
 
-#include "Common/LibDef.h"
-
-#ifdef COMMON_LIB_CFG
-#include "Common_Lib_Cfg.h"
-#else
-#include "SST25xx_Cfg.h"
-#endif
+#include "common/libdef.h"
+#include "project_cfg.h"
 
 /* **********************************************Please to read these documents:
  * http://ww1.microchip.com/downloads/en/DeviceDoc/S71417_03.pdf

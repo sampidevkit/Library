@@ -1,5 +1,4 @@
-#include "libcomp.h"
-#include "TickTimer.h"
+#include "system_tick.h"
 
 #if defined(__XC32) || defined(__WIN32)
 volatile uint32_t TickTimer_SoftTmr=0;

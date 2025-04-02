@@ -1,6 +1,4 @@
-#include "libcomp.h"
-#include "BLD_Nvm_PIC32.h"
-#include "BLD_Target_Device.h"
+#include "../flash_access.h"
 
 typedef struct
 {

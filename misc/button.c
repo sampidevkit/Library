@@ -1,5 +1,5 @@
-#include "Buttons.h"
-#include "System/TickTimer.h"
+#include "button.h"
+#include "system/system_tick.h"
 
 bt_cxt_t ModeBtCxt={NOT_PRESS, 0, NULL, NULL, NULL};
 

@@ -1,5 +1,5 @@
-#include "Indicator.h"
-#include "System/TaskManager.h"
+#include "indicator.h"
+#include "system/task_manager.h"
 
 static ind_cxt_t *pInd=NULL;
 

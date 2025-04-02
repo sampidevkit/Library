@@ -1,10 +1,9 @@
 #ifndef INDICATOR_H
 #define	INDICATOR_H
 
-#include "Common/LibDef.h"
-#include "Project_Cfg.h"
-#include "System/TickTimer.h"
-#include "System/Gpio.h"
+#include "common/libdef.h"
+#include "project_cfg.h"
+#include "system/ticktimer.h"
 
 typedef __PACKED_STRUCT
 {

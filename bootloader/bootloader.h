@@ -1,13 +1,8 @@
 #ifndef BOOTLOADER_H
 #define	BOOTLOADER_H
 
-#include "Common/LibDef.h"
-
-#ifdef COMMON_LIB_CFG
-#include "Common_Lib_Cfg.h"
-#else
-#include "Bootloader_Cfg.h"
-#endif
+#include "common/libdef.h"
+#include "project_cfg.h"
 
 #ifndef BLD_Trigger_GetState
 #define BLD_Trigger_GetState()   (1)

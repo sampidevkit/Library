@@ -1,6 +1,4 @@
-#include "SST25xx.h"
-#include "libcomp.h"
-#include "System/TickTimer.h"
+#include "spi_flash.h"
 
 #if(0)
 #include <stdio.h>

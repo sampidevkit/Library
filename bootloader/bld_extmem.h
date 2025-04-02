@@ -1,13 +1,8 @@
 #ifndef BLD_EXTMEM_H
 #define	BLD_EXTMEM_H
 
-#include "Common/LibDef.h"
-
-#ifdef COMMON_LIB_CFG
-#include "Common_Lib_Cfg.h"
-#else
-#include "BLD_ExtMem_Cfg.h"
-#endif
+#include "common/libdef.h"
+#include "project_cfg.h"
 
 #define BLD_EXTMEM_CAPACITY     (BLD_EXTMEM_END-BLD_EXTMEM_BEGIN+1)
 #define BLD_EXTMEM_INFO_ADDR    BLD_EXTMEM_BEGIN

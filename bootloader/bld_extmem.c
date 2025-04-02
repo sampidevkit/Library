@@ -1,4 +1,4 @@
-#include "BLD_ExtMem.h"
+#include "bld_extmem.h"
 
 bld_info_t BldInfo;
 static uint32_t DataAddr=BLD_EXTMEM_DATA_ADDR;

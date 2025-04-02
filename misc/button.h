@@ -1,8 +1,8 @@
-#ifndef BUTTONS_H
-#define BUTTONS_H
+#ifndef BUTTON_H
+#define BUTTON_H
 
-#include "Common/LibDef.h"
-#include "Project_Cfg.h"
+#include "common/libdef.h"
+#include "project_cfg.h"
 
 typedef enum {
     NOT_PRESS = 0,

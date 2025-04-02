@@ -1,11 +1,7 @@
 #ifndef BLD_NVM_TARGET_DEVICE_DEVICE_H
 #define BLD_NVM_TARGET_DEVICE_DEVICE_H
 
-#ifdef COMMON_LIB_CFG
-#include "Common_Lib_Cfg.h"
-#else
-#include "BLD_Nvm_Cfg.h"
-#endif
+#include <xc.h>
 
 #if defined(BLD_NVM_TARGET_DEVICE_PIC32)
 

@@ -1,7 +1,5 @@
-#include "libcomp.h"
-#include "Bootloader.h"
-#include "BLD_Target_Device.h"
-#include "BLD_ExtMem.h"
+#include "bootloader.h"
+#include "bld_extmem.h"
 
 enum
 {

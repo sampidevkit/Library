@@ -1,5 +1,4 @@
-#include "libcomp.h"
-#include "HexParsing.h"
+#include "intel_hex.h"
 
 public int8_t HEXPARSE_Hex2Integer(int8_t c, uint8_t NumOfDigit, uint32_t *pVal, uint8_t *pCks) // <editor-fold defaultstate="collapsed" desc="Check hex">
 {
@@ -235,12 +234,4 @@ EXIT:
 
     return this_task_rslt;
 #undef debug
-} // </editor-fold>
-
-public void HEXPARSE_PutLine(uint8_t *pData, uint8_t Len) // <editor-fold defaultstate="collapsed" desc="Put hex line">
-{
-    //    uint8_t c;
-
-    //    HEXPARSE_StreamOut(':');
-    //    HEXPARSE_StreamOut(Bcd2Hex(Len>>4));
 } // </editor-fold>

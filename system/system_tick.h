@@ -1,13 +1,8 @@
-#ifndef TICKTIMER_H
-#define TICKTIMER_H
+#ifndef SYSTEM_TICK_H
+#define SYSTEM_TICK_H
 
-#include "Common/LibDef.h"
-
-#ifdef COMMON_LIB_CFG
-#include "Common_Lib_Cfg.h"
-#else
-#include "TickTimer_Cfg.h"
-#endif
+#include "common/libdef.h"
+#include "project_cfg.h"
 
 #ifndef Tick_Timer_ActionWhileDelay
 #define Tick_Timer_ActionWhileDelay(time) ClrWdt()

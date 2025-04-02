@@ -1,13 +1,8 @@
 #ifndef WDT_H
 #define	WDT_H
 
-#include "Common/LibDef.h"
-
-#ifdef COMMON_LIB_CFG
-#include "Common_Lib_Cfg.h"
-#else
-#include "Wdt_Cfg.h"
-#endif
+#include "common/libdef.h"
+#include "project_cfg.h"
 
 #ifndef WDT_STT_LED_Toggle
 #define WDT_STT_LED_Toggle()
