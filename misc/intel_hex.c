@@ -1,237 +1,232 @@
 #include "intel_hex.h"
 
-public int8_t HEXPARSE_Hex2Integer(int8_t c, uint8_t NumOfDigit, uint32_t *pVal, uint8_t *pCks) // <editor-fold defaultstate="collapsed" desc="Check hex">
+private __PACKED_STRUCT
 {
-    static uint8_t i=0, j=0, val=0;
+    uint8_t i;
+    uint8_t j;
+    uint8_t val;
+}
+Hex2IntCxt;
 
-    if(i==0)
-        val=0;
+private __PACKED_STRUCT{
+    hex_t Hex;
+    uint32_t addr;
+    uint32_t val;
+    uint8_t i;
+    uint8_t cks;
+    uint8_t phase;
+    uint8_t numofdigit;
+}
+Decode;
 
-    if(j==0)
+private uint8_t IHEX_Hex2Int(int8_t c, uint8_t NumOfDigit, uint32_t *pVal, uint8_t *pCks) // <editor-fold defaultstate="collapsed" desc="Check hex">
+{
+    if(Hex2IntCxt.i==0)
+        Hex2IntCxt.val=0;
+
+    if(Hex2IntCxt.j==0)
         *pVal=0;
 
-    val<<=4;
+    Hex2IntCxt.val<<=4;
 
     if((c>='0')&&(c<='9'))
-        val|=(uint8_t) (c-'0');
+        Hex2IntCxt.val|=(uint8_t) (c-'0');
     else if((c>='A')&&(c<='F'))
-        val|=(uint8_t) (c-'A'+10);
+        Hex2IntCxt.val|=(uint8_t) (c-'A'+10);
     else if((c>='a')&&(c<='f'))
-        val|=(uint8_t) (c-'a'+10);
+        Hex2IntCxt.val|=(uint8_t) (c-'a'+10);
     else
     {
-        i=0;
-        j=0;
+        Hex2IntCxt.i=0;
+        Hex2IntCxt.j=0;
+        Hex2IntCxt.val=0;
         *pCks=0;
-        return PROC_ERR;
+        return IHEX_ERROR;
     }
 
-    i++;
+    Hex2IntCxt.i++;
 
-    if(i>=2)
+    if(Hex2IntCxt.i>=2)
     {
-        i=0;
-        j+=2;
-        *pCks=*pCks+val;
+        Hex2IntCxt.i=0;
+        Hex2IntCxt.j+=2;
+        *pCks=*pCks+Hex2IntCxt.val;
         *pVal=*pVal<<8;
-        *pVal|=val;
-        val=0;
+        *pVal|=Hex2IntCxt.val;
+        Hex2IntCxt.val=0;
 
-        if(j>=NumOfDigit)
+        if(Hex2IntCxt.j>=NumOfDigit)
         {
-            j=0;
-            return PROC_DONE;
+            Hex2IntCxt.i=0;
+            Hex2IntCxt.j=0;
+            Hex2IntCxt.val=0;
+            return IHEX_DONE;
         }
     }
 
-    return PROC_BUSY;
+    return IHEX_BUSY;
 } // </editor-fold>
 
-public int8_t HEXPARSE_Tasks(int8_t c) // <editor-fold defaultstate="collapsed" desc="Intel hex parsing">
+public void IHEX_Init(void) // <editor-fold defaultstate="collapsed" desc="Intel hex process initialize">
 {
-#define debug(...) //printf(__VA_ARGS__)
+    memset(&Hex2IntCxt, 0, sizeof (Hex2IntCxt));
+    memset(&Decode, 0, sizeof (Decode)); // Set all members to 0
+    Decode.numofdigit=2;
+} // </editor-fold>
 
+public int8_t IHEX_Decode(int8_t c) // <editor-fold defaultstate="collapsed" desc="Intel hex parsing">
+{
     uint32_t tmp;
-    int8_t this_task_rslt;
-    static hex_t Hex={0, 0, 0};
-    static uint32_t addr, val=0, line=0;
-    static uint8_t i, cks=0, phase=0, numofdigit=2;
+    int8_t this_task_rslt=IHEX_Hex2Int(c, Decode.numofdigit, &Decode.val, &Decode.cks);
 
-    this_task_rslt=HEXPARSE_Hex2Integer(c, numofdigit, &val, &cks);
-
-    if(this_task_rslt==PROC_ERR)
+    if(this_task_rslt==IHEX_ERROR)
     {
-        if(phase!=0)
+        if(Decode.phase!=0)
         {
-            write_error_log(__LINE__);
+            IHEX_ErrorLogWrite(__LINE__);
             goto EXIT;
         }
     }
-    else if(this_task_rslt==PROC_BUSY)
-        return PROC_BUSY;
+    else if(this_task_rslt==IHEX_BUSY)
+        return IHEX_BUSY;
 
-    this_task_rslt=PROC_ERR;
+    this_task_rslt=IHEX_ERROR;
 
-    switch(phase)
+    switch(Decode.phase)
     {
         case 0: // <editor-fold defaultstate="collapsed" desc="Get start code">
             if(c==':')
             {
-                numofdigit=2;
-                Hex.ByteCount=0;
-                phase=1;
-                debug("\nLine %05d: ", line++);
+                Decode.numofdigit=2;
+                Decode.Hex.ByteCount=0;
+                Decode.phase=1;
             } // </editor-fold>
             break;
 
         case 1: // <editor-fold defaultstate="collapsed" desc="Get byte count">
-            Hex.ByteCount=(uint8_t) val;
-            numofdigit=4;
-            phase=2;
-            debug("Len=%02d, ", Hex.ByteCount); // </editor-fold>
+            Decode.Hex.ByteCount=(uint8_t) Decode.val;
+            Decode.numofdigit=4;
+            Decode.phase=2; // </editor-fold>
             break;
 
         case 2: // <editor-fold defaultstate="collapsed" desc="Get address">
-            addr=val;
-            numofdigit=2;
-            phase=3;
-            Hex.RecordType=0; // </editor-fold>
+            Decode.addr=Decode.val;
+            Decode.numofdigit=2;
+            Decode.phase=3;
+            Decode.Hex.RecordType=0; // </editor-fold>
             break;
 
         case 3: // <editor-fold defaultstate="collapsed" desc="Get record type">
-            Hex.RecordType=(uint8_t) val;
+            Decode.Hex.RecordType=(uint8_t) Decode.val;
 
-            switch(Hex.RecordType)
+            switch(Decode.Hex.RecordType)
             {
-                case HEX_RECTYPE_DAT:
-                    i=0;
-                    phase=4;
-                    numofdigit=2;
-                    Hex.Address.Value=addr;
-                    debug("Addr=%08X, DAT, ", Hex.Address.Value+Hex.Address.ExtLin+Hex.Address.ExtSeg);
+                case IHEX_RECTYPE_DAT:
+                    Decode.i=0;
+                    Decode.phase=4;
+                    Decode.numofdigit=2;
+                    Decode.Hex.Address.Value=Decode.addr;
                     break;
 
-                case HEX_RECTYPE_EOF:
-                    phase=7;
-                    numofdigit=0;
-                    debug("Addr=%08X, EOF, ", addr);
+                case IHEX_RECTYPE_EOF:
+                    Decode.phase=7;
+                    Decode.numofdigit=0;
                     break;
 
-                case HEX_RECTYPE_ESA:
-                    debug("Addr=%08X, ESA, ", addr);
-                    addr=0;
-                    phase=5;
-                    numofdigit=4;
+                case IHEX_RECTYPE_ESA:
+                    Decode.addr=0;
+                    Decode.phase=5;
+                    Decode.numofdigit=4;
                     break;
 
-                case HEX_RECTYPE_ELA:
-                    debug("Addr=%08X, ELA, ", addr);
-                    addr=0;
-                    phase=6;
-                    numofdigit=4;
+                case IHEX_RECTYPE_ELA:
+                    Decode.addr=0;
+                    Decode.phase=6;
+                    Decode.numofdigit=4;
                     break;
 
-                case HEX_RECTYPE_SSA:
-                case HEX_RECTYPE_SLA:
+                case IHEX_RECTYPE_SSA:
+                case IHEX_RECTYPE_SLA:
                 default:
-                    debug("UNKNOWN");
-                    write_error_log(__LINE__);
+                    IHEX_ErrorLogWrite(__LINE__);
                     goto EXIT;
             } // </editor-fold>
             break;
 
         case 4: // <editor-fold defaultstate="collapsed" desc="Get data">
-            Hex.Data[i]=(uint8_t) val;
-            debug("%02X", Hex.Data[i]);
+            Decode.Hex.Data[Decode.i]=(uint8_t) Decode.val;
 
-            if(++i==Hex.ByteCount)
+            if(++Decode.i==Decode.Hex.ByteCount)
             {
-                phase=7;
-                Hex.Checksum=0;
-                debug(", ");
-            }
-            else
-                debug(" "); // </editor-fold>
+                Decode.phase=7;
+                Decode.Hex.Checksum=0;
+            } // </editor-fold>
             break;
 
         case 5: // <editor-fold defaultstate="collapsed" desc="Get extended segment address">
-            addr=val;
-            phase=7;
-            numofdigit=2;
-            debug("%04X, ", addr);
-            Hex.Address.ExtSeg=(addr<<8);
-            Hex.Address.ExtLin=0; // </editor-fold>
+            Decode.addr=Decode.val;
+            Decode.phase=7;
+            Decode.numofdigit=2;
+            Decode.Hex.Address.ExtSeg=(Decode.addr<<8);
+            Decode.Hex.Address.ExtLin=0; // </editor-fold>
             break;
 
         case 6: // <editor-fold defaultstate="collapsed" desc="Get extended linear address">
-            addr=val;
-            phase=7;
-            numofdigit=2;
-            debug("%04X, ", addr);
-            Hex.Address.ExtLin=(addr<<16);
-            Hex.Address.ExtSeg=0; // </editor-fold>
+            Decode.addr=Decode.val;
+            Decode.phase=7;
+            Decode.numofdigit=2;
+            Decode.Hex.Address.ExtLin=(Decode.addr<<16);
+            Decode.Hex.Address.ExtSeg=0; // </editor-fold>
             break;
 
         case 7: // <editor-fold defaultstate="collapsed" desc="Get checksum">
-            Hex.Checksum=(uint8_t) val;
-            phase=0;
-            numofdigit=2;
-            debug("CRC %02X", Hex.Checksum);
+            Decode.Hex.Checksum=(uint8_t) Decode.val;
+            Decode.phase=0;
+            Decode.numofdigit=2;
 
-            if((cks&0xFF)==0x00)// checksum matched
+            if((Decode.cks&0xFF)==0x00)// checksum matched
             {
-                if(Hex.RecordType==HEX_RECTYPE_DAT)
+                if(Decode.Hex.RecordType==IHEX_RECTYPE_DAT)
                 {
-                    tmp=Hex.Address.Value+Hex.Address.ExtLin+Hex.Address.ExtSeg;
+                    tmp=Decode.Hex.Address.Value+Decode.Hex.Address.ExtLin+Decode.Hex.Address.ExtSeg;
 
-                    if(HEXPARSE_NVM_Write(tmp, Hex.Data, Hex.ByteCount)==PROC_ERR)
+                    if(IHEX_NVM_Write(tmp, Decode.Hex.Data, Decode.Hex.ByteCount)==IHEX_ERROR)
                     {
-                        debug("\nWrite data error\n");
-                        //write_error_log(__LINE__);
+                        IHEX_ErrorLogWrite(__LINE__);
                         goto EXIT;
                     }
                 }
-                else if(Hex.RecordType==HEX_RECTYPE_EOF)
+                else if(Decode.Hex.RecordType==IHEX_RECTYPE_EOF)
                 {
-                    this_task_rslt=PROC_DONE;
+                    this_task_rslt=IHEX_DONE;
                     goto EXIT;
                 }
             }
             else
             {
-                debug(" - Error: %02X\n", cks&0xFF);
-                write_error_log(__LINE__);
+                IHEX_ErrorLogWrite(__LINE__);
                 goto EXIT;
             } // </editor-fold>
             break;
 
         default:
-            debug("\nError, unknown state %d", phase);
-            write_error_log(__LINE__);
+            IHEX_ErrorLogWrite(__LINE__);
             goto EXIT;
     }
 
-    return PROC_BUSY;
+    return IHEX_BUSY;
 
 EXIT:
-    val=0;
-    line=0;
-    phase=0;
-    cks=0;
-    numofdigit=2;
-    Hex.Address.ExtLin=0;
-    Hex.Address.ExtSeg=0;
+    IHEX_Init();
 
-    if(this_task_rslt==PROC_DONE)
+    if(this_task_rslt==IHEX_DONE)
     {
-        if(HEXPARSE_NVM_Write(0, NULL, 0)==PROC_ERR) // Write the last data and/or reset all states in HEXPARSE_NVM_Write
+        if(IHEX_NVM_Write(0, NULL, 0)==IHEX_ERROR) // Write the last data and/or reset all states in IHEX_NVM_Write
         {
-            debug("\nWrite the last DWord error\n");
-            write_error_log(__LINE__);
-            this_task_rslt=PROC_ERR;
+            IHEX_ErrorLogWrite(__LINE__);
+            this_task_rslt=IHEX_ERROR;
         }
     }
 
     return this_task_rslt;
-#undef debug
 } // </editor-fold>

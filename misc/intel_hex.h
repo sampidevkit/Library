@@ -6,18 +6,22 @@
 
 #ifndef HEX_DATA_SIZE
 #define HEX_DATA_SIZE   16
+#warning "Default value of HEX_DATA_SIZE is 16"
 #endif
 
 // Data type of Intel hex
-#define HEX_RECTYPE_DAT 0x00 // Data
-#define HEX_RECTYPE_EOF 0x01 // End Of File
-#define HEX_RECTYPE_ESA 0x02 // Extended Segment Address
-#define HEX_RECTYPE_SSA 0x03 // Start Segment Address
-#define HEX_RECTYPE_ELA 0x04 // Extended Linear Address
-#define HEX_RECTYPE_SLA 0x05 // Start Linear Address
+#define IHEX_RECTYPE_DAT 0x00 // Data
+#define IHEX_RECTYPE_EOF 0x01 // End Of File
+#define IHEX_RECTYPE_ESA 0x02 // Extended Segment Address
+#define IHEX_RECTYPE_SSA 0x03 // Start Segment Address
+#define IHEX_RECTYPE_ELA 0x04 // Extended Linear Address
+#define IHEX_RECTYPE_SLA 0x05 // Start Linear Address
 
-typedef __PACKED_STRUCT
-{
+#define IHEX_DONE        0b00000000
+#define IHEX_BUSY        0b10000000
+#define IHEX_ERROR       0b01000000
+
+typedef __PACKED_STRUCT{
     uint32_t Value;
     uint32_t ExtSeg;
     uint32_t ExtLin;
@@ -35,12 +39,11 @@ hex_t;
 
 typedef unsigned long _paddr_t;
 
-#ifndef write_error_log
-#define write_error_log(line)   // do{err=line; icsp_log(ICSP_LOG_INTERNAL_ERROR, &err, NULL);}while(0)
-#warning "No error log"
-#endif
-
-public int8_t HEXPARSE_Hex2Integer(int8_t c, uint8_t NumOfDigit, uint32_t *pVal, uint8_t *pCks);
-public int8_t HEXPARSE_Tasks(int8_t c);
+/* ****************************************************** EXTRANAL PROTOTYPES */
+public void IHEX_ErrorLogWrite(uint16_t line);
+public uint8_t IHEX_NVM_Write(uint32_t addr, uint8_t *pData, uint8_t len);
+/* ************************************************************************** */
+public void IHEX_Init(void);
+public uint8_t IHEX_Decode(int8_t c);
 
 #endif
