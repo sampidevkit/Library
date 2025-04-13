@@ -2,12 +2,7 @@
 #define	ICSP_H
 
 #include "Common/LibDef.h"
-
-#ifdef COMMON_LIB_CFG
-#include "Common_Lib_Cfg.h"
-#else
-#include "Icsp_Cfg.h"
-#endif
+#include "project_cfg.h"
 
 typedef enum {
     ICSP_LOG_SUCCESS = 0, // 0

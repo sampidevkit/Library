@@ -2,12 +2,7 @@
 #define FILES_LITE_H
 
 #include "Common/LibDef.h"
-
-#ifdef COMMON_LIB_CFG
-#include "Common_Lib_Cfg.h"
-#else
-#include "files_lite_cfg.h"
-#endif
+#include "project_cfg.h"
 
 // semantic versioning
 #ifndef FILES_MAJOR

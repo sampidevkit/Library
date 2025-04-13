@@ -4,30 +4,14 @@
 #include "common/libdef.h"
 #include "project_cfg.h"
 
-#ifndef Tick_Timer_ActionWhileDelay
-#define Tick_Timer_ActionWhileDelay(time) ClrWdt()
-#endif
+extern const uint32_t TICK_PER_SEC;
+extern const uint32_t TICK_PER_MS;
+extern const uint32_t TICK_PER_US;
 
-#if defined(__XC32) || defined(__XC16) || defined(__XC8)
-#ifdef __XC32
-#ifdef USE_SOFT_TMR
-#define tick_t  uint64_t
-#else
 #define tick_t  uint32_t
-#endif
-#else
-#define tick_t  uint32_t
-#endif
-#elif defined(__WIN32)
-#define tick_t  uint32_t
-#else
-#error "Tick timer is not implemented for this platform"
-#endif
 
 typedef enum {
-#if !defined(__WIN32) && defined(__XC32)
     US,
-#endif
     MS,
     SEC
 } tick_timer_type_t;
@@ -43,48 +27,33 @@ typedef struct {
     tick_t Duration;
 } __attribute_packed__ tick_timer_t;
 
-#if defined(__XC32) || defined(__WIN32)
-extern volatile uint32_t TickTimer_SoftTmr;
-#else
-extern volatile uint16_t TickTimer_SoftTmr;
-#endif
+/* **************************************************************** PROTOTYPE */
+tick_t Tick_Timer_Get_TickVal(void);
+/* ************************************************************************** */
+public void Tick_Timer_SetFncCallInDelay(simple_fnc_t pFnc);
+public void Delay(tick_t Time, tick_timer_type_t TickType); // Do not use in multi-task mode
+public bool Tick_Timer_Is_Over(tick_timer_t *pTick, tick_t Time, tick_timer_type_t TickType);
 
-public tick_t Tick_Timer_Get_TickVal(void);
-public void Tick_Timer_Init(void);
-public void Delay(uint32_t Time, tick_timer_type_t TickType); // Do not use in multi-task mode
-public bool Tick_Timer_Is_Over(tick_timer_t *pTick, uint32_t Time, tick_timer_type_t TickType);
+static inline void Tick_Reset(tick_timer_t *pTick) {
+    pTick->Timeout = 1;
+}
 
-#define Tick_Timer_Reset(x)                 (x.Timeout=1)
-#define Tick_Timer_CallBack()               (TickTimer_SoftTmr++)
-
-#ifdef __XC32
+#define Tick_Timer_Init()                   Tick_Timer_SetFncCallInDelay(NULL)
+#define Tick_Timer_Reset(x)                 Tick_Reset(&(x))
 #define Delay_Us(Time)                      Delay(Time, US)
 #define delay_us(t)                         Delay_Us(t)
 #define __delay_us(t)                       Delay_Us(t)
 #define Tick_GetTimeUs()                    (Tick_Timer_Get_TickVal() / TICK_PER_US)
 #define Tick_Timer_Is_Over_Us(pTick, Time)  Tick_Timer_Is_Over(&pTick, Time, US)
 
-#ifdef USE_SYS_SLEEP
-#define system_sleep_us(t)                  Delay(t, US)
-#endif
-#endif
-
 #define Delay_Ms(Time)                      Delay(Time, MS)
 #define Delay_Sec(Time)                     Delay(Time, SEC)
 #define delay_ms(t)                         Delay_Ms(t)
 #define delay_sec(t)                        Delay_Sec(t)
-
-#ifndef __XC8
 #define __delay_ms(t)                       Delay_Ms(t)
-#endif
-
 #define __delay_sec(t)                      Delay_Sec(t)
 
-#ifdef USE_SYS_SLEEP
-#define system_sleep_ms(t)                  Delay(t, MS)
-#define system_sleep_sec(t)                 Delay(t, SEC)
-#endif
-
+#define Tick_Timer_Read()                   Tick_Timer_Get_TickVal()
 #define Tick_GetTimeMs()                    (Tick_Timer_Get_TickVal() / TICK_PER_MS)
 #define Tick_GetTimeSec()                   (Tick_Timer_Get_TickVal() / TICK_PER_SEC)
 #define Tick_Timer_Is_Over_Ms(pTick, Time)  Tick_Timer_Is_Over(&pTick, Time, MS)
@@ -92,5 +61,15 @@ public bool Tick_Timer_Is_Over(tick_timer_t *pTick, uint32_t Time, tick_timer_ty
 #define Elapse_Create(name, t)              do{name.Start=Tick_Timer_Get_TickVal(); name.Duration=t*TICK_PER_MS;}while(0)
 #define Elapse_Get(name)                    ((Tick_Timer_Get_TickVal()-name.Start)>name.Duration?1:0)
 #define Elapse_Update(name)                 name.Start=Tick_Timer_Get_TickVal()
+
+#define Tick_Get()                          Tick_Timer_Get_TickVal()
+#define Tick_GetUs(ms)                      (ms*TICK_PER_US)
+#define Tick_Dif_Us(tk1, tk2)               (((tk1)-(tk2))/TICK_PER_US)
+
+#define Tick_GetMs(ms)                      (ms*TICK_PER_MS)
+#define Tick_GetSec(ms)                     (ms*TICK_PER_SEC)
+#define Tick_Dif(tk1, tk2)                  (tick_t)((tk1)-(tk2))
+#define Tick_Dif_Ms(tk1, tk2)               (tick_t)(((tk1)-(tk2))/TICK_PER_MS)
+#define Tick_Dif_Sec(tk1, tk2)              (tick_t)(((tk1)-(tk2))/TICK_PER_SEC)
 
 #endif

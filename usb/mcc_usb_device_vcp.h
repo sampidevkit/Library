@@ -4,7 +4,7 @@
 #include "usb/usb_device_cdc.h"
 #include "System/TaskManager.h"
 #include "System/TickTimer.h"
-#include "Project_Cfg.h"
+#include "project_cfg.h"
 
 typedef struct
 {

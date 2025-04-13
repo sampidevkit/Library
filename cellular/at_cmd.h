@@ -2,7 +2,7 @@
 #define TELITATCMD_H
 
 #include "Common/LibDef.h"
-#include "Project_Cfg.h"
+#include "project_cfg.h"
 
 typedef struct {
     const size_t Size;

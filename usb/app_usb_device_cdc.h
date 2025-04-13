@@ -4,12 +4,7 @@
 #include "Common/LibDef.h"
 #include "Common/RingBuffer.h"
 #include "Common/LibDef.h"
-
-#ifdef COMMON_LIB_CFG
-#include "Common_Lib_Cfg.h"
-#else
-#include "kit_usb_device_cfg.h"
-#endif
+#include "project_cfg.h"
 
 #define USE_CDC_FOWARD ((USE_CDC_FOWARD_TO_UART1)||(USE_CDC_FOWARD_TO_UART2)|| \
 (USE_CDC_FOWARD_TO_UART3)||(USE_CDC_FOWARD_TO_UART4)||(USE_CDC_FOWARD_TO_PORT))|| \

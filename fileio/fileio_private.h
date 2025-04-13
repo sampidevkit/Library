@@ -2,12 +2,7 @@
 #define  FILEIO_PRIVATE_H
 
 #include "Common/LibDef.h"
-
-#ifdef COMMON_LIB_CFG
-#include "Common_Lib_Cfg.h"
-#else
-#include "fileio_cfg.h"
-#endif
+#include "project_cfg.h"
 
 #include "fileio.h"
 

@@ -44,6 +44,6 @@ public void IHEX_ErrorLogWrite(uint16_t line);
 public uint8_t IHEX_NVM_Write(uint32_t addr, uint8_t *pData, uint8_t len);
 /* ************************************************************************** */
 public void IHEX_Init(void);
-public uint8_t IHEX_Decode(int8_t c);
+public int8_t IHEX_Decode(int8_t c);
 
 #endif

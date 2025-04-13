@@ -3,7 +3,8 @@
 
 #include "common/libdef.h"
 #include "project_cfg.h"
-#include "system/ticktimer.h"
+#include "system/gpio.h"
+#include "system/system_tick.h"
 
 typedef __PACKED_STRUCT
 {

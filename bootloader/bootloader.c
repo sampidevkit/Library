@@ -1,5 +1,8 @@
 #include "bootloader.h"
 #include "bld_extmem.h"
+#include "flash_access.h"
+#include "system/system_tick.h"
+#include "system/soft_wdt.h"
 
 enum
 {
@@ -27,13 +30,13 @@ void _general_exception_handler(void) // <editor-fold defaultstate="collapsed" d
 
 private void Jump2App(void) // <editor-fold defaultstate="collapsed" desc="Jump to application">
 {
-    uint32_t *AppPtr;
+    uint32_t AppPtr;
 
-    AppPtr=(uint32_t *) APP_RESET_ADDRESS;
+    Flash_Access_Read(APP_RESET_ADDRESS, (void *) &AppPtr, 1);
 
-    if(*AppPtr!=0xFFFFFFFF)
+    if(AppPtr!=0xFFFFFFFF)
     {
-        if(FSECbits.CP==0) // Code protection bit must be enabled
+        if(BLD_CheckCodeProtect()) // Code protection bit must be enabled
             appFunction();
     }
 } // </editor-fold>
@@ -63,7 +66,7 @@ public void BootLoader_Tasks(void) // <editor-fold defaultstate="collapsed" desc
             {
                 int8_t rslt;
 
-                rslt=HEXPARSE_Tasks(Buffer[i]);
+                rslt=IHEX_Decode(Buffer[i]);
 
                 if(rslt==PROC_DONE)
                 {
@@ -109,7 +112,7 @@ public void BootLoader_Tasks(void) // <editor-fold defaultstate="collapsed" desc
             break;
 
         case BLD_IDLE: // Do nothing
-            default:
+        default:
             break;
     }
 } // </editor-fold>
@@ -140,5 +143,5 @@ public void BootLoader_Initialize(void) // <editor-fold defaultstate="collapsed"
 public void BootLoader_Deinitialize(void) // <editor-fold defaultstate="collapsed" desc="Bootloader deinitialize">
 {
     ClrWdt();
-    WDT_Disable();
+    softWDT_Disable();
 } // </editor-fold>

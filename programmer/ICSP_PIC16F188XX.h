@@ -2,12 +2,7 @@
 #define	ICSP_PIC16F188XX_H
 
 #include "Common/LibDef.h"
-
-#ifdef COMMON_LIB_CFG
-#include "Common_Lib_Cfg.h"
-#else
-#include "ICSP_PIC16F188XX_Cfg.h"
-#endif
+#include "project_cfg.h"
 
 // ICSP command set - DS4000175B-page 9
 #define LOAD_PC_ADDRESS             0x80 // PC=payload value, delay TDLY

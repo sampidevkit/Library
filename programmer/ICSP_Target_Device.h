@@ -2,12 +2,7 @@
 #define NVM_TARGET_DEVICE_H
 
 #include "Common/LibDef.h"
-
-#ifdef COMMON_LIB_CFG
-#include "Common_Lib_Cfg.h"
-#else
-#include "Icsp_Cfg.h"
-#endif
+#include "project_cfg.h"
 
 #if defined(TARGET_MCU_PIC32MM0064GPM028)||defined(TARGET_MCU_PIC32MM0128GPM028) \
 ||defined(TARGET_MCU_PIC32MM0256GPM028)||defined(TARGET_MCU_PIC32MM0064GPM036) \

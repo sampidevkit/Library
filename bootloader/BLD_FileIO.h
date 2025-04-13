@@ -2,13 +2,7 @@
 #define BLD_FILEIO_H
 
 #include "Common/LibDef.h"
-
-#ifdef COMMON_LIB_CFG
-#include "Common_Lib_Cfg.h"
-#else
-#include "BLD_FileIO_Cfg.h"
-#endif
-
+#include "project_cfg.h"
 #include "FileIO/fileio_lite.h"
 
 //---------------------------------------------------------------------------------------

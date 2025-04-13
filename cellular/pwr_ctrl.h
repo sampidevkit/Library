@@ -2,7 +2,7 @@
 #define	TELITPWRCTRL_H
 
 #include "Common/LibDef.h"
-#include "Project_Cfg.h"
+#include "project_cfg.h"
 
 #define DEFAULT_TELIT_VCEL_STARTUP_MIN  3200 // mV
 #define DEFAULT_TELIT_VCEL_PPWRDN_MIN   2700 // mV

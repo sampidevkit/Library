@@ -82,8 +82,10 @@ typedef const char *far_string_t;
 #define PROC_DRV_ERR                    (-2)
 
 #define RESULT_DONE                     0
-#define RESULT_BUSY                     1
-#define RESULT_REBOOT                   2
+#define RESULT_ACK                      0
+#define RESULT_NACK                     1
+#define RESULT_BUSY                     2
+#define RESULT_REBOOT                   3
 #define RESULT_ERR                      (-1)
 
 #ifdef __XC32
@@ -96,6 +98,26 @@ typedef const char *far_string_t;
 #ifndef PA_TO_KVA0
 #define PA_TO_KVA0(pa)                  ((void*)((pa)|0x80000000))
 #endif
+#endif
+
+#define BitTest(x, i)                   ((x>>i)&1)
+#define bittest(x, i)                   ((x>>i)&1)
+#define bit_test(x, i)                  ((x>>i)&1)
+
+#define BitSet(x, i)                    x=x|(1<<i)
+#define bitset(x, i)                    x=x|(1<<i)
+#define bit_set(x, i)                   x=x|(1<<i)
+
+#define BitClear(x, i)                  x=x&(~(1<<i))
+#define bitclear(x, i)                  x=x&(~(1<<i))
+#define bit_clear(x, i)                 x=x&(~(1<<i))
+
+#ifndef bit_is_set
+#define bit_is_set(sfr, bit)            (((x>>i)&1)==1)
+#endif
+
+#ifndef bit_is_clear
+#define bit_is_clear(sfr, bit)          (((x>>i)&1)==0)
 #endif
 
 #define BitTest(x, i)                   ((x>>i)&1)
@@ -287,5 +309,10 @@ typedef enum
 typedef uintptr_t DRV_HANDLE;
 
 #define DRV_HANDLE_INVALID  (((DRV_HANDLE) -1))
+
+#define __make_str(str) #str
+#define __make_xstr(str) __make_str(str)
+
+typedef void (*simple_fnc_t) (void);
 
 #endif

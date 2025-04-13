@@ -2,12 +2,7 @@
 #define USB_DEVICE_CDC_H
 
 #include "Common/LibDef.h"
-
-#ifdef COMMON_LIB_CFG
-#include "Common_Lib_Cfg.h"
-#else
-#include "usb_device_cdc_cfg.h"
-#endif
+#include "project_cfg.h"
 
 #include "usb_device_config.h"
 
