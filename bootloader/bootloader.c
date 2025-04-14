@@ -119,7 +119,6 @@ public void BootLoader_Tasks(void) // <editor-fold defaultstate="collapsed" desc
 
 public void BootLoader_Initialize(void) // <editor-fold defaultstate="collapsed" desc="Boot loader initialize">
 {
-    BLD_Trigger_Init();
     Tick_Timer_Reset(Tick);
     Enable_Peripheral_Interrupt();
     Enable_Global_Interrupt();

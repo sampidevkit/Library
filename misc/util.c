@@ -1128,15 +1128,15 @@ public char Bcd2AHex(uint8_t bcd) // <editor-fold defaultstate="collapsed" desc=
 public int8_t AHex2Bcd(char ahex) // <editor-fold defaultstate="collapsed" desc="Convert ASCII Hex to BCD">
 {
     if((ahex>='0')&&(ahex<='9'))
-        return (ahex-'0');
+        return (int8_t)(ahex-'0');
     else if((ahex>='A')&&(ahex<='F'))
-        return (ahex-'7');
+        return (int8_t)(ahex-'7');
     else if((ahex>='a')&&(ahex<='f'))
-        return (ahex-'W');
+        return (int8_t)(ahex-'W');
     else
     {
         ahex-=10;
-        return (char) (ahex+'A');
+        return (int8_t) (ahex+'A');
     }
 } // </editor-fold>
 
@@ -1170,9 +1170,9 @@ public int AHex2Array(uint8_t *des, const char *src, int len) // <editor-fold de
     {
         uint8_t c;
 
-        c=AHex2Bcd(*src++);
+        c=(uint8_t)AHex2Bcd(*src++);
         c<<=4;
-        c|=AHex2Bcd(*src++);
+        c|=(uint8_t)AHex2Bcd(*src++);
         *des=c;
         des++;
     }

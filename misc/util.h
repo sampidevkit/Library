@@ -1,7 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include "Common/LibDef.h"
+#include "common/libdef.h"
 
 typedef struct {
     uint8_t idx;

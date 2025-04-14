@@ -34,7 +34,7 @@
  * </table>
  */
 
-#include "driver_sx1268.h"
+#include "sx1268.h"
 #include <math.h>
 
 /**
