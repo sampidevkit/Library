@@ -1,49 +1,8 @@
-/**
- * Copyright (c) 2015 - present LibDriver All rights reserved
- * 
- * The MIT License (MIT)
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE. 
- *
- * @file      driver_sx1268.h
- * @brief     driver sx1268 header file
- * @version   1.0.0
- * @author    Shifeng Li
- * @date      2022-01-30
- * @link      https://github.com/libdriver/sx1268.git
- * <h3>history</h3>
- * <table>
- * <tr><th>Date        <th>Version  <th>Author      <th>Description
- * <tr><td>2022/01/30  <td>1.0      <td>Shifeng Li  <td>first upload
- * </table>
- */
+#ifndef SX1268_H
+#define SX1268_H
 
-#ifndef DRIVER_SX1268_H
-#define DRIVER_SX1268_H
-
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
-
-#ifdef __cplusplus
-extern "C"{
-#endif
+#include "common/libdef.h"
+#include "project_cfg.h"
 
 /**
  * @defgroup sx1268_driver sx1268 driver function
@@ -59,285 +18,262 @@ extern "C"{
 /**
  * @brief sx1268 bool enumeration definition
  */
-typedef enum
-{
-    SX1268_BOOL_FALSE = 0x00,        /**< disable function */
-    SX1268_BOOL_TRUE  = 0x01,        /**< enable function */
+typedef enum {
+    SX1268_BOOL_FALSE = 0x00, /**< disable function */
+    SX1268_BOOL_TRUE = 0x01, /**< enable function */
 } sx1268_bool_t;
 
 /**
  * @brief sx1268 start mode enumeration definition
  */
-typedef enum
-{
-    SX1268_START_MODE_COLD = 0x00,        /**< cold start mode */
-    SX1268_START_MODE_WARM = 0x01,        /**< warm start mode */
+typedef enum {
+    SX1268_START_MODE_COLD = 0x00, /**< cold start mode */
+    SX1268_START_MODE_WARM = 0x01, /**< warm start mode */
 } sx1268_start_mode_t;
 
 /**
  * @brief sx1268 clock source enumeration definition
  */
-typedef enum
-{
-    SX1268_CLOCK_SOURCE_RC_13M     = 0x00,        /**< rc 13MHz */
-    SX1268_CLOCK_SOURCE_XTAL_32MHZ = 0x01,        /**< xtal 32MHz */
+typedef enum {
+    SX1268_CLOCK_SOURCE_RC_13M = 0x00, /**< rc 13MHz */
+    SX1268_CLOCK_SOURCE_XTAL_32MHZ = 0x01, /**< xtal 32MHz */
 } sx1268_clock_source_t;
 
 /**
  * @brief sx1268 regulator mode enumeration definition
  */
-typedef enum
-{
-    SX1268_REGULATOR_MODE_ONLY_LDO  = 0x00,        /**< only ldo used for all modes */
-    SX1268_REGULATOR_MODE_DC_DC_LDO = 0x01,        /**< dc_dc + ldo used for standby_xosc, fs, rx and rx modes */
+typedef enum {
+    SX1268_REGULATOR_MODE_ONLY_LDO = 0x00, /**< only ldo used for all modes */
+    SX1268_REGULATOR_MODE_DC_DC_LDO = 0x01, /**< dc_dc + ldo used for standby_xosc, fs, rx and rx modes */
 } sx1268_regulator_mode_t;
 
 /**
  * @brief sx1268 calibration enumeration definition
  */
-typedef enum
-{
-    SX1268_CALIBRATION_RC64K      = (1 << 0),        /**< rc64k calibration */
-    SX1268_CALIBRATION_RC13M      = (1 << 1),        /**< rc13M calibration */
-    SX1268_CALIBRATION_PLL        = (1 << 2),        /**< pll calibration */
-    SX1268_CALIBRATION_ADC_PULSE  = (1 << 3),        /**< adc pulse calibration */
-    SX1268_CALIBRATION_ADC_BULK_N = (1 << 4),        /**< adc bulk n calibration */
-    SX1268_CALIBRATION_ADC_BULK_P = (1 << 5),        /**< adc bulk p calibration */
-    SX1268_CALIBRATION_IMAGE      = (1 << 6),        /**< image calibration */
+typedef enum {
+    SX1268_CALIBRATION_RC64K = (1 << 0), /**< rc64k calibration */
+    SX1268_CALIBRATION_RC13M = (1 << 1), /**< rc13M calibration */
+    SX1268_CALIBRATION_PLL = (1 << 2), /**< pll calibration */
+    SX1268_CALIBRATION_ADC_PULSE = (1 << 3), /**< adc pulse calibration */
+    SX1268_CALIBRATION_ADC_BULK_N = (1 << 4), /**< adc bulk n calibration */
+    SX1268_CALIBRATION_ADC_BULK_P = (1 << 5), /**< adc bulk p calibration */
+    SX1268_CALIBRATION_IMAGE = (1 << 6), /**< image calibration */
 } sx1268_calibration_t;
 
 /**
  * @brief sx1268 irq enumeration definition
  */
-typedef enum
-{
-    SX1268_IRQ_TX_DONE           = (1 << 0),        /**< packet transmission completed */
-    SX1268_IRQ_RX_DONE           = (1 << 1),        /**< packet received */
-    SX1268_IRQ_PREAMBLE_DETECTED = (1 << 2),        /**< preamble detected */
-    SX1268_IRQ_SYNC_WORD_VALID   = (1 << 3),        /**< valid sync word detected */
-    SX1268_IRQ_HEADER_VALID      = (1 << 4),        /**< valid header */
-    SX1268_IRQ_HEADER_ERR        = (1 << 5),        /**< header error */
-    SX1268_IRQ_CRC_ERR           = (1 << 6),        /**< crc error */
-    SX1268_IRQ_CAD_DONE          = (1 << 7),        /**< cad done */
-    SX1268_IRQ_CAD_DETECTED      = (1 << 8),        /**< cad detected */
-    SX1268_IRQ_TIMEOUT           = (1 << 9),        /**< timeout */
+typedef enum {
+    SX1268_IRQ_TX_DONE = (1 << 0), /**< packet transmission completed */
+    SX1268_IRQ_RX_DONE = (1 << 1), /**< packet received */
+    SX1268_IRQ_PREAMBLE_DETECTED = (1 << 2), /**< preamble detected */
+    SX1268_IRQ_SYNC_WORD_VALID = (1 << 3), /**< valid sync word detected */
+    SX1268_IRQ_HEADER_VALID = (1 << 4), /**< valid header */
+    SX1268_IRQ_HEADER_ERR = (1 << 5), /**< header error */
+    SX1268_IRQ_CRC_ERR = (1 << 6), /**< crc error */
+    SX1268_IRQ_CAD_DONE = (1 << 7), /**< cad done */
+    SX1268_IRQ_CAD_DETECTED = (1 << 8), /**< cad detected */
+    SX1268_IRQ_TIMEOUT = (1 << 9), /**< timeout */
 } sx1268_irq_t;
 
 /**
  * @brief sx1268 rx tx fallback mode enumeration definition
  */
-typedef enum
-{
-    SX1268_RX_TX_FALLBACK_MODE_FS         = 0x40,        /**< the radio goes into fs mode after tx or rx */
-    SX1268_RX_TX_FALLBACK_MODE_STDBY_XOSC = 0x30,        /**< the radio goes into standby_xosc mode after tx or rx */
-    SX1268_RX_TX_FALLBACK_MODE_STDBY_RC   = 0x20,        /**< the radio goes into standby_rc mode after tx or rx */
+typedef enum {
+    SX1268_RX_TX_FALLBACK_MODE_FS = 0x40, /**< the radio goes into fs mode after tx or rx */
+    SX1268_RX_TX_FALLBACK_MODE_STDBY_XOSC = 0x30, /**< the radio goes into standby_xosc mode after tx or rx */
+    SX1268_RX_TX_FALLBACK_MODE_STDBY_RC = 0x20, /**< the radio goes into standby_rc mode after tx or rx */
 } sx1268_rx_tx_fallback_mode_t;
 
 /**
  * @brief sx1268 tcxo voltage enumeration definition
  */
-typedef enum
-{
-    SX1268_TCXO_VOLTAGE_1P6V = 0x00,        /**< dio3 outputs 1.6 V to supply the tcxo */
-    SX1268_TCXO_VOLTAGE_1P7V = 0x01,        /**< dio3 outputs 1.7 V to supply the tcxo */
-    SX1268_TCXO_VOLTAGE_1P8V = 0x02,        /**< dio3 outputs 1.8 V to supply the tcxo */
-    SX1268_TCXO_VOLTAGE_2P2V = 0x03,        /**< dio3 outputs 2.2 V to supply the tcxo */
-    SX1268_TCXO_VOLTAGE_2P4V = 0x04,        /**< dio3 outputs 2.4 V to supply the tcxo */
-    SX1268_TCXO_VOLTAGE_2P7V = 0x05,        /**< dio3 outputs 2.7 V to supply the tcxo */
-    SX1268_TCXO_VOLTAGE_3P0V = 0x06,        /**< dio3 outputs 3.0 V to supply the tcxo */
-    SX1268_TCXO_VOLTAGE_3P3V = 0x07,        /**< dio3 outputs 3.3 V to supply the tcxo */
+typedef enum {
+    SX1268_TCXO_VOLTAGE_1P6V = 0x00, /**< dio3 outputs 1.6 V to supply the tcxo */
+    SX1268_TCXO_VOLTAGE_1P7V = 0x01, /**< dio3 outputs 1.7 V to supply the tcxo */
+    SX1268_TCXO_VOLTAGE_1P8V = 0x02, /**< dio3 outputs 1.8 V to supply the tcxo */
+    SX1268_TCXO_VOLTAGE_2P2V = 0x03, /**< dio3 outputs 2.2 V to supply the tcxo */
+    SX1268_TCXO_VOLTAGE_2P4V = 0x04, /**< dio3 outputs 2.4 V to supply the tcxo */
+    SX1268_TCXO_VOLTAGE_2P7V = 0x05, /**< dio3 outputs 2.7 V to supply the tcxo */
+    SX1268_TCXO_VOLTAGE_3P0V = 0x06, /**< dio3 outputs 3.0 V to supply the tcxo */
+    SX1268_TCXO_VOLTAGE_3P3V = 0x07, /**< dio3 outputs 3.3 V to supply the tcxo */
 } sx1268_tcxo_voltage_t;
 
 /**
  * @brief sx1268 packet type enumeration definition
  */
-typedef enum
-{
-    SX1268_PACKET_TYPE_GFSK = 0x00,        /**< gfsk mode */
-    SX1268_PACKET_TYPE_LORA = 0x01,        /**< lora mode */
+typedef enum {
+    SX1268_PACKET_TYPE_GFSK = 0x00, /**< gfsk mode */
+    SX1268_PACKET_TYPE_LORA = 0x01, /**< lora mode */
 } sx1268_packet_type_t;
 
 /**
  * @brief sx1268 ramp time enumeration definition
  */
-typedef enum
-{
-    SX1268_RAMP_TIME_10US   = 0x00,        /**< 10us */
-    SX1268_RAMP_TIME_20US   = 0x01,        /**< 20us */
-    SX1268_RAMP_TIME_40US   = 0x02,        /**< 40us */
-    SX1268_RAMP_TIME_80US   = 0x03,        /**< 80us */
-    SX1268_RAMP_TIME_200US  = 0x04,        /**< 200us */
-    SX1268_RAMP_TIME_800US  = 0x05,        /**< 800us */
-    SX1268_RAMP_TIME_1700US = 0x06,        /**< 1700us */
-    SX1268_RAMP_TIME_3400US = 0x07,        /**< 3400us */
+typedef enum {
+    SX1268_RAMP_TIME_10US = 0x00, /**< 10us */
+    SX1268_RAMP_TIME_20US = 0x01, /**< 20us */
+    SX1268_RAMP_TIME_40US = 0x02, /**< 40us */
+    SX1268_RAMP_TIME_80US = 0x03, /**< 80us */
+    SX1268_RAMP_TIME_200US = 0x04, /**< 200us */
+    SX1268_RAMP_TIME_800US = 0x05, /**< 800us */
+    SX1268_RAMP_TIME_1700US = 0x06, /**< 1700us */
+    SX1268_RAMP_TIME_3400US = 0x07, /**< 3400us */
 } sx1268_ramp_time_t;
 
 /**
  * @brief sx1268 gfsk pulse shape enumeration definition
  */
-typedef enum
-{
-    SX1268_GFSK_PULSE_SHAPE_NO_FILTER       = 0x00,        /**< no filter applied */
-    SX1268_GFSK_PULSE_SHAPE_GAUSSIAN_BT_0P3 = 0x08,        /**< gaussian bt 0.3 */
-    SX1268_GFSK_PULSE_SHAPE_GAUSSIAN_BT_0P5 = 0x09,        /**< gaussian bt 0.5 */
-    SX1268_GFSK_PULSE_SHAPE_GAUSSIAN_BT_0P7 = 0x0A,        /**< gaussian bt 0.7 */
-    SX1268_GFSK_PULSE_SHAPE_GAUSSIAN_BT_1   = 0x0B,        /**< gaussian bt 1 */
+typedef enum {
+    SX1268_GFSK_PULSE_SHAPE_NO_FILTER = 0x00, /**< no filter applied */
+    SX1268_GFSK_PULSE_SHAPE_GAUSSIAN_BT_0P3 = 0x08, /**< gaussian bt 0.3 */
+    SX1268_GFSK_PULSE_SHAPE_GAUSSIAN_BT_0P5 = 0x09, /**< gaussian bt 0.5 */
+    SX1268_GFSK_PULSE_SHAPE_GAUSSIAN_BT_0P7 = 0x0A, /**< gaussian bt 0.7 */
+    SX1268_GFSK_PULSE_SHAPE_GAUSSIAN_BT_1 = 0x0B, /**< gaussian bt 1 */
 } sx1268_gfsk_pulse_shape_t;
 
 /**
  * @brief sx1268 gfsk bandwidth enumeration definition
  */
-typedef enum
-{
-    SX1268_GFSK_BANDWIDTH_4P8_KHZ   = 0x1F,        /**< 4.8 kHz */
-    SX1268_GFSK_BANDWIDTH_5P8_KHZ   = 0x17,        /**< 5.8 kHz */
-    SX1268_GFSK_BANDWIDTH_7P3_KHZ   = 0x0F,        /**< 7.3 kHz */
-    SX1268_GFSK_BANDWIDTH_9P7_KHZ   = 0x1E,        /**< 9.7 kHz */
-    SX1268_GFSK_BANDWIDTH_11P7_KHZ  = 0x16,        /**< 11.7 kHz */
-    SX1268_GFSK_BANDWIDTH_14P6_KHZ  = 0x0E,        /**< 14.6 kHz */
-    SX1268_GFSK_BANDWIDTH_19P5_KHZ  = 0x1D,        /**< 19.5 kHz */
-    SX1268_GFSK_BANDWIDTH_23P4_KHZ  = 0x15,        /**< 23.4 kHz */
-    SX1268_GFSK_BANDWIDTH_29P3_KHZ  = 0x0D,        /**< 29.3 kHz */
-    SX1268_GFSK_BANDWIDTH_39_KHZ    = 0x1C,        /**< 39 kHz */
-    SX1268_GFSK_BANDWIDTH_46P9_KHZ  = 0x14,        /**< 46.9 kHz */
-    SX1268_GFSK_BANDWIDTH_58P6_KHZ  = 0x0C,        /**< 58.6 kHz */
-    SX1268_GFSK_BANDWIDTH_78P2_KHZ  = 0x1B,        /**< 78.2 kHz */
-    SX1268_GFSK_BANDWIDTH_93P8_KHZ  = 0x13,        /**< 93.8 kHz */
-    SX1268_GFSK_BANDWIDTH_117P3_KHZ = 0x0B,        /**< 117.3 kHz */
-    SX1268_GFSK_BANDWIDTH_156P2_KHZ = 0x1A,        /**< 156.2 kHz */
-    SX1268_GFSK_BANDWIDTH_187P2_KHZ = 0x12,        /**< 187.2 kHz */
-    SX1268_GFSK_BANDWIDTH_232P3_KHZ = 0x0A,        /**< 232.3 kHz */
-    SX1268_GFSK_BANDWIDTH_312_KHZ   = 0x19,        /**< 312 kHz */
-    SX1268_GFSK_BANDWIDTH_373P6_KHZ = 0x11,        /**< 373.6 kHz */
-    SX1268_GFSK_BANDWIDTH_467_KHZ   = 0x09,        /**< 467 kHz */
+typedef enum {
+    SX1268_GFSK_BANDWIDTH_4P8_KHZ = 0x1F, /**< 4.8 kHz */
+    SX1268_GFSK_BANDWIDTH_5P8_KHZ = 0x17, /**< 5.8 kHz */
+    SX1268_GFSK_BANDWIDTH_7P3_KHZ = 0x0F, /**< 7.3 kHz */
+    SX1268_GFSK_BANDWIDTH_9P7_KHZ = 0x1E, /**< 9.7 kHz */
+    SX1268_GFSK_BANDWIDTH_11P7_KHZ = 0x16, /**< 11.7 kHz */
+    SX1268_GFSK_BANDWIDTH_14P6_KHZ = 0x0E, /**< 14.6 kHz */
+    SX1268_GFSK_BANDWIDTH_19P5_KHZ = 0x1D, /**< 19.5 kHz */
+    SX1268_GFSK_BANDWIDTH_23P4_KHZ = 0x15, /**< 23.4 kHz */
+    SX1268_GFSK_BANDWIDTH_29P3_KHZ = 0x0D, /**< 29.3 kHz */
+    SX1268_GFSK_BANDWIDTH_39_KHZ = 0x1C, /**< 39 kHz */
+    SX1268_GFSK_BANDWIDTH_46P9_KHZ = 0x14, /**< 46.9 kHz */
+    SX1268_GFSK_BANDWIDTH_58P6_KHZ = 0x0C, /**< 58.6 kHz */
+    SX1268_GFSK_BANDWIDTH_78P2_KHZ = 0x1B, /**< 78.2 kHz */
+    SX1268_GFSK_BANDWIDTH_93P8_KHZ = 0x13, /**< 93.8 kHz */
+    SX1268_GFSK_BANDWIDTH_117P3_KHZ = 0x0B, /**< 117.3 kHz */
+    SX1268_GFSK_BANDWIDTH_156P2_KHZ = 0x1A, /**< 156.2 kHz */
+    SX1268_GFSK_BANDWIDTH_187P2_KHZ = 0x12, /**< 187.2 kHz */
+    SX1268_GFSK_BANDWIDTH_232P3_KHZ = 0x0A, /**< 232.3 kHz */
+    SX1268_GFSK_BANDWIDTH_312_KHZ = 0x19, /**< 312 kHz */
+    SX1268_GFSK_BANDWIDTH_373P6_KHZ = 0x11, /**< 373.6 kHz */
+    SX1268_GFSK_BANDWIDTH_467_KHZ = 0x09, /**< 467 kHz */
 } sx1268_gfsk_bandwidth_t;
 
 /**
  * @brief sx1268 lora spreading factor enumeration definition
  */
-typedef enum
-{
-    SX1268_LORA_SF_5  = 0x05,        /**< spreading factor 5 */
-    SX1268_LORA_SF_6  = 0x06,        /**< spreading factor 6 */
-    SX1268_LORA_SF_7  = 0x07,        /**< spreading factor 7 */
-    SX1268_LORA_SF_8  = 0x08,        /**< spreading factor 8 */
-    SX1268_LORA_SF_9  = 0x09,        /**< spreading factor 9 */
-    SX1268_LORA_SF_10 = 0x0A,        /**< spreading factor 10 */
-    SX1268_LORA_SF_11 = 0x0B,        /**< spreading factor 11 */
-    SX1268_LORA_SF_12 = 0x0C,        /**< spreading factor 12 */
+typedef enum {
+    SX1268_LORA_SF_5 = 0x05, /**< spreading factor 5 */
+    SX1268_LORA_SF_6 = 0x06, /**< spreading factor 6 */
+    SX1268_LORA_SF_7 = 0x07, /**< spreading factor 7 */
+    SX1268_LORA_SF_8 = 0x08, /**< spreading factor 8 */
+    SX1268_LORA_SF_9 = 0x09, /**< spreading factor 9 */
+    SX1268_LORA_SF_10 = 0x0A, /**< spreading factor 10 */
+    SX1268_LORA_SF_11 = 0x0B, /**< spreading factor 11 */
+    SX1268_LORA_SF_12 = 0x0C, /**< spreading factor 12 */
 } sx1268_lora_sf_t;
 
 /**
  * @brief sx1268 lora bandwidth enumeration definition
  */
-typedef enum
-{
-    SX1268_LORA_BANDWIDTH_7P81_KHZ  = 0x00,        /**< 7.81 kHz */
-    SX1268_LORA_BANDWIDTH_10P42_KHZ = 0x08,        /**< 10.42 kHz */
-    SX1268_LORA_BANDWIDTH_15P63_KHZ = 0x01,        /**< 15.63 kHz */
-    SX1268_LORA_BANDWIDTH_20P83_KHZ = 0x09,        /**< 20.83 kHz */
-    SX1268_LORA_BANDWIDTH_31P25_KHZ = 0x02,        /**< 31.25 kHz */
-    SX1268_LORA_BANDWIDTH_41P67_KHZ = 0x0A,        /**< 41.67 kHz */
-    SX1268_LORA_BANDWIDTH_62P50_KHZ = 0x03,        /**< 62.50 kHz */
-    SX1268_LORA_BANDWIDTH_125_KHZ   = 0x04,        /**< 125 kHz */
-    SX1268_LORA_BANDWIDTH_250_KHZ   = 0x05,        /**< 250 kHz */
-    SX1268_LORA_BANDWIDTH_500_KHZ   = 0x06,        /**< 500 kHz */
+typedef enum {
+    SX1268_LORA_BANDWIDTH_7P81_KHZ = 0x00, /**< 7.81 kHz */
+    SX1268_LORA_BANDWIDTH_10P42_KHZ = 0x08, /**< 10.42 kHz */
+    SX1268_LORA_BANDWIDTH_15P63_KHZ = 0x01, /**< 15.63 kHz */
+    SX1268_LORA_BANDWIDTH_20P83_KHZ = 0x09, /**< 20.83 kHz */
+    SX1268_LORA_BANDWIDTH_31P25_KHZ = 0x02, /**< 31.25 kHz */
+    SX1268_LORA_BANDWIDTH_41P67_KHZ = 0x0A, /**< 41.67 kHz */
+    SX1268_LORA_BANDWIDTH_62P50_KHZ = 0x03, /**< 62.50 kHz */
+    SX1268_LORA_BANDWIDTH_125_KHZ = 0x04, /**< 125 kHz */
+    SX1268_LORA_BANDWIDTH_250_KHZ = 0x05, /**< 250 kHz */
+    SX1268_LORA_BANDWIDTH_500_KHZ = 0x06, /**< 500 kHz */
 } sx1268_lora_bandwidth_t;
 
 /**
  * @brief sx1268 lora coding rate enumeration definition
  */
-typedef enum
-{
-    SX1268_LORA_CR_4_5 = 0x01,        /**< cr 4/5 */
-    SX1268_LORA_CR_4_6 = 0x02,        /**< cr 4/6 */
-    SX1268_LORA_CR_4_7 = 0x03,        /**< cr 4/7 */
-    SX1268_LORA_CR_4_8 = 0x04,        /**< cr 4/8 */
+typedef enum {
+    SX1268_LORA_CR_4_5 = 0x01, /**< cr 4/5 */
+    SX1268_LORA_CR_4_6 = 0x02, /**< cr 4/6 */
+    SX1268_LORA_CR_4_7 = 0x03, /**< cr 4/7 */
+    SX1268_LORA_CR_4_8 = 0x04, /**< cr 4/8 */
 } sx1268_lora_cr_t;
 
 /**
  * @brief sx1268 gfsk preamble detector length enumeration definition
  */
-typedef enum
-{
-    SX1268_GFSK_PREAMBLE_DETECTOR_LENGTH_OFF     = 0x00,        /**< preamble detector length off */
-    SX1268_GFSK_PREAMBLE_DETECTOR_LENGTH_8_BITS  = 0x04,        /**< preamble detector length 8 bits */
-    SX1268_GFSK_PREAMBLE_DETECTOR_LENGTH_16_BITS = 0x05,        /**< preamble detector length 16 bits */
-    SX1268_GFSK_PREAMBLE_DETECTOR_LENGTH_24_BITS = 0x06,        /**< preamble detector length 24 bits */
-    SX1268_GFSK_PREAMBLE_DETECTOR_LENGTH_32_BITS = 0x07,        /**< preamble detector length 32 bits */
+typedef enum {
+    SX1268_GFSK_PREAMBLE_DETECTOR_LENGTH_OFF = 0x00, /**< preamble detector length off */
+    SX1268_GFSK_PREAMBLE_DETECTOR_LENGTH_8_BITS = 0x04, /**< preamble detector length 8 bits */
+    SX1268_GFSK_PREAMBLE_DETECTOR_LENGTH_16_BITS = 0x05, /**< preamble detector length 16 bits */
+    SX1268_GFSK_PREAMBLE_DETECTOR_LENGTH_24_BITS = 0x06, /**< preamble detector length 24 bits */
+    SX1268_GFSK_PREAMBLE_DETECTOR_LENGTH_32_BITS = 0x07, /**< preamble detector length 32 bits */
 } sx1268_gfsk_preamble_detector_length_t;
 
 /**
  * @brief sx1268 gfsk addr filter enumeration definition
  */
-typedef enum
-{
-    SX1268_GFSK_ADDR_FILTER_DISABLE                       = 0x00,        /**< address filtering disable */
-    SX1268_GFSK_ADDR_FILTER_ACTIVATED_NODE_ADDR           = 0x01,        /**< address filtering activated on node address */
-    SX1268_GFSK_ADDR_FILTER_ACTIVATED_NODE_BROADCAST_ADDR = 0x02,        /**< address filtering activated on node and broadcast addresses */
+typedef enum {
+    SX1268_GFSK_ADDR_FILTER_DISABLE = 0x00, /**< address filtering disable */
+    SX1268_GFSK_ADDR_FILTER_ACTIVATED_NODE_ADDR = 0x01, /**< address filtering activated on node address */
+    SX1268_GFSK_ADDR_FILTER_ACTIVATED_NODE_BROADCAST_ADDR = 0x02, /**< address filtering activated on node and broadcast addresses */
 } sx1268_gfsk_addr_filter_t;
 
 /**
  * @brief sx1268 gfsk packet type enumeration definition
  */
-typedef enum
-{
-    SX1268_GFSK_PACKET_TYPE_KNOWN_LENGTH  = 0x00,        /**< the packet length is known on both sides, 
+typedef enum {
+    SX1268_GFSK_PACKET_TYPE_KNOWN_LENGTH = 0x00, /**< the packet length is known on both sides, 
                                                               the size of the payload is not added to the packet */
-    SX1268_GFSK_PACKET_TYPE_VARIABLE_SIZE = 0x01,        /**< the packet is on variable size, the first byte of the payload will be the
+    SX1268_GFSK_PACKET_TYPE_VARIABLE_SIZE = 0x01, /**< the packet is on variable size, the first byte of the payload will be the
                                                               size of the packet*/
 } sx1268_gfsk_packet_type_t;
 
 /**
  * @brief sx1268 gfsk crc type enumeration definition
  */
-typedef enum
-{
-    SX1268_GFSK_CRC_TYPE_OFF        = 0x01,        /**< no crc */
-    SX1268_GFSK_CRC_TYPE_1_BYTE     = 0x00,        /**< crc computed on 1 byte */
-    SX1268_GFSK_CRC_TYPE_2_BYTE     = 0x02,        /**< crc computed on 2 byte */
-    SX1268_GFSK_CRC_TYPE_1_BYTE_INV = 0x04,        /**< crc computed on 1 byte and inverted */
-    SX1268_GFSK_CRC_TYPE_2_BYTE_INV = 0x06,        /**< crc computed on 2 byte and inverted */
+typedef enum {
+    SX1268_GFSK_CRC_TYPE_OFF = 0x01, /**< no crc */
+    SX1268_GFSK_CRC_TYPE_1_BYTE = 0x00, /**< crc computed on 1 byte */
+    SX1268_GFSK_CRC_TYPE_2_BYTE = 0x02, /**< crc computed on 2 byte */
+    SX1268_GFSK_CRC_TYPE_1_BYTE_INV = 0x04, /**< crc computed on 1 byte and inverted */
+    SX1268_GFSK_CRC_TYPE_2_BYTE_INV = 0x06, /**< crc computed on 2 byte and inverted */
 } sx1268_gfsk_crc_type_t;
 
 /**
  * @brief sx1268 lora header enumeration definition
  */
-typedef enum
-{
-    SX1268_LORA_HEADER_EXPLICIT = 0x00,        /**< explicit header */
-    SX1268_LORA_HEADER_IMPLICIT = 0x01,        /**< implicit header */
+typedef enum {
+    SX1268_LORA_HEADER_EXPLICIT = 0x00, /**< explicit header */
+    SX1268_LORA_HEADER_IMPLICIT = 0x01, /**< implicit header */
 } sx1268_lora_header_t;
 
 /**
  * @brief sx1268 lora crc type enumeration definition
  */
-typedef enum
-{
-    SX1268_LORA_CRC_TYPE_OFF = 0x00,        /**< crc off */
-    SX1268_LORA_CRC_TYPE_ON  = 0x01,        /**< crc on */
+typedef enum {
+    SX1268_LORA_CRC_TYPE_OFF = 0x00, /**< crc off */
+    SX1268_LORA_CRC_TYPE_ON = 0x01, /**< crc on */
 } sx1268_lora_crc_type_t;
 
 /**
  * @brief sx1268 lora cad symbol num enumeration definition
  */
-typedef enum
-{
-    SX1268_LORA_CAD_SYMBOL_NUM_1  = 0x00,        /**< 1 symbol */
-    SX1268_LORA_CAD_SYMBOL_NUM_2  = 0x01,        /**< 2 symbol */
-    SX1268_LORA_CAD_SYMBOL_NUM_4  = 0x02,        /**< 4 symbol */
-    SX1268_LORA_CAD_SYMBOL_NUM_8  = 0x03,        /**< 8 symbol */
-    SX1268_LORA_CAD_SYMBOL_NUM_16 = 0x04,        /**< 16 symbol */
+typedef enum {
+    SX1268_LORA_CAD_SYMBOL_NUM_1 = 0x00, /**< 1 symbol */
+    SX1268_LORA_CAD_SYMBOL_NUM_2 = 0x01, /**< 2 symbol */
+    SX1268_LORA_CAD_SYMBOL_NUM_4 = 0x02, /**< 4 symbol */
+    SX1268_LORA_CAD_SYMBOL_NUM_8 = 0x03, /**< 8 symbol */
+    SX1268_LORA_CAD_SYMBOL_NUM_16 = 0x04, /**< 16 symbol */
 } sx1268_lora_cad_symbol_num_t;
 
 /**
  * @brief sx1268 lora cad exit mode enumeration definition
  */
-typedef enum
-{
-    SX1268_LORA_CAD_EXIT_MODE_ONLY = 0x00,        /**< once done and whatever the activity on the channel,
+typedef enum {
+    SX1268_LORA_CAD_EXIT_MODE_ONLY = 0x00, /**< once done and whatever the activity on the channel,
                                                        the chip goes back to STBY_RC mode */
-    SX1268_LORA_CAD_EXIT_MODE_RX   = 0x01,        /**< the chip performs a cad operation and if an activity is detected, it stays in rx until
+    SX1268_LORA_CAD_EXIT_MODE_RX = 0x01, /**< the chip performs a cad operation and if an activity is detected, it stays in rx until
                                                        a packet is detected or the timer reaches the timeout defined by
                                                        cad timeout * 15.625 us */
 } sx1268_lora_cad_exit_mode_t;
@@ -345,196 +281,62 @@ typedef enum
 /**
  * @brief sx1268 fsk rx status enumeration definition
  */
-typedef enum
-{
-    SX1268_FSK_RX_STATUS_PREAMBLE_ERR = (1 << 7),        /**< preamble err */
-    SX1268_FSK_RX_STATUS_SYNC_ERR     = (1 << 6),        /**< sync err */
-    SX1268_FSK_RX_STATUS_ADDR_ERR     = (1 << 5),        /**< addr err */
-    SX1268_FSK_RX_STATUS_CRC_ERR      = (1 << 4),        /**< crc err*/
-    SX1268_FSK_RX_STATUS_LENGTH_ERR   = (1 << 3),        /**< length err */
-    SX1268_FSK_RX_STATUS_ABORT_ERR    = (1 << 2),        /**< abort err */
-    SX1268_FSK_RX_STATUS_PKT_RECEIVED = (1 << 1),        /**< pkt received */
-    SX1268_FSK_RX_STATUS_PKT_SEND     = (1 << 0),        /**< pkt send */
+typedef enum {
+    SX1268_FSK_RX_STATUS_PREAMBLE_ERR = (1 << 7), /**< preamble err */
+    SX1268_FSK_RX_STATUS_SYNC_ERR = (1 << 6), /**< sync err */
+    SX1268_FSK_RX_STATUS_ADDR_ERR = (1 << 5), /**< addr err */
+    SX1268_FSK_RX_STATUS_CRC_ERR = (1 << 4), /**< crc err*/
+    SX1268_FSK_RX_STATUS_LENGTH_ERR = (1 << 3), /**< length err */
+    SX1268_FSK_RX_STATUS_ABORT_ERR = (1 << 2), /**< abort err */
+    SX1268_FSK_RX_STATUS_PKT_RECEIVED = (1 << 1), /**< pkt received */
+    SX1268_FSK_RX_STATUS_PKT_SEND = (1 << 0), /**< pkt send */
 } sx1268_fsk_rx_status_t;
 
 /**
  * @brief sx1268 op error enumeration definition
  */
-typedef enum
-{
-    SX1268_OP_ERROR_PA_RAMP_ERR     = (1 << 8),        /**< pa ramping failed */
-    SX1268_OP_ERROR_PLL_LOCK_ERR    = (1 << 6),        /**< pll failed to lock */
-    SX1268_OP_ERROR_XOSC_START_ERR  = (1 << 5),        /**< xosc failed to start */
-    SX1268_OP_ERROR_IMG_CALIB_ERR   = (1 << 4),        /**< img calibration failed */
-    SX1268_OP_ERROR_ADC_CALIB_ERR   = (1 << 3),        /**< adc calibration failed */
-    SX1268_OP_ERROR_PLL_CALIB_ERR   = (1 << 2),        /**< pll calibration failed */
-    SX1268_OP_ERROR_RC13M_CALIB_ERR = (1 << 1),        /**< rc13M calibration failed */
-    SX1268_OP_ERROR_RC64K_CALIB_ERR = (1 << 0),        /**< rc64k calibration failed */
+typedef enum {
+    SX1268_OP_ERROR_PA_RAMP_ERR = (1 << 8), /**< pa ramping failed */
+    SX1268_OP_ERROR_PLL_LOCK_ERR = (1 << 6), /**< pll failed to lock */
+    SX1268_OP_ERROR_XOSC_START_ERR = (1 << 5), /**< xosc failed to start */
+    SX1268_OP_ERROR_IMG_CALIB_ERR = (1 << 4), /**< img calibration failed */
+    SX1268_OP_ERROR_ADC_CALIB_ERR = (1 << 3), /**< adc calibration failed */
+    SX1268_OP_ERROR_PLL_CALIB_ERR = (1 << 2), /**< pll calibration failed */
+    SX1268_OP_ERROR_RC13M_CALIB_ERR = (1 << 1), /**< rc13M calibration failed */
+    SX1268_OP_ERROR_RC64K_CALIB_ERR = (1 << 0), /**< rc64k calibration failed */
 } sx1268_op_error_t;
+
+//#define INNER_BUFFER_SIZE 260
+#define INNER_BUFFER_SIZE 384
 
 /**
  * @brief sx1268 handle structure definition
  */
-typedef struct sx1268_handle_s
-{
-    uint8_t (*reset_gpio_init)(void);                                     /**< point to a reset_gpio_init function address */
-    uint8_t (*reset_gpio_deinit)(void);                                   /**< point to a reset_gpio_deinit function address */
-    uint8_t (*reset_gpio_write)(uint8_t value);                           /**< point to a reset_gpio_write function address */
-    uint8_t (*busy_gpio_init)(void);                                      /**< point to a busy_gpio_init function address */
-    uint8_t (*busy_gpio_deinit)(void);                                    /**< point to a busy_gpio_deinit function address */
-    uint8_t (*busy_gpio_read)(uint8_t *value);                            /**< point to a busy_gpio_read function address */
-    uint8_t (*spi_init)(void);                                            /**< point to a spi_init function address */
-    uint8_t (*spi_deinit)(void);                                          /**< point to a spi_deinit function address */
-    uint8_t (*spi_write_read)(uint8_t *in_buf, uint32_t in_len,
-                              uint8_t *out_buf, uint32_t out_len);        /**< point to a spi_write_read function address */
-    void (*delay_ms)(uint32_t ms);                                        /**< point to a delay_ms function address */
-    void (*debug_print)(const char *const fmt, ...);                      /**< point to a debug_print function address */
-    void (*receive_callback)(uint16_t type,
-                             uint8_t *buf, uint16_t len);                 /**< point to a receive_callback function address */
-    uint8_t inited;                                                       /**< inited flag */
-    uint8_t tx_done;                                                      /**< tx done flag */
-    uint8_t cad_done;                                                     /**< cad done flag */
-    uint8_t cad_detected;                                                 /**< cad detected flag */
-    uint8_t crc_error;                                                    /**< crc error flag */
-    uint8_t timeout;                                                      /**< timeout flag */
-    uint8_t buf[384];                                                     /**< inner buffer */
-    uint8_t receive_buf[256];                                             /**< receive buffer */
+typedef struct sx1268_handle_s {
+    uint8_t inited; /**< inited flag */
+    uint8_t tx_done; /**< tx done flag */
+    uint8_t cad_done; /**< cad done flag */
+    uint8_t cad_detected; /**< cad detected flag */
+    uint8_t crc_error; /**< crc error flag */
+    uint8_t timeout; /**< timeout flag */
+    uint8_t buf[INNER_BUFFER_SIZE]; /**< inner buffer */
+    uint8_t receive_buf[256]; /**< receive buffer */
 } sx1268_handle_t;
 
 /**
  * @brief sx1268 information structure definition
  */
-typedef struct sx1268_info_s
-{
-    char chip_name[32];                /**< chip name */
-    char manufacturer_name[32];        /**< manufacturer name */
-    char interface[8];                 /**< chip interface name */
-    float supply_voltage_min_v;        /**< chip min supply voltage */
-    float supply_voltage_max_v;        /**< chip max supply voltage */
-    float max_current_ma;              /**< chip max current */
-    float temperature_min;             /**< chip min operating temperature */
-    float temperature_max;             /**< chip max operating temperature */
-    uint32_t driver_version;           /**< driver version */
+typedef struct sx1268_info_s {
+    char chip_name[8]; /**< chip name */
+    char manufacturer_name[8]; /**< manufacturer name */
+    char interface[4]; /**< chip interface name */
+    float supply_voltage_min_v; /**< chip min supply voltage */
+    float supply_voltage_max_v; /**< chip max supply voltage */
+    float max_current_ma; /**< chip max current */
+    float temperature_min; /**< chip min operating temperature */
+    float temperature_max; /**< chip max operating temperature */
+    uint32_t driver_version; /**< driver version */
 } sx1268_info_t;
-
-/**
- * @}
- */
-
-/**
- * @defgroup sx1268_link_driver sx1268 link driver function
- * @brief    sx1268 link driver modules
- * @ingroup  sx1268_driver
- * @{
- */
-
-/**
- * @brief     initialize sx1268_handle_t structure
- * @param[in] HANDLE pointer to an sx1268 handle structure
- * @param[in] STRUCTURE sx1268_handle_t
- * @note      none
- */
-#define DRIVER_SX1268_LINK_INIT(HANDLE, STRUCTURE)                memset(HANDLE, 0, sizeof(STRUCTURE))
-
-/**
- * @brief     link spi_init function
- * @param[in] HANDLE pointer to an sx1268 handle structure
- * @param[in] FUC pointer to a spi_init function address
- * @note      none
- */
-#define DRIVER_SX1268_LINK_SPI_INIT(HANDLE, FUC)                  (HANDLE)->spi_init = FUC
-
-/**
- * @brief     link spi_deinit function
- * @param[in] HANDLE pointer to an sx1268 handle structure
- * @param[in] FUC pointer to a spi_deinit function address
- * @note      none
- */
-#define DRIVER_SX1268_LINK_SPI_DEINIT(HANDLE, FUC)                (HANDLE)->spi_deinit = FUC
-
-/**
- * @brief     link spi_write_read function
- * @param[in] HANDLE pointer to an sx1268 handle structure
- * @param[in] FUC pointer to a spi_write_read function address
- * @note      none
- */
-#define DRIVER_SX1268_LINK_SPI_WRITE_READ(HANDLE, FUC)            (HANDLE)->spi_write_read = FUC
-
-/**
- * @brief     link reset_gpio_init function
- * @param[in] HANDLE pointer to an sx1268 handle structure
- * @param[in] FUC pointer to a reset_gpio_init function address
- * @note      none
- */
-#define DRIVER_SX1268_LINK_RESET_GPIO_INIT(HANDLE, FUC)           (HANDLE)->reset_gpio_init = FUC
-
-/**
- * @brief     link reset_gpio_deinit function
- * @param[in] HANDLE pointer to an sx1268 handle structure
- * @param[in] FUC pointer to a reset_gpio_deinit function address
- * @note      none
- */
-#define DRIVER_SX1268_LINK_RESET_GPIO_DEINIT(HANDLE, FUC)         (HANDLE)->reset_gpio_deinit = FUC
-
-/**
- * @brief     link reset_gpio_write function
- * @param[in] HANDLE pointer to an sx1268 handle structure
- * @param[in] FUC pointer to a reset_gpio_write function address
- * @note      none
- */
-#define DRIVER_SX1268_LINK_RESET_GPIO_WRITE(HANDLE, FUC)          (HANDLE)->reset_gpio_write = FUC
-
-/**
- * @brief     link busy_gpio_init function
- * @param[in] HANDLE pointer to an sx1268 handle structure
- * @param[in] FUC pointer to a busy_gpio_init function address
- * @note      none
- */
-#define DRIVER_SX1268_LINK_BUSY_GPIO_INIT(HANDLE, FUC)            (HANDLE)->busy_gpio_init = FUC
-
-/**
- * @brief     link busy_gpio_deinit function
- * @param[in] HANDLE pointer to an sx1268 handle structure
- * @param[in] FUC pointer to a busy_gpio_deinit function address
- * @note      none
- */
-#define DRIVER_SX1268_LINK_BUSY_GPIO_DEINIT(HANDLE, FUC)          (HANDLE)->busy_gpio_deinit = FUC
-
-/**
- * @brief     link busy_gpio_read function
- * @param[in] HANDLE pointer to an sx1268 handle structure
- * @param[in] FUC pointer to a busy_gpio_read function address
- * @note      none
- */
-#define DRIVER_SX1268_LINK_BUSY_GPIO_READ(HANDLE, FUC)            (HANDLE)->busy_gpio_read = FUC
-
-/**
- * @brief     link delay_ms function
- * @param[in] HANDLE pointer to an sx1268 handle structure
- * @param[in] FUC pointer to a delay_ms function address
- * @note      none
- */
-#define DRIVER_SX1268_LINK_DELAY_MS(HANDLE, FUC)                  (HANDLE)->delay_ms = FUC
-
-/**
- * @brief     link debug_print function
- * @param[in] HANDLE pointer to an sx1268 handle structure
- * @param[in] FUC pointer to a debug_print function address
- * @note      none
- */
-#define DRIVER_SX1268_LINK_DEBUG_PRINT(HANDLE, FUC)               (HANDLE)->debug_print = FUC
-
-/**
- * @brief     link receive_callback function
- * @param[in] HANDLE pointer to an sx1268 handle structure
- * @param[in] FUC pointer to a receive_callback function address
- * @note      none
- */
-#define DRIVER_SX1268_LINK_RECEIVE_CALLBACK(HANDLE, FUC)          (HANDLE)->receive_callback = FUC
-
-/**
- * @}
- */
 
 /**
  * @defgroup sx1268_command_driver sx1268 command driver function
@@ -563,7 +365,7 @@ uint8_t sx1268_info(sx1268_info_t *info);
  *            - 3 handle is not initialized
  * @note      none
  */
-uint8_t sx1268_irq_handler(sx1268_handle_t *handle);
+uint8_t sx1268_irq_handler(void);
 
 /**
  * @brief     initialize the chip
@@ -578,7 +380,7 @@ uint8_t sx1268_irq_handler(sx1268_handle_t *handle);
  *            - 6 reset chip failed
  * @note      none
  */
-uint8_t sx1268_init(sx1268_handle_t *handle);
+uint8_t sx1268_init(sx1268_handle_t *pHandle);
 
 /**
  * @brief     close the chip
@@ -594,7 +396,7 @@ uint8_t sx1268_init(sx1268_handle_t *handle);
  *            - 7 reset gpio deinit failed
  * @note      none
  */
-uint8_t sx1268_deinit(sx1268_handle_t *handle);
+uint8_t sx1268_deinit(void);
 
 /**
  * @brief     send the lora data
@@ -618,10 +420,10 @@ uint8_t sx1268_deinit(sx1268_handle_t *handle);
  *            - 7 unknown result
  * @note      none
  */
-uint8_t sx1268_lora_transmit(sx1268_handle_t *handle, sx1268_clock_source_t standby_src,
-                             uint16_t preamble_length, sx1268_lora_header_t header_type,
-                             sx1268_lora_crc_type_t crc_type, sx1268_bool_t invert_iq_enable,
-                             uint8_t *buf, uint16_t len, uint32_t us);
+uint8_t sx1268_lora_transmit(sx1268_clock_source_t standby_src,
+        uint16_t preamble_length, sx1268_lora_header_t header_type,
+        sx1268_lora_crc_type_t crc_type, sx1268_bool_t invert_iq_enable,
+        uint8_t *buf, uint16_t len, uint32_t us);
 
 /**
  * @brief      run the cad
@@ -636,7 +438,7 @@ uint8_t sx1268_lora_transmit(sx1268_handle_t *handle, sx1268_clock_source_t stan
  *             - 5 cad timeout
  * @note       none
  */
-uint8_t sx1268_lora_cad(sx1268_handle_t *handle, sx1268_bool_t *enable);
+uint8_t sx1268_lora_cad(sx1268_bool_t *enable);
 
 /**
  * @brief     enter to the single receive mode
@@ -650,7 +452,7 @@ uint8_t sx1268_lora_cad(sx1268_handle_t *handle, sx1268_bool_t *enable);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_single_receive(sx1268_handle_t *handle, double us);
+uint8_t sx1268_single_receive(double us);
 
 /**
  * @brief     enter to the continuous receive mode
@@ -663,7 +465,7 @@ uint8_t sx1268_single_receive(sx1268_handle_t *handle, double us);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_continuous_receive(sx1268_handle_t *handle);
+uint8_t sx1268_continuous_receive(void);
 
 /**
  * @brief     write the register
@@ -679,7 +481,7 @@ uint8_t sx1268_continuous_receive(sx1268_handle_t *handle);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_write_register(sx1268_handle_t *handle, uint16_t reg, uint8_t *buf, uint16_t len);
+uint8_t sx1268_write_register(uint16_t reg, uint8_t *buf, uint16_t len);
 
 /**
  * @brief      read the register
@@ -695,7 +497,7 @@ uint8_t sx1268_write_register(sx1268_handle_t *handle, uint16_t reg, uint8_t *bu
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_read_register(sx1268_handle_t *handle, uint16_t reg, uint8_t *buf, uint16_t len);
+uint8_t sx1268_read_register(uint16_t reg, uint8_t *buf, uint16_t len);
 
 /**
  * @brief     write the buffer
@@ -711,7 +513,7 @@ uint8_t sx1268_read_register(sx1268_handle_t *handle, uint16_t reg, uint8_t *buf
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_write_buffer(sx1268_handle_t *handle, uint8_t offset, uint8_t *buf, uint16_t len);
+uint8_t sx1268_write_buffer(uint8_t offset, uint8_t *buf, uint16_t len);
 
 /**
  * @brief      read the buffer
@@ -727,7 +529,7 @@ uint8_t sx1268_write_buffer(sx1268_handle_t *handle, uint8_t offset, uint8_t *bu
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_read_buffer(sx1268_handle_t *handle, uint8_t offset, uint8_t *buf, uint16_t len);
+uint8_t sx1268_read_buffer(uint8_t offset, uint8_t *buf, uint16_t len);
 
 /**
  * @brief      check the packet error
@@ -739,7 +541,7 @@ uint8_t sx1268_read_buffer(sx1268_handle_t *handle, uint8_t offset, uint8_t *buf
  *             - 3 handle is not initialized
  * @note       none
  */
-uint8_t sx1268_check_packet_error(sx1268_handle_t *handle, sx1268_bool_t *enable);
+uint8_t sx1268_check_packet_error(sx1268_bool_t *enable);
 
 /**
  * @brief     enter to the sleep mode
@@ -754,7 +556,7 @@ uint8_t sx1268_check_packet_error(sx1268_handle_t *handle, sx1268_bool_t *enable
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_sleep(sx1268_handle_t *handle, sx1268_start_mode_t mode, sx1268_bool_t rtc_wake_up_enable);
+uint8_t sx1268_set_sleep(sx1268_start_mode_t mode, sx1268_bool_t rtc_wake_up_enable);
 
 /**
  * @brief     enter to the standby mode
@@ -768,7 +570,7 @@ uint8_t sx1268_set_sleep(sx1268_handle_t *handle, sx1268_start_mode_t mode, sx12
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_standby(sx1268_handle_t *handle, sx1268_clock_source_t src);
+uint8_t sx1268_set_standby(sx1268_clock_source_t src);
 
 /**
  * @brief     enter to the frequency synthesis mode
@@ -781,7 +583,7 @@ uint8_t sx1268_set_standby(sx1268_handle_t *handle, sx1268_clock_source_t src);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_frequency_synthesis(sx1268_handle_t *handle);
+uint8_t sx1268_set_frequency_synthesis(void);
 
 /**
  * @brief     enter to the tx mode
@@ -795,7 +597,7 @@ uint8_t sx1268_set_frequency_synthesis(sx1268_handle_t *handle);
  *            - 4 chip is busy
  * @note      0x000000 means timeout disable, tx single mode
  */
-uint8_t sx1268_set_tx(sx1268_handle_t *handle, uint32_t timeout);
+uint8_t sx1268_set_tx(uint32_t timeout);
 
 /**
  * @brief     enter to the rx mode
@@ -810,7 +612,7 @@ uint8_t sx1268_set_tx(sx1268_handle_t *handle, uint32_t timeout);
  * @note      0x000000 means timeout disable, rx single mode
  *            0xFFFFFF means rx continuous mode
  */
-uint8_t sx1268_set_rx(sx1268_handle_t *handle, uint32_t timeout);
+uint8_t sx1268_set_rx(uint32_t timeout);
 
 /**
  * @brief      convert the timeout to the register raw data
@@ -823,7 +625,7 @@ uint8_t sx1268_set_rx(sx1268_handle_t *handle, uint32_t timeout);
  *             - 3 handle is not initialized
  * @note       none
  */
-uint8_t sx1268_timeout_convert_to_register(sx1268_handle_t *handle, double us, uint32_t *reg);
+uint8_t sx1268_timeout_convert_to_register(double us, uint32_t *reg);
 
 /**
  * @brief      convert the register raw data to the timeout
@@ -836,7 +638,7 @@ uint8_t sx1268_timeout_convert_to_register(sx1268_handle_t *handle, double us, u
  *             - 3 handle is not initialized
  * @note       none
  */
-uint8_t sx1268_timeout_convert_to_data(sx1268_handle_t *handle, uint32_t reg, double *us);
+uint8_t sx1268_timeout_convert_to_data(uint32_t reg, double *us);
 
 /**
  * @brief     stop timer on preamble
@@ -850,7 +652,7 @@ uint8_t sx1268_timeout_convert_to_data(sx1268_handle_t *handle, uint32_t reg, do
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_stop_timer_on_preamble(sx1268_handle_t *handle, sx1268_bool_t enable);
+uint8_t sx1268_set_stop_timer_on_preamble(sx1268_bool_t enable);
 
 /**
  * @brief     set the rx duty cycle
@@ -865,7 +667,7 @@ uint8_t sx1268_set_stop_timer_on_preamble(sx1268_handle_t *handle, sx1268_bool_t
  *            - 4 chip is busy
  * @note      t_preamble + t_header <= 2 * rx_period + sleep_period
  */
-uint8_t sx1268_set_rx_duty_cycle(sx1268_handle_t *handle, uint32_t rx_period, uint32_t sleep_period);
+uint8_t sx1268_set_rx_duty_cycle(uint32_t rx_period, uint32_t sleep_period);
 
 /**
  * @brief     run the cad
@@ -878,7 +680,7 @@ uint8_t sx1268_set_rx_duty_cycle(sx1268_handle_t *handle, uint32_t rx_period, ui
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_cad(sx1268_handle_t *handle);
+uint8_t sx1268_set_cad(void);
 
 /**
  * @brief     enter to the tx continuous wave mode
@@ -891,7 +693,7 @@ uint8_t sx1268_set_cad(sx1268_handle_t *handle);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_tx_continuous_wave(sx1268_handle_t *handle);
+uint8_t sx1268_set_tx_continuous_wave(void);
 
 /**
  * @brief     enter to the tx infinite preamble mode
@@ -904,7 +706,7 @@ uint8_t sx1268_set_tx_continuous_wave(sx1268_handle_t *handle);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_tx_infinite_preamble(sx1268_handle_t *handle);
+uint8_t sx1268_set_tx_infinite_preamble(void);
 
 /**
  * @brief     set the regulator_mode
@@ -918,7 +720,7 @@ uint8_t sx1268_set_tx_infinite_preamble(sx1268_handle_t *handle);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_regulator_mode(sx1268_handle_t *handle, sx1268_regulator_mode_t mode);
+uint8_t sx1268_set_regulator_mode(sx1268_regulator_mode_t mode);
 
 /**
  * @brief     set the calibration settings
@@ -932,7 +734,7 @@ uint8_t sx1268_set_regulator_mode(sx1268_handle_t *handle, sx1268_regulator_mode
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_calibration(sx1268_handle_t *handle, uint8_t settings);
+uint8_t sx1268_set_calibration(uint8_t settings);
 
 /**
  * @brief     set the calibration image frequency
@@ -947,7 +749,7 @@ uint8_t sx1268_set_calibration(sx1268_handle_t *handle, uint8_t settings);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_calibration_image(sx1268_handle_t *handle, uint8_t freq1, uint8_t freq2);
+uint8_t sx1268_set_calibration_image(uint8_t freq1, uint8_t freq2);
 
 /**
  * @brief     set the pa config
@@ -962,7 +764,7 @@ uint8_t sx1268_set_calibration_image(sx1268_handle_t *handle, uint8_t freq1, uin
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_pa_config(sx1268_handle_t *handle, uint8_t pa_duty_cycle, uint8_t hp_max);
+uint8_t sx1268_set_pa_config(uint8_t pa_duty_cycle, uint8_t hp_max);
 
 /**
  * @brief     set the rx tx fallback mode
@@ -976,7 +778,7 @@ uint8_t sx1268_set_pa_config(sx1268_handle_t *handle, uint8_t pa_duty_cycle, uin
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_rx_tx_fallback_mode(sx1268_handle_t *handle, sx1268_rx_tx_fallback_mode_t mode);
+uint8_t sx1268_set_rx_tx_fallback_mode(sx1268_rx_tx_fallback_mode_t mode);
 
 /**
  * @brief     set the dio irq params
@@ -993,8 +795,8 @@ uint8_t sx1268_set_rx_tx_fallback_mode(sx1268_handle_t *handle, sx1268_rx_tx_fal
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_dio_irq_params(sx1268_handle_t *handle, uint16_t irq_mask, uint16_t dio1_mask,
-                                  uint16_t dio2_mask, uint16_t dio3_mask);
+uint8_t sx1268_set_dio_irq_params(uint16_t irq_mask, uint16_t dio1_mask,
+        uint16_t dio2_mask, uint16_t dio3_mask);
 
 /**
  * @brief      get the irq status
@@ -1008,7 +810,7 @@ uint8_t sx1268_set_dio_irq_params(sx1268_handle_t *handle, uint16_t irq_mask, ui
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_irq_status(sx1268_handle_t *handle, uint16_t *status);
+uint8_t sx1268_get_irq_status(uint16_t *status);
 
 /**
  * @brief     clear the irq status
@@ -1022,7 +824,7 @@ uint8_t sx1268_get_irq_status(sx1268_handle_t *handle, uint16_t *status);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_clear_irq_status(sx1268_handle_t *handle, uint16_t clear_irq_param);
+uint8_t sx1268_clear_irq_status(uint16_t clear_irq_param);
 
 /**
  * @brief     set dio2 as rf switch ctrl
@@ -1036,7 +838,7 @@ uint8_t sx1268_clear_irq_status(sx1268_handle_t *handle, uint16_t clear_irq_para
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_dio2_as_rf_switch_ctrl(sx1268_handle_t *handle, sx1268_bool_t enable);
+uint8_t sx1268_set_dio2_as_rf_switch_ctrl(sx1268_bool_t enable);
 
 /**
  * @brief     set dio3 as tcxo ctrl
@@ -1051,7 +853,7 @@ uint8_t sx1268_set_dio2_as_rf_switch_ctrl(sx1268_handle_t *handle, sx1268_bool_t
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_dio3_as_tcxo_ctrl(sx1268_handle_t *handle, sx1268_tcxo_voltage_t voltage, uint32_t delay);
+uint8_t sx1268_set_dio3_as_tcxo_ctrl(sx1268_tcxo_voltage_t voltage, uint32_t delay);
 
 /**
  * @brief      convert the frequency to the register raw data
@@ -1064,7 +866,7 @@ uint8_t sx1268_set_dio3_as_tcxo_ctrl(sx1268_handle_t *handle, sx1268_tcxo_voltag
  *             - 3 handle is not initialized
  * @note       none
  */
-uint8_t sx1268_frequency_convert_to_register(sx1268_handle_t *handle, uint32_t freq, uint32_t *reg);
+uint8_t sx1268_frequency_convert_to_register(uint32_t freq, uint32_t *reg);
 
 /**
  * @brief      convert the register raw data to the frequency
@@ -1077,7 +879,7 @@ uint8_t sx1268_frequency_convert_to_register(sx1268_handle_t *handle, uint32_t f
  *             - 3 handle is not initialized
  * @note       none
  */
-uint8_t sx1268_frequency_convert_to_data(sx1268_handle_t *handle, uint32_t reg, uint32_t *freq);
+uint8_t sx1268_frequency_convert_to_data(uint32_t reg, uint32_t *freq);
 
 /**
  * @brief     set the rf frequency
@@ -1091,7 +893,7 @@ uint8_t sx1268_frequency_convert_to_data(sx1268_handle_t *handle, uint32_t reg, 
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_rf_frequency(sx1268_handle_t *handle, uint32_t reg);
+uint8_t sx1268_set_rf_frequency(uint32_t reg);
 
 /**
  * @brief     set the packet type
@@ -1105,7 +907,7 @@ uint8_t sx1268_set_rf_frequency(sx1268_handle_t *handle, uint32_t reg);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_packet_type(sx1268_handle_t *handle, sx1268_packet_type_t type);
+uint8_t sx1268_set_packet_type(sx1268_packet_type_t type);
 
 /**
  * @brief      get the packet type
@@ -1119,7 +921,7 @@ uint8_t sx1268_set_packet_type(sx1268_handle_t *handle, sx1268_packet_type_t typ
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_packet_type(sx1268_handle_t *handle, sx1268_packet_type_t *type);
+uint8_t sx1268_get_packet_type(sx1268_packet_type_t *type);
 
 /**
  * @brief     set the tx params
@@ -1134,7 +936,7 @@ uint8_t sx1268_get_packet_type(sx1268_handle_t *handle, sx1268_packet_type_t *ty
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_tx_params(sx1268_handle_t *handle, int8_t dbm, sx1268_ramp_time_t t);
+uint8_t sx1268_set_tx_params(int8_t dbm, sx1268_ramp_time_t t);
 
 /**
  * @brief     set the modulation params in GFSK mode
@@ -1151,8 +953,8 @@ uint8_t sx1268_set_tx_params(sx1268_handle_t *handle, int8_t dbm, sx1268_ramp_ti
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_gfsk_modulation_params(sx1268_handle_t *handle, uint32_t br, sx1268_gfsk_pulse_shape_t shape, 
-                                          sx1268_gfsk_bandwidth_t bw, uint32_t fdev);
+uint8_t sx1268_set_gfsk_modulation_params(uint32_t br, sx1268_gfsk_pulse_shape_t shape,
+        sx1268_gfsk_bandwidth_t bw, uint32_t fdev);
 
 /**
  * @brief      convert the bit rate to the register raw data
@@ -1165,7 +967,7 @@ uint8_t sx1268_set_gfsk_modulation_params(sx1268_handle_t *handle, uint32_t br, 
  *             - 3 handle is not initialized
  * @note       none
  */
-uint8_t sx1268_gfsk_bit_rate_convert_to_register(sx1268_handle_t *handle, uint32_t br, uint32_t *reg);
+uint8_t sx1268_gfsk_bit_rate_convert_to_register(uint32_t br, uint32_t *reg);
 
 /**
  * @brief      convert the register raw data to the bit rate
@@ -1178,7 +980,7 @@ uint8_t sx1268_gfsk_bit_rate_convert_to_register(sx1268_handle_t *handle, uint32
  *             - 3 handle is not initialized
  * @note       none
  */
-uint8_t sx1268_gfsk_bit_rate_convert_to_data(sx1268_handle_t *handle, uint32_t reg, uint32_t *br);
+uint8_t sx1268_gfsk_bit_rate_convert_to_data(uint32_t reg, uint32_t *br);
 
 /**
  * @brief      convert the frequency deviation to the register raw data
@@ -1191,7 +993,7 @@ uint8_t sx1268_gfsk_bit_rate_convert_to_data(sx1268_handle_t *handle, uint32_t r
  *             - 3 handle is not initialized
  * @note       none
  */
-uint8_t sx1268_gfsk_frequency_deviation_convert_to_register(sx1268_handle_t *handle, uint32_t freq, uint32_t *reg);
+uint8_t sx1268_gfsk_frequency_deviation_convert_to_register(uint32_t freq, uint32_t *reg);
 
 /**
  * @brief      convert the register raw data to the frequency deviation
@@ -1204,7 +1006,7 @@ uint8_t sx1268_gfsk_frequency_deviation_convert_to_register(sx1268_handle_t *han
  *             - 3 handle is not initialized
  * @note       none
  */
-uint8_t sx1268_gfsk_frequency_deviation_convert_to_data(sx1268_handle_t *handle, uint32_t reg, uint32_t *freq);
+uint8_t sx1268_gfsk_frequency_deviation_convert_to_data(uint32_t reg, uint32_t *freq);
 
 /**
  * @brief     set the modulation params in LoRa mode
@@ -1221,8 +1023,8 @@ uint8_t sx1268_gfsk_frequency_deviation_convert_to_data(sx1268_handle_t *handle,
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_lora_modulation_params(sx1268_handle_t *handle, sx1268_lora_sf_t sf, sx1268_lora_bandwidth_t bw, 
-                                          sx1268_lora_cr_t cr, sx1268_bool_t low_data_rate_optimize_enable);
+uint8_t sx1268_set_lora_modulation_params(sx1268_lora_sf_t sf, sx1268_lora_bandwidth_t bw,
+        sx1268_lora_cr_t cr, sx1268_bool_t low_data_rate_optimize_enable);
 
 /**
  * @brief     set the packet params in GFSK mode
@@ -1244,11 +1046,11 @@ uint8_t sx1268_set_lora_modulation_params(sx1268_handle_t *handle, sx1268_lora_s
  *            - 5 sync word length is over 0x40
  * @note      none
  */
-uint8_t sx1268_set_gfsk_packet_params(sx1268_handle_t *handle, uint16_t preamble_length,
-                                      sx1268_gfsk_preamble_detector_length_t detector_length,
-                                      uint8_t sync_word_length, sx1268_gfsk_addr_filter_t filter,
-                                      sx1268_gfsk_packet_type_t packet_type, uint8_t payload_length,
-                                      sx1268_gfsk_crc_type_t crc_type, sx1268_bool_t whitening_enable);
+uint8_t sx1268_set_gfsk_packet_params(uint16_t preamble_length,
+        sx1268_gfsk_preamble_detector_length_t detector_length,
+        uint8_t sync_word_length, sx1268_gfsk_addr_filter_t filter,
+        sx1268_gfsk_packet_type_t packet_type, uint8_t payload_length,
+        sx1268_gfsk_crc_type_t crc_type, sx1268_bool_t whitening_enable);
 
 /**
  * @brief     set the packet params in LoRa mode
@@ -1266,9 +1068,9 @@ uint8_t sx1268_set_gfsk_packet_params(sx1268_handle_t *handle, uint16_t preamble
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_lora_packet_params(sx1268_handle_t *handle, uint16_t preamble_length,
-                                      sx1268_lora_header_t header_type, uint8_t payload_length,
-                                      sx1268_lora_crc_type_t crc_type, sx1268_bool_t invert_iq_enable);
+uint8_t sx1268_set_lora_packet_params(uint16_t preamble_length,
+        sx1268_lora_header_t header_type, uint8_t payload_length,
+        sx1268_lora_crc_type_t crc_type, sx1268_bool_t invert_iq_enable);
 
 /**
  * @brief     set the cad params
@@ -1286,9 +1088,9 @@ uint8_t sx1268_set_lora_packet_params(sx1268_handle_t *handle, uint16_t preamble
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_cad_params(sx1268_handle_t *handle, sx1268_lora_cad_symbol_num_t num,
-                              uint8_t cad_det_peak, uint8_t cad_det_min, sx1268_lora_cad_exit_mode_t mode,
-                              uint32_t timeout);
+uint8_t sx1268_set_cad_params(sx1268_lora_cad_symbol_num_t num,
+        uint8_t cad_det_peak, uint8_t cad_det_min, sx1268_lora_cad_exit_mode_t mode,
+        uint32_t timeout);
 
 /**
  * @brief     set the buffer base address
@@ -1303,7 +1105,7 @@ uint8_t sx1268_set_cad_params(sx1268_handle_t *handle, sx1268_lora_cad_symbol_nu
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_buffer_base_address(sx1268_handle_t *handle, uint8_t tx_base_addr, uint8_t rx_base_addr);
+uint8_t sx1268_set_buffer_base_address(uint8_t tx_base_addr, uint8_t rx_base_addr);
 
 /**
  * @brief     set the lora symbol number timeout
@@ -1317,7 +1119,7 @@ uint8_t sx1268_set_buffer_base_address(sx1268_handle_t *handle, uint8_t tx_base_
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_lora_symb_num_timeout(sx1268_handle_t *handle, uint8_t symb_num);
+uint8_t sx1268_set_lora_symb_num_timeout(uint8_t symb_num);
 
 /**
  * @brief      get the status
@@ -1331,7 +1133,7 @@ uint8_t sx1268_set_lora_symb_num_timeout(sx1268_handle_t *handle, uint8_t symb_n
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_status(sx1268_handle_t *handle, uint8_t *status);
+uint8_t sx1268_get_status(uint8_t *status);
 
 /**
  * @brief      get the rx buffer status
@@ -1346,7 +1148,7 @@ uint8_t sx1268_get_status(sx1268_handle_t *handle, uint8_t *status);
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_rx_buffer_status(sx1268_handle_t *handle, uint8_t *payload_length_rx, uint8_t *rx_start_buffer_pointer);
+uint8_t sx1268_get_rx_buffer_status(uint8_t *payload_length_rx, uint8_t *rx_start_buffer_pointer);
 
 /**
  * @brief      get the packet status in GFSK mode
@@ -1364,8 +1166,8 @@ uint8_t sx1268_get_rx_buffer_status(sx1268_handle_t *handle, uint8_t *payload_le
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_gfsk_packet_status(sx1268_handle_t *handle, uint8_t *rx_status, uint8_t *rssi_sync_raw,
-                                      uint8_t *rssi_avg_raw, float *rssi_sync, float *rssi_avg);
+uint8_t sx1268_get_gfsk_packet_status(uint8_t *rx_status, uint8_t *rssi_sync_raw,
+        uint8_t *rssi_avg_raw, float *rssi_sync, float *rssi_avg);
 
 /**
  * @brief      get the packet status in LoRa mode
@@ -1384,8 +1186,8 @@ uint8_t sx1268_get_gfsk_packet_status(sx1268_handle_t *handle, uint8_t *rx_statu
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_lora_packet_status(sx1268_handle_t *handle, uint8_t *rssi_pkt_raw, uint8_t *snr_pkt_raw,
-                                      uint8_t *signal_rssi_pkt_raw, float *rssi_pkt, float *snr_pkt, float *signal_rssi_pkt);
+uint8_t sx1268_get_lora_packet_status(uint8_t *rssi_pkt_raw, uint8_t *snr_pkt_raw,
+        uint8_t *signal_rssi_pkt_raw, float *rssi_pkt, float *snr_pkt, float *signal_rssi_pkt);
 
 /**
  * @brief      get the instantaneous rssi
@@ -1400,7 +1202,7 @@ uint8_t sx1268_get_lora_packet_status(sx1268_handle_t *handle, uint8_t *rssi_pkt
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_instantaneous_rssi(sx1268_handle_t *handle, uint8_t *rssi_inst_raw, float *rssi_inst);
+uint8_t sx1268_get_instantaneous_rssi(uint8_t *rssi_inst_raw, float *rssi_inst);
 
 /**
  * @brief      get the stats
@@ -1416,7 +1218,7 @@ uint8_t sx1268_get_instantaneous_rssi(sx1268_handle_t *handle, uint8_t *rssi_ins
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_stats(sx1268_handle_t *handle, uint16_t *pkt_received, uint16_t *pkt_crc_error, uint16_t *pkt_length_header_error);
+uint8_t sx1268_get_stats(uint16_t *pkt_received, uint16_t *pkt_crc_error, uint16_t *pkt_length_header_error);
 
 /**
  * @brief     reset the stats
@@ -1432,7 +1234,7 @@ uint8_t sx1268_get_stats(sx1268_handle_t *handle, uint16_t *pkt_received, uint16
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_reset_stats(sx1268_handle_t *handle, uint16_t pkt_received, uint16_t pkt_crc_error, uint16_t pkt_length_header_error);
+uint8_t sx1268_reset_stats(uint16_t pkt_received, uint16_t pkt_crc_error, uint16_t pkt_length_header_error);
 
 /**
  * @brief      get the device errors
@@ -1446,7 +1248,7 @@ uint8_t sx1268_reset_stats(sx1268_handle_t *handle, uint16_t pkt_received, uint1
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_device_errors(sx1268_handle_t *handle, uint16_t *op_error);
+uint8_t sx1268_get_device_errors(uint16_t *op_error);
 
 /**
  * @brief     clear the device errors
@@ -1459,7 +1261,7 @@ uint8_t sx1268_get_device_errors(sx1268_handle_t *handle, uint16_t *op_error);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_clear_device_errors(sx1268_handle_t *handle);
+uint8_t sx1268_clear_device_errors(void);
 
 /**
  * @}
@@ -1484,7 +1286,7 @@ uint8_t sx1268_clear_device_errors(sx1268_handle_t *handle);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_fsk_whitening_initial_value(sx1268_handle_t *handle, uint16_t value);
+uint8_t sx1268_set_fsk_whitening_initial_value(uint16_t value);
 
 /**
  * @brief      get the whitening initial value in FSK mode
@@ -1498,7 +1300,7 @@ uint8_t sx1268_set_fsk_whitening_initial_value(sx1268_handle_t *handle, uint16_t
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_fsk_whitening_initial_value(sx1268_handle_t *handle, uint16_t *value);
+uint8_t sx1268_get_fsk_whitening_initial_value(uint16_t *value);
 
 /**
  * @brief     set the crc initial value in FSK mode
@@ -1512,7 +1314,7 @@ uint8_t sx1268_get_fsk_whitening_initial_value(sx1268_handle_t *handle, uint16_t
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_fsk_crc_initical_value(sx1268_handle_t *handle, uint16_t value);
+uint8_t sx1268_set_fsk_crc_initical_value(uint16_t value);
 
 /**
  * @brief      get the crc initical value in FSK mode
@@ -1526,7 +1328,7 @@ uint8_t sx1268_set_fsk_crc_initical_value(sx1268_handle_t *handle, uint16_t valu
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_fsk_crc_initical_value(sx1268_handle_t *handle, uint16_t *value);
+uint8_t sx1268_get_fsk_crc_initical_value(uint16_t *value);
 
 /**
  * @brief     set the crc polynomial value in FSK mode
@@ -1540,7 +1342,7 @@ uint8_t sx1268_get_fsk_crc_initical_value(sx1268_handle_t *handle, uint16_t *val
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_fsk_crc_polynomial_value(sx1268_handle_t *handle, uint16_t value);
+uint8_t sx1268_set_fsk_crc_polynomial_value(uint16_t value);
 
 /**
  * @brief      get the crc polynomial value in FSK mode
@@ -1554,7 +1356,7 @@ uint8_t sx1268_set_fsk_crc_polynomial_value(sx1268_handle_t *handle, uint16_t va
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_fsk_crc_polynomial_value(sx1268_handle_t *handle, uint16_t *value);
+uint8_t sx1268_get_fsk_crc_polynomial_value(uint16_t *value);
 
 /**
  * @brief     set the sync word in FSK mode
@@ -1568,7 +1370,7 @@ uint8_t sx1268_get_fsk_crc_polynomial_value(sx1268_handle_t *handle, uint16_t *v
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_fsk_sync_word(sx1268_handle_t *handle, uint8_t sync_word[8]);
+uint8_t sx1268_set_fsk_sync_word(uint8_t sync_word[8]);
 
 /**
  * @brief      get the sync word in FSK mode
@@ -1582,7 +1384,7 @@ uint8_t sx1268_set_fsk_sync_word(sx1268_handle_t *handle, uint8_t sync_word[8]);
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_fsk_sync_word(sx1268_handle_t *handle, uint8_t sync_word[8]);
+uint8_t sx1268_get_fsk_sync_word(uint8_t sync_word[8]);
 
 /**
  * @brief     set the node address in FSK mode
@@ -1596,7 +1398,7 @@ uint8_t sx1268_get_fsk_sync_word(sx1268_handle_t *handle, uint8_t sync_word[8]);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_fsk_node_address(sx1268_handle_t *handle, uint8_t addr);
+uint8_t sx1268_set_fsk_node_address(uint8_t addr);
 
 /**
  * @brief      get the node address in FSK mode
@@ -1610,7 +1412,7 @@ uint8_t sx1268_set_fsk_node_address(sx1268_handle_t *handle, uint8_t addr);
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_fsk_node_address(sx1268_handle_t *handle, uint8_t *addr);
+uint8_t sx1268_get_fsk_node_address(uint8_t *addr);
 
 /**
  * @brief     set the broadcast address in FSK mode
@@ -1624,7 +1426,7 @@ uint8_t sx1268_get_fsk_node_address(sx1268_handle_t *handle, uint8_t *addr);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_fsk_broadcast_address(sx1268_handle_t *handle, uint8_t addr);
+uint8_t sx1268_set_fsk_broadcast_address(uint8_t addr);
 
 /**
  * @brief      get the broadcast address in FSK mode
@@ -1638,7 +1440,7 @@ uint8_t sx1268_set_fsk_broadcast_address(sx1268_handle_t *handle, uint8_t addr);
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_fsk_broadcast_address(sx1268_handle_t *handle, uint8_t *addr);
+uint8_t sx1268_get_fsk_broadcast_address(uint8_t *addr);
 
 /**
  * @brief     set the iq polarity
@@ -1652,7 +1454,7 @@ uint8_t sx1268_get_fsk_broadcast_address(sx1268_handle_t *handle, uint8_t *addr)
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_iq_polarity(sx1268_handle_t *handle, uint8_t setup);
+uint8_t sx1268_set_iq_polarity(uint8_t setup);
 
 /**
  * @brief      get the iq polarity
@@ -1666,7 +1468,7 @@ uint8_t sx1268_set_iq_polarity(sx1268_handle_t *handle, uint8_t setup);
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_iq_polarity(sx1268_handle_t *handle, uint8_t *setup);
+uint8_t sx1268_get_iq_polarity(uint8_t *setup);
 
 /**
  * @brief     set the lora sync word
@@ -1680,7 +1482,7 @@ uint8_t sx1268_get_iq_polarity(sx1268_handle_t *handle, uint8_t *setup);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_lora_sync_word(sx1268_handle_t *handle, uint16_t sync_word);
+uint8_t sx1268_set_lora_sync_word(uint16_t sync_word);
 
 /**
  * @brief      get the lora sync word
@@ -1694,7 +1496,7 @@ uint8_t sx1268_set_lora_sync_word(sx1268_handle_t *handle, uint16_t sync_word);
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_lora_sync_word(sx1268_handle_t *handle, uint16_t *sync_word);
+uint8_t sx1268_get_lora_sync_word(uint16_t *sync_word);
 
 /**
  * @brief      get the random number
@@ -1708,7 +1510,7 @@ uint8_t sx1268_get_lora_sync_word(sx1268_handle_t *handle, uint16_t *sync_word);
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_random_number(sx1268_handle_t *handle, uint32_t *r);
+uint8_t sx1268_get_random_number(uint32_t *r);
 
 /**
  * @brief     set the tx modulation
@@ -1722,7 +1524,7 @@ uint8_t sx1268_get_random_number(sx1268_handle_t *handle, uint32_t *r);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_tx_modulation(sx1268_handle_t *handle, uint8_t modulation);
+uint8_t sx1268_set_tx_modulation(uint8_t modulation);
 
 /**
  * @brief      get the tx modulation
@@ -1736,7 +1538,7 @@ uint8_t sx1268_set_tx_modulation(sx1268_handle_t *handle, uint8_t modulation);
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_tx_modulation(sx1268_handle_t *handle, uint8_t *modulation);
+uint8_t sx1268_get_tx_modulation(uint8_t *modulation);
 
 /**
  * @brief     set the rx gain
@@ -1750,7 +1552,7 @@ uint8_t sx1268_get_tx_modulation(sx1268_handle_t *handle, uint8_t *modulation);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_rx_gain(sx1268_handle_t *handle, uint8_t gain);
+uint8_t sx1268_set_rx_gain(uint8_t gain);
 
 /**
  * @brief      get the rx gain
@@ -1764,7 +1566,7 @@ uint8_t sx1268_set_rx_gain(sx1268_handle_t *handle, uint8_t gain);
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_rx_gain(sx1268_handle_t *handle, uint8_t *gain);
+uint8_t sx1268_get_rx_gain(uint8_t *gain);
 
 /**
  * @brief     set the tx clamp config
@@ -1778,7 +1580,7 @@ uint8_t sx1268_get_rx_gain(sx1268_handle_t *handle, uint8_t *gain);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_tx_clamp_config(sx1268_handle_t *handle, uint8_t config);
+uint8_t sx1268_set_tx_clamp_config(uint8_t config);
 
 /**
  * @brief      get the tx clamp config
@@ -1792,7 +1594,7 @@ uint8_t sx1268_set_tx_clamp_config(sx1268_handle_t *handle, uint8_t config);
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_tx_clamp_config(sx1268_handle_t *handle, uint8_t *config);
+uint8_t sx1268_get_tx_clamp_config(uint8_t *config);
 
 /**
  * @brief     set the ocp
@@ -1806,7 +1608,7 @@ uint8_t sx1268_get_tx_clamp_config(sx1268_handle_t *handle, uint8_t *config);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_ocp(sx1268_handle_t *handle, uint8_t ocp);
+uint8_t sx1268_set_ocp(uint8_t ocp);
 
 /**
  * @brief      get the ocp
@@ -1820,7 +1622,7 @@ uint8_t sx1268_set_ocp(sx1268_handle_t *handle, uint8_t ocp);
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_ocp(sx1268_handle_t *handle, uint8_t *ocp);
+uint8_t sx1268_get_ocp(uint8_t *ocp);
 
 /**
  * @brief     set the rtc control
@@ -1834,7 +1636,7 @@ uint8_t sx1268_get_ocp(sx1268_handle_t *handle, uint8_t *ocp);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_rtc_control(sx1268_handle_t *handle, uint8_t control);
+uint8_t sx1268_set_rtc_control(uint8_t control);
 
 /**
  * @brief      get the rtc control
@@ -1848,7 +1650,7 @@ uint8_t sx1268_set_rtc_control(sx1268_handle_t *handle, uint8_t control);
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_rtc_control(sx1268_handle_t *handle, uint8_t *control);
+uint8_t sx1268_get_rtc_control(uint8_t *control);
 
 /**
  * @brief     set the xta trim
@@ -1862,7 +1664,7 @@ uint8_t sx1268_get_rtc_control(sx1268_handle_t *handle, uint8_t *control);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_xta_trim(sx1268_handle_t *handle, uint8_t trim);
+uint8_t sx1268_set_xta_trim(uint8_t trim);
 
 /**
  * @brief      get the xta trim
@@ -1876,7 +1678,7 @@ uint8_t sx1268_set_xta_trim(sx1268_handle_t *handle, uint8_t trim);
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_xta_trim(sx1268_handle_t *handle, uint8_t *trim);
+uint8_t sx1268_get_xta_trim(uint8_t *trim);
 
 /**
  * @brief     set the xtb trim
@@ -1890,7 +1692,7 @@ uint8_t sx1268_get_xta_trim(sx1268_handle_t *handle, uint8_t *trim);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_xtb_trim(sx1268_handle_t *handle, uint8_t trim);
+uint8_t sx1268_set_xtb_trim(uint8_t trim);
 
 /**
  * @brief      get the xtb trim
@@ -1904,7 +1706,7 @@ uint8_t sx1268_set_xtb_trim(sx1268_handle_t *handle, uint8_t trim);
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_xtb_trim(sx1268_handle_t *handle, uint8_t *trim);
+uint8_t sx1268_get_xtb_trim(uint8_t *trim);
 
 /**
  * @brief     set the dio3 output
@@ -1918,7 +1720,7 @@ uint8_t sx1268_get_xtb_trim(sx1268_handle_t *handle, uint8_t *trim);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_dio3_output_control(sx1268_handle_t *handle, uint8_t control);
+uint8_t sx1268_set_dio3_output_control(uint8_t control);
 
 /**
  * @brief      get the dio3 output
@@ -1932,7 +1734,7 @@ uint8_t sx1268_set_dio3_output_control(sx1268_handle_t *handle, uint8_t control)
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_dio3_output_control(sx1268_handle_t *handle, uint8_t *control);
+uint8_t sx1268_get_dio3_output_control(uint8_t *control);
 
 /**
  * @brief     set the event mask
@@ -1946,7 +1748,7 @@ uint8_t sx1268_get_dio3_output_control(sx1268_handle_t *handle, uint8_t *control
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_event_mask(sx1268_handle_t *handle, uint8_t mask);
+uint8_t sx1268_set_event_mask(uint8_t mask);
 
 /**
  * @brief      get the event mask
@@ -1960,7 +1762,7 @@ uint8_t sx1268_set_event_mask(sx1268_handle_t *handle, uint8_t mask);
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_event_mask(sx1268_handle_t *handle, uint8_t *mask);
+uint8_t sx1268_get_event_mask(uint8_t *mask);
 
 /**
  * @brief     set the dio output enable
@@ -1974,7 +1776,7 @@ uint8_t sx1268_get_event_mask(sx1268_handle_t *handle, uint8_t *mask);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_dio_output_enable(sx1268_handle_t *handle, uint8_t enable);
+uint8_t sx1268_set_dio_output_enable(uint8_t enable);
 
 /**
  * @brief      get the dio output enable
@@ -1988,7 +1790,7 @@ uint8_t sx1268_set_dio_output_enable(sx1268_handle_t *handle, uint8_t enable);
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_dio_output_enable(sx1268_handle_t *handle, uint8_t *enable);
+uint8_t sx1268_get_dio_output_enable(uint8_t *enable);
 
 /**
  * @brief     set the dio input enable
@@ -2002,7 +1804,7 @@ uint8_t sx1268_get_dio_output_enable(sx1268_handle_t *handle, uint8_t *enable);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_dio_input_enable(sx1268_handle_t *handle, uint8_t enable);
+uint8_t sx1268_set_dio_input_enable(uint8_t enable);
 
 /**
  * @brief      get the dio input enable
@@ -2016,7 +1818,7 @@ uint8_t sx1268_set_dio_input_enable(sx1268_handle_t *handle, uint8_t enable);
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_dio_input_enable(sx1268_handle_t *handle, uint8_t *enable);
+uint8_t sx1268_get_dio_input_enable(uint8_t *enable);
 
 /**
  * @brief     set the pull up control
@@ -2030,7 +1832,7 @@ uint8_t sx1268_get_dio_input_enable(sx1268_handle_t *handle, uint8_t *enable);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_pull_up_control(sx1268_handle_t *handle, uint8_t control);
+uint8_t sx1268_set_pull_up_control(uint8_t control);
 
 /**
  * @brief      get the pull up control
@@ -2044,7 +1846,7 @@ uint8_t sx1268_set_pull_up_control(sx1268_handle_t *handle, uint8_t control);
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_pull_up_control(sx1268_handle_t *handle, uint8_t *control);
+uint8_t sx1268_get_pull_up_control(uint8_t *control);
 
 /**
  * @brief     set the pull down control
@@ -2058,7 +1860,7 @@ uint8_t sx1268_get_pull_up_control(sx1268_handle_t *handle, uint8_t *control);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_pull_down_control(sx1268_handle_t *handle, uint8_t control);
+uint8_t sx1268_set_pull_down_control(uint8_t control);
 
 /**
  * @brief      get the pull down control
@@ -2072,7 +1874,7 @@ uint8_t sx1268_set_pull_down_control(sx1268_handle_t *handle, uint8_t control);
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_pull_down_control(sx1268_handle_t *handle, uint8_t *control);
+uint8_t sx1268_get_pull_down_control(uint8_t *control);
 
 /**
  * @}
@@ -2099,8 +1901,8 @@ uint8_t sx1268_get_pull_down_control(sx1268_handle_t *handle, uint8_t *control);
  *             - 3 handle is not initialized
  * @note       none
  */
-uint8_t sx1268_write_read_reg(sx1268_handle_t *handle, uint8_t *in_buf, uint32_t in_len,
-                              uint8_t *out_buf, uint32_t out_len);
+uint8_t sx1268_write_read_reg(uint8_t *in_buf, uint32_t in_len,
+        uint8_t *out_buf, uint32_t out_len);
 
 /**
  * @}
@@ -2147,7 +1949,7 @@ uint8_t sx1268_interface_spi_deinit(void);
  * @note       none
  */
 uint8_t sx1268_interface_spi_write_read(uint8_t *in_buf, uint32_t in_len,
-                                        uint8_t *out_buf, uint32_t out_len);
+        uint8_t *out_buf, uint32_t out_len);
 
 /**
  * @brief  interface reset gpio init
@@ -2213,13 +2015,6 @@ uint8_t sx1268_interface_busy_gpio_read(uint8_t *value);
 void sx1268_interface_delay_ms(uint32_t ms);
 
 /**
- * @brief     interface print format data
- * @param[in] fmt format data
- * @note      none
- */
-void sx1268_interface_debug_print(const char *const fmt, ...);
-
-/**
  * @brief     interface receive callback
  * @param[in] type receive callback type
  * @param[in] *buf pointer to a buffer address
@@ -2227,9 +2022,5 @@ void sx1268_interface_debug_print(const char *const fmt, ...);
  * @note      none
  */
 void sx1268_interface_receive_callback(uint16_t type, uint8_t *buf, uint16_t len);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

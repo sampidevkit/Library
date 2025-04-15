@@ -201,7 +201,7 @@ uint16_t str_len2break(const uint8_t *pData, uint8_t break_byte) // <editor-fold
 public bool str_cmp(const char *pDatain, const char *pSample) // <editor-fold defaultstate="collapsed" desc="Compare sub-string in string">
 {
     int i;
-    int l=slen(pSample);
+    int l=(int)slen(pSample);
 
     for(i=0; i<l; i++)
     {
@@ -579,7 +579,7 @@ public int str_sub(char *des, const char *src, char c1, int count1, int offset1,
         return 0;
     }
 
-    mymemcpy((uint8_t *) des, (uint8_t *)&src[begin], end);
+    mymemcpy((uint8_t *) des, (uint8_t *)&src[begin], (uint16_t)end);
     des[end]=0;
 
     return end;
@@ -1002,7 +1002,7 @@ public int32_t ConvertStr2Integer(const uint8_t *pArr) // <editor-fold defaultst
 public int8_t chr2int(uint8_t c) // <editor-fold defaultstate="collapsed" desc="Char to integer">
 {
     if((c>='0')&&(c<='9'))
-        return (c-'0');
+        return (int8_t)(c-'0');
 
     return (-1);
 } // </editor-fold>
@@ -1010,7 +1010,7 @@ public int8_t chr2int(uint8_t c) // <editor-fold defaultstate="collapsed" desc="
 public uint32_t StrHex2Int(uint8_t *p) // <editor-fold defaultstate="collapsed" desc="Convert string Hex to integer">
 {
     uint32_t value=0;
-    uint8_t x, i=slen((char *) p);
+    uint8_t x, i=(uint8_t)slen((char *) p);
 
     if(i<=8&&i!=0)
     {
