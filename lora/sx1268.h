@@ -323,6 +323,8 @@ typedef struct sx1268_handle_s {
     uint8_t receive_buf[256]; /**< receive buffer */
 } sx1268_handle_t;
 
+extern sx1268_handle_t sx1268Handle;
+
 /**
  * @brief sx1268 information structure definition
  */
@@ -344,6 +346,8 @@ typedef struct sx1268_info_s {
  * @ingroup  sx1268_driver
  * @{
  */
+
+bool sx1268_is_inited(void);
 
 /**
  * @brief      get chip's information
@@ -380,7 +384,7 @@ uint8_t sx1268_irq_handler(void);
  *            - 6 reset chip failed
  * @note      none
  */
-uint8_t sx1268_init(sx1268_handle_t *pHandle);
+uint8_t sx1268_init(void);
 
 /**
  * @brief     close the chip
@@ -396,7 +400,7 @@ uint8_t sx1268_init(sx1268_handle_t *pHandle);
  *            - 7 reset gpio deinit failed
  * @note      none
  */
-uint8_t sx1268_deinit(void);
+void sx1268_deinit(void);
 
 /**
  * @brief     send the lora data
@@ -1636,7 +1640,7 @@ uint8_t sx1268_get_ocp(uint8_t *ocp);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_rtc_control(uint8_t control);
+uint8_t sx1268_set_rtc_control(uint8_t ctrl);
 
 /**
  * @brief      get the rtc control
@@ -1650,7 +1654,7 @@ uint8_t sx1268_set_rtc_control(uint8_t control);
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_rtc_control(uint8_t *control);
+uint8_t sx1268_get_rtc_control(uint8_t *ctrl);
 
 /**
  * @brief     set the xta trim
@@ -1720,7 +1724,7 @@ uint8_t sx1268_get_xtb_trim(uint8_t *trim);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_dio3_output_control(uint8_t control);
+uint8_t sx1268_set_dio3_output_control(uint8_t ctrl);
 
 /**
  * @brief      get the dio3 output
@@ -1734,7 +1738,7 @@ uint8_t sx1268_set_dio3_output_control(uint8_t control);
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_dio3_output_control(uint8_t *control);
+uint8_t sx1268_get_dio3_output_control(uint8_t *ctrl);
 
 /**
  * @brief     set the event mask
@@ -1832,7 +1836,7 @@ uint8_t sx1268_get_dio_input_enable(uint8_t *enable);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_pull_up_control(uint8_t control);
+uint8_t sx1268_set_pull_up_control(uint8_t ctrl);
 
 /**
  * @brief      get the pull up control
@@ -1846,7 +1850,7 @@ uint8_t sx1268_set_pull_up_control(uint8_t control);
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_pull_up_control(uint8_t *control);
+uint8_t sx1268_get_pull_up_control(uint8_t *ctrl);
 
 /**
  * @brief     set the pull down control
@@ -1860,7 +1864,7 @@ uint8_t sx1268_get_pull_up_control(uint8_t *control);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_set_pull_down_control(uint8_t control);
+uint8_t sx1268_set_pull_down_control(uint8_t ctrl);
 
 /**
  * @brief      get the pull down control
@@ -1874,7 +1878,7 @@ uint8_t sx1268_set_pull_down_control(uint8_t control);
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_get_pull_down_control(uint8_t *control);
+uint8_t sx1268_get_pull_down_control(uint8_t *ctrl);
 
 /**
  * @}
@@ -1935,7 +1939,7 @@ uint8_t sx1268_interface_spi_init(void);
  *         - 1 spi deinit failed
  * @note   none
  */
-uint8_t sx1268_interface_spi_deinit(void);
+void sx1268_interface_spi_deinit(void);
 
 /**
  * @brief      interface spi bus write read
@@ -1952,24 +1956,6 @@ uint8_t sx1268_interface_spi_write_read(uint8_t *in_buf, uint32_t in_len,
         uint8_t *out_buf, uint32_t out_len);
 
 /**
- * @brief  interface reset gpio init
- * @return status code
- *         - 0 success
- *         - 1 init failed
- * @note   none
- */
-uint8_t sx1268_interface_reset_gpio_init(void);
-
-/**
- * @brief  interface reset gpio deinit
- * @return status code
- *         - 0 success
- *         - 1 deinit failed
- * @note   none
- */
-uint8_t sx1268_interface_reset_gpio_deinit(void);
-
-/**
  * @brief     interface reset gpio write
  * @param[in] data written data
  * @return    status code
@@ -1977,25 +1963,7 @@ uint8_t sx1268_interface_reset_gpio_deinit(void);
  *            - 1 write failed
  * @note      none
  */
-uint8_t sx1268_interface_reset_gpio_write(uint8_t data);
-
-/**
- * @brief  interface busy gpio init
- * @return status code
- *         - 0 success
- *         - 1 init failed
- * @note   none
- */
-uint8_t sx1268_interface_busy_gpio_init(void);
-
-/**
- * @brief  interface busy gpio deinit
- * @return status code
- *         - 0 success
- *         - 1 deinit failed
- * @note   none
- */
-uint8_t sx1268_interface_busy_gpio_deinit(void);
+void sx1268_interface_reset_gpio_write(bool data);
 
 /**
  * @brief      interface busy gpio read
@@ -2005,7 +1973,7 @@ uint8_t sx1268_interface_busy_gpio_deinit(void);
  *             - 1 read failed
  * @note       none
  */
-uint8_t sx1268_interface_busy_gpio_read(uint8_t *value);
+bool sx1268_interface_busy_gpio_read(void);
 
 /**
  * @brief     interface delay ms

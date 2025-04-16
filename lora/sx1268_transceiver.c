@@ -1,4 +1,5 @@
-#include "driver_sx1268_transceiver.h"
+#include "sx1268_transceiver.h"
+#include "sx1268.h"
 
 #define __db(...)
 
@@ -13,7 +14,7 @@ static uint8_t gs_send_buffer[256]; /**< inner send buffer*/
  * @param[in] len buffer length
  * @note      none
  */
-static void a_callback(uint16_t type, uint8_t *buf, uint16_t len)
+void sx1268_interface_receive_callback(uint16_t type, uint8_t *buf, uint16_t len)
 {
     switch(type)
     {
@@ -754,5 +755,35 @@ uint8_t sx1268_receive_test(uint32_t s)
         (void) sx1268_deinit();
     }
 
+    return 0;
+}
+
+bool sx1268_transceiver_init(void) // <editor-fold defaultstate="collapsed" desc="initialize">
+{
+    return 0;
+} // </editor-fold>
+
+bool sx1268_transceiver_is_rx_ready(void) // <editor-fold defaultstate="collapsed" desc="check rx state">
+{
+    return 0;
+} // </editor-fold>
+
+bool sx1268_transceiver_is_tx_ready(void) // <editor-fold defaultstate="collapsed" desc="comment">
+{
+    return 0;
+}
+
+bool sx1268_transceiver_is_tx_done(void)
+{
+    return 0;
+}
+
+void sx1268_transceiver_send(const uint8_t *pD, uint8_t len)
+{
+    
+}
+
+uint8_t sx1268_transceiver_receive(uint8_t *pD)
+{
     return 0;
 }
