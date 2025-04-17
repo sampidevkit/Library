@@ -427,7 +427,7 @@ void sx1268_deinit(void);
 uint8_t sx1268_lora_transmit(sx1268_clock_source_t standby_src,
         uint16_t preamble_length, sx1268_lora_header_t header_type,
         sx1268_lora_crc_type_t crc_type, sx1268_bool_t invert_iq_enable,
-        uint8_t *buf, uint16_t len, uint32_t us);
+        uint8_t *pD, uint16_t len, uint32_t us);
 
 /**
  * @brief      run the cad
@@ -485,7 +485,7 @@ uint8_t sx1268_continuous_receive(void);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_write_register(uint16_t reg, uint8_t *buf, uint16_t len);
+uint8_t sx1268_write_register(uint16_t reg, uint8_t *pD, uint16_t len);
 
 /**
  * @brief      read the register
@@ -501,7 +501,7 @@ uint8_t sx1268_write_register(uint16_t reg, uint8_t *buf, uint16_t len);
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_read_register(uint16_t reg, uint8_t *buf, uint16_t len);
+uint8_t sx1268_read_register(uint16_t reg, uint8_t *pD, uint16_t len);
 
 /**
  * @brief     write the buffer
@@ -517,7 +517,7 @@ uint8_t sx1268_read_register(uint16_t reg, uint8_t *buf, uint16_t len);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_write_buffer(uint8_t offset, uint8_t *buf, uint16_t len);
+uint8_t sx1268_write_buffer(uint8_t offset, uint8_t *pD, uint16_t len);
 
 /**
  * @brief      read the buffer
@@ -533,7 +533,7 @@ uint8_t sx1268_write_buffer(uint8_t offset, uint8_t *buf, uint16_t len);
  *             - 4 chip is busy
  * @note       none
  */
-uint8_t sx1268_read_buffer(uint8_t offset, uint8_t *buf, uint16_t len);
+uint8_t sx1268_read_buffer(uint8_t offset, uint8_t *pD, uint16_t len);
 
 /**
  * @brief      check the packet error
@@ -1989,6 +1989,6 @@ void sx1268_interface_delay_ms(uint32_t ms);
  * @param[in] len buffer length
  * @note      none
  */
-void sx1268_interface_receive_callback(uint16_t type, uint8_t *buf, uint16_t len);
+void sx1268_interface_receive_callback(uint16_t type, uint8_t *pD, uint16_t len);
 
 #endif

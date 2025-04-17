@@ -100,22 +100,22 @@
 sx1268_handle_t sx1268Handle; // external variable defined in sx1268.h
 
 /* ******************************************************** Private Functions */
-static uint8_t a_sx1268_spi_read(uint8_t reg, uint8_t *buf, uint16_t len) // <editor-fold defaultstate="collapsed" desc="read bytes">
+static uint8_t a_sx1268_spi_read(uint8_t reg, uint8_t *pD, uint16_t len) // <editor-fold defaultstate="collapsed" desc="read bytes">
 {
-    if(sx1268_interface_spi_write_read(&reg, 1, buf, len)!=0) /* spi read */
+    if(sx1268_interface_spi_write_read(&reg, 1, pD, len)!=0) /* spi read */
         return 1;
 
     return 0;
 } // </editor-fold>
 
-static uint8_t a_sx1268_spi_write(uint8_t reg, uint8_t *buf, uint16_t len) // <editor-fold defaultstate="collapsed" desc="write bytes">
+static uint8_t a_sx1268_spi_write(uint8_t reg, uint8_t *pD, uint16_t len) // <editor-fold defaultstate="collapsed" desc="write bytes">
 {
     if(len>(INNER_BUFFER_SIZE-1)) /* check the length */
         return 2;
 
-    memset(sx1268Handle.buf, 0, sizeof (uint8_t)*INNER_BUFFER_SIZE); /* clear the buffer */
+    memset(sx1268Handle.buf, 0, sizeof (uint8_t)*INNER_BUFFER_SIZE);
     sx1268Handle.buf[0]=reg; /* set the reg */
-    memcpy(&sx1268Handle.buf[1], buf, len); /* copy the buffer */
+    memcpy(&sx1268Handle.buf[1], pD, len); /* copy the buffer */
 
     if(sx1268_interface_spi_write_read(sx1268Handle.buf, len+1, NULL, 0)!=0) /* spi write */
         return 1;
@@ -123,35 +123,35 @@ static uint8_t a_sx1268_spi_write(uint8_t reg, uint8_t *buf, uint16_t len) // <e
     return 0;
 } // </editor-fold>
 
-static uint8_t a_sx1268_spi_read_register(uint16_t reg, uint8_t *buf, uint16_t len) // <editor-fold defaultstate="collapsed" desc="read register bytes">
+static uint8_t a_sx1268_spi_read_register(uint16_t reg, uint8_t *pD, uint16_t len) // <editor-fold defaultstate="collapsed" desc="read register bytes">
 {
     uint8_t reg_buf[3];
 
     if(len>(INNER_BUFFER_SIZE-1)) /* check the length */
         return 2;
 
-    memset(sx1268Handle.buf, 0, sizeof (uint8_t)*INNER_BUFFER_SIZE); /* clear the buffer */
+    memset(sx1268Handle.buf, 0, sizeof (uint8_t)*INNER_BUFFER_SIZE);
     reg_buf[0]=SX1268_COMMAND_READ_REGISTER; /* set the command */
-    reg_buf[1]=(reg>>8) & 0xFF; /* set msb */
-    reg_buf[2]=(reg>>0) & 0xFF; /* set lsb */
+    reg_buf[1]=(reg>>8) & 0xFF;
+    reg_buf[2]=(reg>>0) & 0xFF;
 
     if(sx1268_interface_spi_write_read((uint8_t *) reg_buf, 3, sx1268Handle.buf, len+1)!=0) /* spi read */
         return 1;
 
-    memcpy(buf, sx1268Handle.buf+1, len); /* copy the data */
+    memcpy(pD, sx1268Handle.buf+1, len); /* copy the data */
     return 0;
 } // </editor-fold>
 
-static uint8_t a_sx1268_spi_write_register(uint16_t reg, uint8_t *buf, uint16_t len) // <editor-fold defaultstate="collapsed" desc="write register bytes">
+static uint8_t a_sx1268_spi_write_register(uint16_t reg, uint8_t *pD, uint16_t len) // <editor-fold defaultstate="collapsed" desc="write register bytes">
 {
     if(len>(INNER_BUFFER_SIZE-3)) /* check the length */
         return 2;
 
-    memset(sx1268Handle.buf, 0, sizeof (uint8_t)*INNER_BUFFER_SIZE); /* clear the buffer */
+    memset(sx1268Handle.buf, 0, sizeof (uint8_t)*INNER_BUFFER_SIZE);
     sx1268Handle.buf[0]=SX1268_COMMAND_WRITE_REGISTER; /* set the command */
     sx1268Handle.buf[1]=(reg>>8) & 0xFF; /* set reg msb */
     sx1268Handle.buf[2]=(reg>>0) & 0xFF; /* set reg lsb */
-    memcpy(&sx1268Handle.buf[3], buf, len); /* copy the buffer */
+    memcpy(&sx1268Handle.buf[3], pD, len); /* copy the buffer */
 
     if(sx1268_interface_spi_write_read(sx1268Handle.buf, len+3, NULL, 0)!=0) /* spi write */
         return 1;
@@ -159,15 +159,15 @@ static uint8_t a_sx1268_spi_write_register(uint16_t reg, uint8_t *buf, uint16_t 
     return 0;
 } // </editor-fold>
 
-static uint8_t a_sx1268_spi_write_buffer(uint8_t offset, uint8_t *buf, uint16_t len) // <editor-fold defaultstate="collapsed" desc="write buffer">
+static uint8_t a_sx1268_spi_write_buffer(uint8_t offset, uint8_t *pD, uint16_t len) // <editor-fold defaultstate="collapsed" desc="write buffer">
 {
     if(len>(INNER_BUFFER_SIZE-2)) /* check the length */
         return 2;
 
-    memset(sx1268Handle.buf, 0, sizeof (uint8_t)*INNER_BUFFER_SIZE); /* clear the buffer */
+    memset(sx1268Handle.buf, 0, sizeof (uint8_t)*INNER_BUFFER_SIZE);
     sx1268Handle.buf[0]=SX1268_COMMAND_WRITE_BUFFER; /* set the command */
     sx1268Handle.buf[1]=offset; /* set reg msb */
-    memcpy(&sx1268Handle.buf[2], buf, len); /* copy the buffer */
+    memcpy(&sx1268Handle.buf[2], pD, len); /* copy the buffer */
 
     if(sx1268_interface_spi_write_read(sx1268Handle.buf, len+2, NULL, 0)!=0) /* spi write */
         return 1;
@@ -175,21 +175,21 @@ static uint8_t a_sx1268_spi_write_buffer(uint8_t offset, uint8_t *buf, uint16_t 
     return 0;
 } // </editor-fold>
 
-static uint8_t a_sx1268_spi_read_buffer(uint8_t offset, uint8_t *buf, uint16_t len) // <editor-fold defaultstate="collapsed" desc="read buffer">
+static uint8_t a_sx1268_spi_read_buffer(uint8_t offset, uint8_t *pD, uint16_t len) // <editor-fold defaultstate="collapsed" desc="read buffer">
 {
     uint8_t reg_buf[2];
 
     if(len>(INNER_BUFFER_SIZE-1)) /* check the length */
         return 2;
 
-    memset(sx1268Handle.buf, 0, sizeof (uint8_t)*INNER_BUFFER_SIZE); /* clear the buffer */
+    memset(sx1268Handle.buf, 0, sizeof (uint8_t)*INNER_BUFFER_SIZE);
     reg_buf[0]=SX1268_COMMAND_READ_BUFFER; /* set the command */
-    reg_buf[1]=offset; /* set msb */
+    reg_buf[1]=offset;
 
     if(sx1268_interface_spi_write_read((uint8_t *) reg_buf, 2, sx1268Handle.buf, len+1)!=0) /* spi write */
         return 1;
 
-    memcpy(buf, sx1268Handle.buf+1, len); /* copy the data */
+    memcpy(pD, sx1268Handle.buf+1, len); /* copy the data */
     return 0;
 } // </editor-fold>
 
@@ -229,6 +229,30 @@ static uint8_t a_sx1268_check_busy(void) // <editor-fold defaultstate="collapsed
     }
 } // </editor-fold>
 
+static uint16_t a_sx1268_make16(const uint8_t *pD) // <editor-fold defaultstate="collapsed" desc="convert 8-bit array to 16-bit integer">
+{
+    uint16_t val=*pD++;
+
+    val<<=8;
+    val|=*pD;
+
+    return val;
+} // </editor-fold>
+
+static uint32_t a_sx1268_make32(const uint8_t *pD) // <editor-fold defaultstate="collapsed" desc="convert 8-bit array to 32-bit integer">
+{
+    uint32_t val=*pD++;
+
+    val<<=8;
+    val|=*pD++;
+    val<<=8;
+    val|=*pD++;
+    val<<=8;
+    val|=*pD++;
+
+    return val;
+} // </editor-fold>
+
 /* ********************************************************* Public Functions */
 bool sx1268_is_inited(void) // <editor-fold defaultstate="collapsed" desc="check handle initialization">
 {
@@ -243,12 +267,13 @@ uint8_t sx1268_irq_handler(void) // <editor-fold defaultstate="collapsed" desc="
     uint8_t buf[3];
     uint16_t status;
 
-    memset(buf, 0, sizeof (uint8_t) * 3); /* clear the buffer */
+    memset(buf, 0, sizeof (uint8_t) * 3);
 
-    if(a_sx1268_spi_read(SX1268_COMMAND_GET_IRQ_STATUS, (uint8_t *) buf, 3)!=0) /* get irq status failed */
+    if(a_sx1268_spi_read(SX1268_COMMAND_GET_IRQ_STATUS, buf, 3)!=0)
         return 1;
 
-    status=((uint16_t) buf[1]<<8)|buf[2]; /* set status */
+    //status=((uint16_t) buf[1]<<8)|buf[2];
+    status=a_sx1268_make16(&buf[1]);
 
     if(a_sx1268_spi_write(SX1268_COMMAND_CLEAR_IRQ_STATUS, (uint8_t *)&buf[1], 2)!=0) /* clear irq status failed */
         return 1;
@@ -256,60 +281,60 @@ uint8_t sx1268_irq_handler(void) // <editor-fold defaultstate="collapsed" desc="
     sx1268Handle.crc_error=0; /* clear crc error */
 
     if((status&SX1268_IRQ_PREAMBLE_DETECTED)!=0) /* if preamble detected */
-        sx1268_interface_receive_callback(SX1268_IRQ_PREAMBLE_DETECTED, NULL, 0); /* run callback */
+        sx1268_interface_receive_callback(SX1268_IRQ_PREAMBLE_DETECTED, NULL, 0);
 
     if((status&SX1268_IRQ_SYNC_WORD_VALID)!=0) /* if valid sync word detected */
-        sx1268_interface_receive_callback(SX1268_IRQ_SYNC_WORD_VALID, NULL, 0); /* run callback */
+        sx1268_interface_receive_callback(SX1268_IRQ_SYNC_WORD_VALID, NULL, 0);
 
     if((status&SX1268_IRQ_HEADER_VALID)!=0) /* if valid header */
-        sx1268_interface_receive_callback(SX1268_IRQ_HEADER_VALID, NULL, 0); /* run callback */
+        sx1268_interface_receive_callback(SX1268_IRQ_HEADER_VALID, NULL, 0);
 
     if((status&SX1268_IRQ_HEADER_ERR)!=0) /* if header error */
-        sx1268_interface_receive_callback(SX1268_IRQ_HEADER_ERR, NULL, 0); /* run callback */
+        sx1268_interface_receive_callback(SX1268_IRQ_HEADER_ERR, NULL, 0);
 
     if((status&SX1268_IRQ_CRC_ERR)!=0) /* if crc error */
     {
-        sx1268_interface_receive_callback(SX1268_IRQ_CRC_ERR, NULL, 0); /* run callback */
+        sx1268_interface_receive_callback(SX1268_IRQ_CRC_ERR, NULL, 0);
         sx1268Handle.crc_error=1; /* set crc error */
     }
 
     if((status&SX1268_IRQ_CAD_DONE)!=0) /* if cad done */
     {
-        sx1268_interface_receive_callback(SX1268_IRQ_CAD_DONE, NULL, 0); /* run callback */
+        sx1268_interface_receive_callback(SX1268_IRQ_CAD_DONE, NULL, 0);
         sx1268Handle.cad_done=1; /* set cad done */
     }
 
     if((status&SX1268_IRQ_CAD_DETECTED)!=0) /* if cad detected */
     {
-        sx1268_interface_receive_callback(SX1268_IRQ_CAD_DETECTED, NULL, 0); /* run callback */
+        sx1268_interface_receive_callback(SX1268_IRQ_CAD_DETECTED, NULL, 0);
         sx1268Handle.cad_detected=1; /* set detected */
     }
 
-    if((status&SX1268_IRQ_TIMEOUT)!=0) /* if timeout */
+    if((status&SX1268_IRQ_TIMEOUT)!=0)
     {
         uint8_t ctrl;
         uint8_t mask;
 
         ctrl=0x00;
 
-        if(a_sx1268_spi_write_register(SX1268_REG_DIO3_OUTPUT_CONTROL, (uint8_t *)&ctrl, 1)!=0)
+        if(a_sx1268_spi_write_register(SX1268_REG_DIO3_OUTPUT_CONTROL, &ctrl, 1)!=0)
             return 1;
 
-        if(a_sx1268_spi_read_register(SX1268_REG_EVENT_MASK, (uint8_t *)&mask, 1)!=0)
+        if(a_sx1268_spi_read_register(SX1268_REG_EVENT_MASK, &mask, 1)!=0)
             return 1;
 
-        mask|=0x02; /* set mask */
+        mask|=0x02;
 
-        if(a_sx1268_spi_write_register(SX1268_REG_EVENT_MASK, (uint8_t *)&mask, 1)!=0)
+        if(a_sx1268_spi_write_register(SX1268_REG_EVENT_MASK, &mask, 1)!=0)
             return 1;
 
-        sx1268_interface_receive_callback(SX1268_IRQ_TIMEOUT, NULL, 0); /* run callback */
+        sx1268_interface_receive_callback(SX1268_IRQ_TIMEOUT, NULL, 0);
         sx1268Handle.timeout=1; /* flag timeout */
     }
 
     if((status&SX1268_IRQ_TX_DONE)!=0) /* if tx done */
     {
-        sx1268_interface_receive_callback(SX1268_IRQ_TX_DONE, NULL, 0); /* run callback */
+        sx1268_interface_receive_callback(SX1268_IRQ_TX_DONE, NULL, 0);
         sx1268Handle.tx_done=1; /* flag tx done */
     }
 
@@ -318,21 +343,21 @@ uint8_t sx1268_irq_handler(void) // <editor-fold defaultstate="collapsed" desc="
         uint8_t payload_length_rx;
         uint8_t rx_start_buffer_pointer;
 
-        memset(buf, 0, sizeof (uint8_t) * 3); /* clear the buffer */
+        memset(buf, 0, sizeof (uint8_t) * 3);
 
-        if(a_sx1268_spi_read(SX1268_COMMAND_GET_RX_BUFFER_STATUS, (uint8_t *) buf, 3)!=0) /* get rx buffer status failed */
+        if(a_sx1268_spi_read(SX1268_COMMAND_GET_RX_BUFFER_STATUS, buf, 3)!=0) /* get rx buffer status failed */
             return 1;
 
-        payload_length_rx=buf[1]; /* set status */
-        rx_start_buffer_pointer=buf[2]; /* set status */
+        payload_length_rx=buf[1];
+        rx_start_buffer_pointer=buf[2];
 
         if(a_sx1268_spi_read_buffer(rx_start_buffer_pointer, sx1268Handle.receive_buf, payload_length_rx)!=0) /* read buffer failed */
             return 1;
 
         if(sx1268Handle.crc_error==0) /* check crc error */
-            sx1268_interface_receive_callback(SX1268_IRQ_RX_DONE, sx1268Handle.receive_buf, payload_length_rx); /* run callback */
+            sx1268_interface_receive_callback(SX1268_IRQ_RX_DONE, sx1268Handle.receive_buf, payload_length_rx);
         else
-            sx1268_interface_receive_callback(SX1268_IRQ_RX_DONE, NULL, 0); /* run callback */
+            sx1268_interface_receive_callback(SX1268_IRQ_RX_DONE, NULL, 0);
     }
 
     return 0;
@@ -358,7 +383,7 @@ uint8_t sx1268_init(void) // <editor-fold defaultstate="collapsed" desc="initial
         sx1268_interface_reset_gpio_write(1); /* set high */
         sx1268_interface_delay_ms(5); /* delay 5 ms */
 
-        if(a_sx1268_spi_read(SX1268_COMMAND_GET_STATUS, buf, 1)!=0) /* read command */
+        if(a_sx1268_spi_read(SX1268_COMMAND_GET_STATUS, buf, 1)!=0)
         {
             __db("sx1268: get status failed.\n"); /* get status failed */
             error_code=6;
@@ -367,7 +392,7 @@ uint8_t sx1268_init(void) // <editor-fold defaultstate="collapsed" desc="initial
 
         buf[0]=0x00;
 
-        if(a_sx1268_spi_write(SX1268_COMMAND_SET_STANDBY, buf, 1)!=0) /* write command */
+        if(a_sx1268_spi_write(SX1268_COMMAND_SET_STANDBY, buf, 1)!=0)
         {
             __db("sx1268: set standby failed.\n"); /* set standby failed */
             error_code=6;
@@ -397,7 +422,7 @@ void sx1268_deinit(void) // <editor-fold defaultstate="collapsed" desc="close th
         goto EXIT;
 
     prev=0x00; /* set power down */
-    a_sx1268_spi_write(SX1268_COMMAND_SET_SLEEP, &prev, 1); /* write command */
+    a_sx1268_spi_write(SX1268_COMMAND_SET_SLEEP, &prev, 1);
 
 EXIT:
     sx1268_interface_spi_deinit(); /* spi deinit */
@@ -413,22 +438,22 @@ uint8_t sx1268_single_receive(double us) // <editor-fold defaultstate="collapsed
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    clear_irq_param=0x03FF; /* set mask */
-    buf[0]=(clear_irq_param>>8) & 0xFF; /* set param */
-    buf[1]=(clear_irq_param>>0) & 0xFF; /* set param */
+    clear_irq_param=0x03FF;
+    buf[0]=(clear_irq_param>>8) & 0xFF;
+    buf[1]=(clear_irq_param>>0) & 0xFF;
 
-    if(a_sx1268_spi_write(SX1268_COMMAND_CLEAR_IRQ_STATUS, (uint8_t *) buf, 2)!=0) /* clear irq status failed */
+    if(a_sx1268_spi_write(SX1268_COMMAND_CLEAR_IRQ_STATUS, buf, 2)!=0) /* clear irq status failed */
         return 1;
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    timeout=(uint32_t) (us/15.625); /* convert real data to register data */
+    timeout=(uint32_t) (us/15.625);
     buf[0]=(timeout>>16) & 0xFF; /* bit 23 : 16 */
     buf[1]=(timeout>>8) & 0xFF; /* bit 15 : 8 */
     buf[2]=(timeout>>0) & 0xFF; /* bit 7 : 0 */
 
-    if(a_sx1268_spi_write(SX1268_COMMAND_SET_RX, (uint8_t *) buf, 3)!=0) /* set rx failed */
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_RX, buf, 3)!=0) /* set rx failed */
         return 1;
 
     return 0;
@@ -442,11 +467,11 @@ uint8_t sx1268_continuous_receive(void) // <editor-fold defaultstate="collapsed"
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    clear_irq_param=0x03FF; /* set mask */
-    buf[0]=(clear_irq_param>>8) & 0xFF; /* set param */
-    buf[1]=(clear_irq_param>>0) & 0xFF; /* set param */
+    clear_irq_param=0x03FF;
+    buf[0]=(clear_irq_param>>8) & 0xFF;
+    buf[1]=(clear_irq_param>>0) & 0xFF;
 
-    if(a_sx1268_spi_write(SX1268_COMMAND_CLEAR_IRQ_STATUS, (uint8_t *) buf, 2)!=0) /* clear irq status failed */
+    if(a_sx1268_spi_write(SX1268_COMMAND_CLEAR_IRQ_STATUS, buf, 2)!=0) /* clear irq status failed */
         return 1;
 
     if(a_sx1268_check_busy()!=0)
@@ -456,7 +481,7 @@ uint8_t sx1268_continuous_receive(void) // <editor-fold defaultstate="collapsed"
     buf[1]=0xFF; /* bit 15 : 8 */
     buf[2]=0xFF; /* bit 7 : 0 */
 
-    if(a_sx1268_spi_write(SX1268_COMMAND_SET_RX, (uint8_t *) buf, 3)!=0) /* set rx failed */
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_RX, buf, 3)!=0) /* set rx failed */
         return 1;
 
     return 0;
@@ -472,10 +497,10 @@ uint8_t sx1268_lora_cad(sx1268_bool_t *enable) // <editor-fold defaultstate="col
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    clear_irq_param=0x03FF; /* set mask */
-    buf[0]=(clear_irq_param>>8) & 0xFF; /* set param */
-    buf[1]=(clear_irq_param>>0) & 0xFF; /* set param */
-    res=a_sx1268_spi_write(SX1268_COMMAND_CLEAR_IRQ_STATUS, (uint8_t *) buf, 2); /* write command */
+    clear_irq_param=0x03FF;
+    buf[0]=(clear_irq_param>>8) & 0xFF;
+    buf[1]=(clear_irq_param>>0) & 0xFF;
+    res=a_sx1268_spi_write(SX1268_COMMAND_CLEAR_IRQ_STATUS, buf, 2);
 
     if(res!=0) /* clear irq status failed */
         return 1;
@@ -485,7 +510,7 @@ uint8_t sx1268_lora_cad(sx1268_bool_t *enable) // <editor-fold defaultstate="col
 
     sx1268Handle.cad_done=0; /* clear cad done */
     sx1268Handle.cad_detected=0; /* clear cad done */
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_CAD, NULL, 0); /* write command */
+    res=a_sx1268_spi_write(SX1268_COMMAND_SET_CAD, NULL, 0);
 
     if(res!=0) /* set cad failed */
         return 1;
@@ -519,11 +544,10 @@ uint8_t sx1268_check_packet_error(sx1268_bool_t *enable) // <editor-fold default
 uint8_t sx1268_lora_transmit(sx1268_clock_source_t standby_src,
                              uint16_t preamble_length, sx1268_lora_header_t header_type,
                              sx1268_lora_crc_type_t crc_type, sx1268_bool_t invert_iq_enable,
-                             uint8_t *buf, uint16_t len, uint32_t us) // <editor-fold defaultstate="collapsed" desc="send the lora data">
+                             uint8_t *pD, uint16_t len, uint32_t us) // <editor-fold defaultstate="collapsed" desc="send the lora data">
 {
-    uint8_t res;
     uint8_t prev;
-    uint8_t buffer[6];
+    uint8_t buf[6];
     uint16_t clear_irq_param;
     uint32_t ms;
     uint32_t reg;
@@ -531,35 +555,32 @@ uint8_t sx1268_lora_transmit(sx1268_clock_source_t standby_src,
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    clear_irq_param=0x03FF; /* set mask */
-    buffer[0]=(clear_irq_param>>8) & 0xFF; /* set param */
-    buffer[1]=(clear_irq_param>>0) & 0xFF; /* set param */
-    res=a_sx1268_spi_write(SX1268_COMMAND_CLEAR_IRQ_STATUS, (uint8_t *) buffer, 2); /* write command */
+    clear_irq_param=0x03FF;
+    buf[0]=(clear_irq_param>>8) & 0xFF;
+    buf[1]=(clear_irq_param>>0) & 0xFF;
 
-    if(res!=0) /* clear irq status failed */
+    if(a_sx1268_spi_write(SX1268_COMMAND_CLEAR_IRQ_STATUS, buf, 2)!=0) /* clear irq status failed */
         return 1;
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    prev=(uint8_t) standby_src; /* set param */
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_STANDBY, (uint8_t *)&prev, 1); /* write command */
+    prev=(uint8_t) standby_src;
 
-    if(res!=0) /* set standby failed */
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_STANDBY, &prev, 1)!=0) /* set standby failed */
         return 1;
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    buffer[0]=(preamble_length>>8) & 0xFF; /* set param */
-    buffer[1]=(preamble_length>>0) & 0xFF; /* set param */
-    buffer[2]=(uint8_t) header_type; /* set param */
-    buffer[3]=(uint8_t) len; /* set param */
-    buffer[4]=(uint8_t) crc_type; /* set param */
-    buffer[5]=(uint8_t) invert_iq_enable; /* set param */
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_PACKET_PARAMS, (uint8_t *) buffer, 6); /* write command */
+    buf[0]=(preamble_length>>8) & 0xFF;
+    buf[1]=(preamble_length>>0) & 0xFF;
+    buf[2]=(uint8_t) header_type;
+    buf[3]=(uint8_t) len;
+    buf[4]=(uint8_t) crc_type;
+    buf[5]=(uint8_t) invert_iq_enable;
 
-    if(res!=0) /* set lora modulation params failed */
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_PACKET_PARAMS, buf, 6)!=0) /* set lora modulation params failed */
         return 1;
 
     if(invert_iq_enable==SX1268_BOOL_FALSE) /* not invert iq */
@@ -569,15 +590,12 @@ uint8_t sx1268_lora_transmit(sx1268_clock_source_t standby_src,
         if(a_sx1268_check_busy()!=0)
             return 4;
 
-        res=a_sx1268_spi_read_register(SX1268_REG_IQ_POLARITY_SETUP, (uint8_t *)&setup, 1);
-
-        if(res!=0)
+        if(a_sx1268_spi_read_register(SX1268_REG_IQ_POLARITY_SETUP, (uint8_t *)&setup, 1)!=0)
             return 1;
 
         setup|=(1<<2); /* set bit 2 */
-        res=a_sx1268_spi_write_register(SX1268_REG_IQ_POLARITY_SETUP, (uint8_t *)&setup, 1);
 
-        if(res!=0)
+        if(a_sx1268_spi_write_register(SX1268_REG_IQ_POLARITY_SETUP, (uint8_t *)&setup, 1)!=0)
             return 1;
     }
     else
@@ -587,38 +605,32 @@ uint8_t sx1268_lora_transmit(sx1268_clock_source_t standby_src,
         if(a_sx1268_check_busy()!=0)
             return 4;
 
-        res=a_sx1268_spi_read_register(SX1268_REG_IQ_POLARITY_SETUP, (uint8_t *)&setup, 1);
-
-        if(res!=0)
+        if(a_sx1268_spi_read_register(SX1268_REG_IQ_POLARITY_SETUP, (uint8_t *)&setup, 1)!=0)
             return 1;
 
         setup&= ~(1<<2); /* clear bit 2 */
-        res=a_sx1268_spi_write_register(SX1268_REG_IQ_POLARITY_SETUP, (uint8_t *)&setup, 1);
 
-        if(res!=0)
+        if(a_sx1268_spi_write_register(SX1268_REG_IQ_POLARITY_SETUP, (uint8_t *)&setup, 1)!=0)
             return 1;
     }
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_write_buffer(0x00, buf, len);
-
-    if(res!=0) /* write buffer failed */
+    if(a_sx1268_spi_write_buffer(0x00, pD, len)!=0)
         return 1;
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
     reg=(uint32_t) ((float) us/15.625); /* convert the timeout */
-    buffer[0]=(reg>>16) & 0xFF; /* bit 23 : 16 */
-    buffer[1]=(reg>>8) & 0xFF; /* bit 15 : 8 */
-    buffer[2]=(reg>>0) & 0xFF; /* bit 7 : 0 */
+    buf[0]=(reg>>16) & 0xFF; /* bit 23 : 16 */
+    buf[1]=(reg>>8) & 0xFF; /* bit 15 : 8 */
+    buf[2]=(reg>>0) & 0xFF; /* bit 7 : 0 */
     sx1268Handle.tx_done=0; /* flag 0 */
     sx1268Handle.timeout=0; /* flag 0 */
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_TX, (uint8_t *) buffer, 3); /* write command */
 
-    if(res!=0) /* set tx failed */
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_TX, buf, 3)!=0) /* set tx failed */
         return 1;
 
     ms=us/1000+10000; /* set timeout */
@@ -642,177 +654,92 @@ uint8_t sx1268_lora_transmit(sx1268_clock_source_t standby_src,
     return 7;
 } // </editor-fold>
 
-uint8_t sx1268_write_register(uint16_t reg, uint8_t *buf, uint16_t len) // <editor-fold defaultstate="collapsed" desc="write the register">
+uint8_t sx1268_write_register(uint16_t reg, uint8_t *pD, uint16_t len) // <editor-fold defaultstate="collapsed" desc="write the register">
 {
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_write_register(reg, buf, len);
-
-    if(res!=0)
+    if(a_sx1268_spi_write_register(reg, pD, len)!=0)
         return 1;
 
     return 0;
 } // </editor-fold>
 
-uint8_t sx1268_read_register(uint16_t reg, uint8_t *buf, uint16_t len) // <editor-fold defaultstate="collapsed" desc="read the register">
+uint8_t sx1268_read_register(uint16_t reg, uint8_t *pD, uint16_t len) // <editor-fold defaultstate="collapsed" desc="read the register">
 {
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_read_register(reg, buf, len);
-
-    if(res!=0)
+    if(a_sx1268_spi_read_register(reg, pD, len)!=0)
         return 1;
 
     return 0;
 } // </editor-fold>
 
-uint8_t sx1268_write_buffer(uint8_t offset, uint8_t *buf, uint16_t len) // <editor-fold defaultstate="collapsed" desc="write the buffer">
+uint8_t sx1268_write_buffer(uint8_t offset, uint8_t *pD, uint16_t len) // <editor-fold defaultstate="collapsed" desc="write the buffer">
 {
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_write_buffer(offset, buf, len);
-
-    if(res!=0) /* write buffer failed */
+    if(a_sx1268_spi_write_buffer(offset, pD, len)!=0)
         return 1;
 
     return 0;
 } // </editor-fold>
 
-/**
- * @brief      read the buffer
- * @param[in]  *handle pointer to an sx1268 handle structure
- * @param[in]  offset buffer offset
- * @param[out] *buf pointer to a data buffer
- * @param[in]  len data length
- * @return     status code
- *             - 0 success
- *             - 1 read buffer failed
- *             - 2 handle is NULL
- *             - 3 handle is not initialized
- *             - 4 chip is busy
- * @note       none
- */
-uint8_t sx1268_read_buffer(uint8_t offset, uint8_t *buf, uint16_t len)
+uint8_t sx1268_read_buffer(uint8_t offset, uint8_t *pD, uint16_t len) // <editor-fold defaultstate="collapsed" desc="read the buffer">
 {
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    if(a_sx1268_spi_read_buffer(offset, buf, len)!=0) /* read buffer */
-    {
-        __db("sx1268: read buffer failed.\n"); /* read buffer failed */
-
+    if(a_sx1268_spi_read_buffer(offset, pD, len)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     enter to the sleep mode
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] mode start mode
- * @param[in] rtc_wake_up_enable bool value
- * @return    status code
- *            - 0 success
- *            - 1 set sleep failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_set_sleep(sx1268_start_mode_t mode, sx1268_bool_t rtc_wake_up_enable)
+uint8_t sx1268_set_sleep(sx1268_start_mode_t mode, sx1268_bool_t rtc_wake_up_enable) // <editor-fold defaultstate="collapsed" desc="enter to the sleep mode">
 {
     uint8_t prev;
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    prev=(uint8_t) ((mode<<2)|(rtc_wake_up_enable<<0)); /* set param */
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_SLEEP, (uint8_t *)&prev, 1); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: set sleep failed.\n"); /* set sleep failed */
+    prev=(uint8_t) ((mode<<2)|(rtc_wake_up_enable<<0));
 
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_SLEEP, &prev, 1)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     enter to the standby mode
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] src clock source
- * @return    status code
- *            - 0 success
- *            - 1 set standby failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_set_standby(sx1268_clock_source_t src)
+uint8_t sx1268_set_standby(sx1268_clock_source_t src) // <editor-fold defaultstate="collapsed" desc="enter to the standby mode">
 {
     uint8_t prev;
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    prev=(uint8_t) src; /* set param */
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_STANDBY, (uint8_t *)&prev, 1); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: set standby failed.\n"); /* set standby failed */
+    prev=(uint8_t) src;
 
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_STANDBY, &prev, 1)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     enter to the frequency synthesis mode
- * @param[in] *handle pointer to an sx1268 handle structure
- * @return    status code
- *            - 0 success
- *            - 1 set frequency synthesis failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_set_frequency_synthesis(void)
+uint8_t sx1268_set_frequency_synthesis(void) // <editor-fold defaultstate="collapsed" desc="enter to the frequency synthesis mode">
 {
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_FS, NULL, 0); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: set fs failed.\n"); /* set fs failed */
-
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_FS, NULL, 0)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     enter to the tx mode
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] timeout tx timeout
- * @return    status code
- *            - 0 success
- *            - 1 set tx failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      0x000000 means timeout disable, tx single mode
- */
-uint8_t sx1268_set_tx(uint32_t timeout)
+uint8_t sx1268_set_tx(uint32_t timeout) // <editor-fold defaultstate="collapsed" desc="enter to the tx mode">
 {
     uint8_t buf[3];
 
@@ -822,31 +749,14 @@ uint8_t sx1268_set_tx(uint32_t timeout)
     buf[0]=(timeout>>16) & 0xFF; /* bit 23 : 16 */
     buf[1]=(timeout>>8) & 0xFF; /* bit 15 : 8 */
     buf[2]=(timeout>>0) & 0xFF; /* bit 7 : 0 */
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_TX, (uint8_t *) buf, 3); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: set tx failed.\n"); /* set tx failed */
 
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_TX, buf, 3)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     enter to the rx mode
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] timeout rx timeout
- * @return    status code
- *            - 0 success
- *            - 1 set rx failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      0x000000 means timeout disable, rx single mode
- *            0xFFFFFF means rx continuous mode
- */
-uint8_t sx1268_set_rx(uint32_t timeout)
+uint8_t sx1268_set_rx(uint32_t timeout) // <editor-fold defaultstate="collapsed" desc="enter to the rx mode">
 {
     uint8_t buf[3];
 
@@ -856,98 +766,43 @@ uint8_t sx1268_set_rx(uint32_t timeout)
     buf[0]=(timeout>>16) & 0xFF; /* bit 23 : 16 */
     buf[1]=(timeout>>8) & 0xFF; /* bit 15 : 8 */
     buf[2]=(timeout>>0) & 0xFF; /* bit 7 : 0 */
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_RX, (uint8_t *) buf, 3); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: set rx failed.\n"); /* set rx failed */
 
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_RX, buf, 3)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief      convert the timeout to the register raw data
- * @param[in]  *handle pointer to an sx1268 handle structure
- * @param[in]  us timeout
- * @param[out] *reg pointer to a register raw buffer
- * @return     status code
- *             - 0 success
- *             - 2 handle is NULL
- *             - 3 handle is not initialized
- * @note       none
- */
-uint8_t sx1268_timeout_convert_to_register(double us, uint32_t *reg)
+uint8_t sx1268_timeout_convert_to_register(double us, uint32_t *reg) // <editor-fold defaultstate="collapsed" desc="convert the timeout to the register raw data">
 {
-    *reg=(uint32_t) (us/15.625); /* convert real data to register data */
+    *reg=(uint32_t) (us/15.625);
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief      convert the register raw data to the timeout
- * @param[in]  *handle pointer to an sx1268 handle structure
- * @param[in]  reg register raw data
- * @param[out] *us pointer to a us buffer
- * @return     status code
- *             - 0 success
- *             - 2 handle is NULL
- *             - 3 handle is not initialized
- * @note       none
- */
-uint8_t sx1268_timeout_convert_to_data(uint32_t reg, double *us)
+uint8_t sx1268_timeout_convert_to_data(uint32_t reg, double *us) // <editor-fold defaultstate="collapsed" desc="convert the register raw data to the timeout">
 {
-    *us=(double) (reg) * 15.625; /* convert raw data to real data */
+    *us=(double) (reg) * 15.625;
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     stop timer on preamble
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] enable bool value
- * @return    status code
- *            - 0 success
- *            - 1 set stop timer on preamble failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_set_stop_timer_on_preamble(sx1268_bool_t enable)
+uint8_t sx1268_set_stop_timer_on_preamble(sx1268_bool_t enable) // <editor-fold defaultstate="collapsed" desc="stop timer on preamble">
 {
     uint8_t prev;
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    prev=(uint8_t) enable; /* set param */
-    res=a_sx1268_spi_write(SX1268_COMMAND_STOP_TIMER_ON_PREAMBLE, (uint8_t *)&prev, 1); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: set stop timer on preamble failed.\n"); /* set stop timer on preamble failed */
+    prev=(uint8_t) enable;
 
+    if(a_sx1268_spi_write(SX1268_COMMAND_STOP_TIMER_ON_PREAMBLE, &prev, 1)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     set the rx duty cycle
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] rx_period rx period
- * @param[in] sleep_period sleep period
- * @return    status code
- *            - 0 success
- *            - 1 set rx duty cycle failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      t_preamble + t_header <= 2 * rx_period + sleep_period
- */
-uint8_t sx1268_set_rx_duty_cycle(uint32_t rx_period, uint32_t sleep_period)
+uint8_t sx1268_set_rx_duty_cycle(uint32_t rx_period, uint32_t sleep_period) // <editor-fold defaultstate="collapsed" desc="set the rx duty cycle">
 {
     uint8_t buf[6];
 
@@ -960,775 +815,366 @@ uint8_t sx1268_set_rx_duty_cycle(uint32_t rx_period, uint32_t sleep_period)
     buf[3]=(sleep_period>>16) & 0xFF; /* bit 23 : 16 */
     buf[4]=(sleep_period>>8) & 0xFF; /* bit 15 : 8 */
     buf[5]=(sleep_period>>0) & 0xFF; /* bit 7 : 0 */
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_RX_DUTY_CYCLE, (uint8_t *) buf, 6); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: set rx duty cycle failed.\n"); /* set rx duty cycle failed */
 
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_RX_DUTY_CYCLE, buf, 6)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     run the cad
- * @param[in] *handle pointer to an sx1268 handle structure
- * @return    status code
- *            - 0 success
- *            - 1 set cad failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_set_cad(void)
+uint8_t sx1268_set_cad(void) // <editor-fold defaultstate="collapsed" desc="run the cad">
 {
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_CAD, NULL, 0); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: set cad failed.\n"); /* set cad failed */
-
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_CAD, NULL, 0)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     enter to the tx continuous wave mode
- * @param[in] *handle pointer to an sx1268 handle structure
- * @return    status code
- *            - 0 success
- *            - 1 set tx continuous wave failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_set_tx_continuous_wave(void)
+uint8_t sx1268_set_tx_continuous_wave(void) // <editor-fold defaultstate="collapsed" desc="enter to the tx continuous wave mode">
 {
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_TX_CONTINUOUS_WAVE, NULL, 0); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: set tx continuous wave failed.\n"); /* set tx continuous wave failed */
-
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_TX_CONTINUOUS_WAVE, NULL, 0)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     enter to the tx infinite preamble mode
- * @param[in] *handle pointer to an sx1268 handle structure
- * @return    status code
- *            - 0 success
- *            - 1 set tx infinite preamble failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_set_tx_infinite_preamble(void)
+uint8_t sx1268_set_tx_infinite_preamble(void) // <editor-fold defaultstate="collapsed" desc="enter to the tx infinite preamble mode">
 {
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_TX_INFINITE_PREAMBLE, NULL, 0); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: set tx infinite preamble failed.\n"); /* set tx infinite preamble failed */
-
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_TX_INFINITE_PREAMBLE, NULL, 0)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     set the regulator_mode
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] mode regulator mode
- * @return    status code
- *            - 0 success
- *            - 1 set regulator mode failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_set_regulator_mode(sx1268_regulator_mode_t mode)
+uint8_t sx1268_set_regulator_mode(sx1268_regulator_mode_t mode) // <editor-fold defaultstate="collapsed" desc="set the regulator_mode">
 {
     uint8_t prev;
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    prev=(uint8_t) mode; /* set param */
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_REGULATOR_MODE, (uint8_t *)&prev, 1); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: set regulator mode failed.\n"); /* set regulator mode failed */
+    prev=(uint8_t) mode;
 
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_REGULATOR_MODE, &prev, 1)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     set the calibration settings
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] settings calibration param
- * @return    status code
- *            - 0 success
- *            - 1 set calibration failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_set_calibration(uint8_t settings)
+uint8_t sx1268_set_calibration(uint8_t settings) // <editor-fold defaultstate="collapsed" desc="set the calibration settings">
 {
     uint8_t prev;
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    prev=settings; /* set param */
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_CALIBRATE, (uint8_t *)&prev, 1); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: set calibration failed.\n"); /* set calibration failed */
+    prev=settings;
 
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_CALIBRATE, &prev, 1)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     set the calibration image frequency
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] freq1 image frequency 1
- * @param[in] freq2 image frequency 2
- * @return    status code
- *            - 0 success
- *            - 1 set calibration image failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_set_calibration_image(uint8_t freq1, uint8_t freq2)
+uint8_t sx1268_set_calibration_image(uint8_t freq1, uint8_t freq2) // <editor-fold defaultstate="collapsed" desc="set the calibration image frequency">
 {
     uint8_t buf[2];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    buf[0]=freq1; /* set param */
-    buf[1]=freq2; /* set param */
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_CALIBRATE_IMAGE, (uint8_t *) buf, 2); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: set calibration image failed.\n"); /* set calibration image failed */
+    buf[0]=freq1;
+    buf[1]=freq2;
 
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_CALIBRATE_IMAGE, buf, 2)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     set the pa config
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] pa_duty_cycle pa duty cycle
- * @param[in] hp_max max power
- * @return    status code
- *            - 0 success
- *            - 1 set the pa config failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_set_pa_config(uint8_t pa_duty_cycle, uint8_t hp_max)
+uint8_t sx1268_set_pa_config(uint8_t pa_duty_cycle, uint8_t hp_max) // <editor-fold defaultstate="collapsed" desc="set the pa config">
 {
     uint8_t buf[4];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    buf[0]=pa_duty_cycle; /* set param */
-    buf[1]=hp_max; /* set param */
-    buf[2]=0x00; /* set param */
-    buf[3]=0x01; /* set param */
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_PA_CONFIG, (uint8_t *) buf, 4); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: set pa config failed.\n"); /* set pa config failed */
+    buf[0]=pa_duty_cycle;
+    buf[1]=hp_max;
+    buf[2]=0x00;
+    buf[3]=0x01;
 
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_PA_CONFIG, buf, 4)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     set the rx tx fallback mode
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] mode rx tx fallback mode
- * @return    status code
- *            - 0 success
- *            - 1 set rx tx fallback mode failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_set_rx_tx_fallback_mode(sx1268_rx_tx_fallback_mode_t mode)
+uint8_t sx1268_set_rx_tx_fallback_mode(sx1268_rx_tx_fallback_mode_t mode) // <editor-fold defaultstate="collapsed" desc="set the rx tx fallback mode">
 {
     uint8_t prev;
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    prev=(uint8_t) mode; /* set param */
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_RX_TX_FALLBACK_MODE, (uint8_t *)&prev, 1); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: set rx tx fallback mode failed.\n"); /* set rx tx fallback mode failed */
+    prev=(uint8_t) mode;
 
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_RX_TX_FALLBACK_MODE, &prev, 1)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     set the dio irq params
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] irq_mask irq mask
- * @param[in] dio1_mask dio1 mask
- * @param[in] dio2_mask dio2 mask
- * @param[in] dio3_mask dio3 mask
- * @return    status code
- *            - 0 success
- *            - 1 set dio irq params failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
 uint8_t sx1268_set_dio_irq_params(uint16_t irq_mask, uint16_t dio1_mask,
-                                  uint16_t dio2_mask, uint16_t dio3_mask)
+                                  uint16_t dio2_mask, uint16_t dio3_mask) // <editor-fold defaultstate="collapsed" desc="set the dio irq params">
 {
     uint8_t buf[8];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    buf[0]=(irq_mask>>8) & 0xFF; /* set param */
-    buf[1]=(irq_mask>>0) & 0xFF; /* set param */
-    buf[2]=(dio1_mask>>8) & 0xFF; /* set param */
-    buf[3]=(dio1_mask>>0) & 0xFF; /* set param */
-    buf[4]=(dio2_mask>>8) & 0xFF; /* set param */
-    buf[5]=(dio2_mask>>0) & 0xFF; /* set param */
-    buf[6]=(dio3_mask>>8) & 0xFF; /* set param */
-    buf[7]=(dio3_mask>>0) & 0xFF; /* set param */
+    buf[0]=(irq_mask>>8) & 0xFF;
+    buf[1]=(irq_mask>>0) & 0xFF;
+    buf[2]=(dio1_mask>>8) & 0xFF;
+    buf[3]=(dio1_mask>>0) & 0xFF;
+    buf[4]=(dio2_mask>>8) & 0xFF;
+    buf[5]=(dio2_mask>>0) & 0xFF;
+    buf[6]=(dio3_mask>>8) & 0xFF;
+    buf[7]=(dio3_mask>>0) & 0xFF;
 
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_DIO_IRQ_PARAMS, (uint8_t *) buf, 8); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: set dio irq params failed.\n"); /* set dio irq params failed */
-
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_DIO_IRQ_PARAMS, buf, 8)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief      get the irq status
- * @param[in]  *handle pointer to an sx1268 handle structure
- * @param[out] *status pointer to a status buffer
- * @return     status code
- *             - 0 success
- *             - 1 get irq status failed
- *             - 2 handle is NULL
- *             - 3 handle is not initialized
- *             - 4 chip is busy
- * @note       none
- */
-uint8_t sx1268_get_irq_status(uint16_t *status)
+uint8_t sx1268_get_irq_status(uint16_t *status) // <editor-fold defaultstate="collapsed" desc="get the irq status">
 {
     uint8_t buf[3];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_read(SX1268_COMMAND_GET_IRQ_STATUS, (uint8_t *) buf, 3); /* read command */
-    if(res!=0)
-    {
-        __db("sx1268: get irq status failed.\n"); /* get irq status failed */
-
+    if(a_sx1268_spi_read(SX1268_COMMAND_GET_IRQ_STATUS, buf, 3)!=0)
         return 1;
-    }
-    *status=((uint16_t) buf[1]<<8)|buf[2]; /* set status */
+
+    //*status=((uint16_t) buf[1]<<8)|buf[2];
+    *status=a_sx1268_make16(&buf[1]);
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     clear the irq status
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] clear_irq_param irq mask
- * @return    status code
- *            - 0 success
- *            - 1 clear irq status failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_clear_irq_status(uint16_t clear_irq_param)
+uint8_t sx1268_clear_irq_status(uint16_t clear_irq_param) // <editor-fold defaultstate="collapsed" desc="clear the irq status">
 {
     uint8_t buf[2];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    buf[0]=(clear_irq_param>>8) & 0xFF; /* set param */
-    buf[1]=(clear_irq_param>>0) & 0xFF; /* set param */
-    res=a_sx1268_spi_write(SX1268_COMMAND_CLEAR_IRQ_STATUS, (uint8_t *) buf, 2); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: clear irq status failed.\n"); /* clear irq status failed */
+    buf[0]=(clear_irq_param>>8) & 0xFF;
+    buf[1]=(clear_irq_param>>0) & 0xFF;
 
+    if(a_sx1268_spi_write(SX1268_COMMAND_CLEAR_IRQ_STATUS, buf, 2)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     set dio2 as rf switch ctrl
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] enable bool value
- * @return    status code
- *            - 0 success
- *            - 1 set dio2 as rf switch ctrl failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_set_dio2_as_rf_switch_ctrl(sx1268_bool_t enable)
-{
-    uint8_t res;
-    uint8_t prev;
-
-    if(a_sx1268_check_busy()!=0)
-        return 4;
-
-    prev=(uint8_t) enable; /* set param */
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_DIO2_AS_RF_SWITCH_CTRL, (uint8_t *)&prev, 1); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: set dio2 as rf switch ctrl failed.\n"); /* set dio2 as rf switch ctrl failed */
-
-        return 1;
-    }
-
-    return 0;
-}
-
-/**
- * @brief     set dio3 as tcxo ctrl
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] voltage tcxo voltage
- * @param[in] delay tcxo ctrl delay
- * @return    status code
- *            - 0 success
- *            - 1 set dio3 as tcxo ctrl failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_set_dio3_as_tcxo_ctrl(sx1268_tcxo_voltage_t voltage, uint32_t delay)
-{
-    uint8_t res;
-    uint8_t buf[4];
-
-    if(a_sx1268_check_busy()!=0)
-        return 4;
-
-    buf[0]=(uint8_t) voltage; /* set param */
-    buf[1]=(delay>>16) & 0xFF; /* set param */
-    buf[2]=(delay>>8) & 0xFF; /* set param */
-    buf[3]=(delay>>0) & 0xFF; /* set param */
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_DIO3_AS_TCXO_CTRL, (uint8_t *) buf, 4); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: set dio3 as tcxo ctrl status failed.\n"); /* set dio3 as tcxo ctrl status failed */
-
-        return 1;
-    }
-
-    return 0;
-}
-
-/**
- * @brief      convert the frequency to the register raw data
- * @param[in]  *handle pointer to an sx1268 handle structure
- * @param[in]  freq frequency
- * @param[out] *reg pointer to a register raw buffer
- * @return     status code
- *             - 0 success
- *             - 2 handle is NULL
- *             - 3 handle is not initialized
- * @note       none
- */
-uint8_t sx1268_frequency_convert_to_register(uint32_t freq, uint32_t *reg)
-{
-    *reg=(uint32_t) (powf(2.0f, 25.0f)/(32.0f*powf(10.0f, 6.0f))*(float) freq); /* convert real data to register data */
-
-    return 0;
-}
-
-/**
- * @brief      convert the register raw data to the frequency
- * @param[in]  *handle pointer to an sx1268 handle structure
- * @param[in]  reg register raw data
- * @param[out] *freq pointer to a frequency buffer
- * @return     status code
- *             - 0 success
- *             - 2 handle is NULL
- *             - 3 handle is not initialized
- * @note       none
- */
-uint8_t sx1268_frequency_convert_to_data(uint32_t reg, uint32_t *freq)
-{
-    *freq=(uint32_t) (32.0f*powf(10.0f, 6.0f)/powf(2.0f, 25.0f)*(float) reg); /* convert real data to register data */
-
-    return 0;
-}
-
-/**
- * @brief     set the rf frequency
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] reg rf frequency register data
- * @return    status code
- *            - 0 success
- *            - 1 set rf frequency failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_set_rf_frequency(uint32_t reg)
-{
-    uint8_t buf[4];
-
-    if(a_sx1268_check_busy()!=0)
-        return 4;
-
-    buf[0]=(reg>>24) & 0xFF; /* set param */
-    buf[1]=(reg>>16) & 0xFF; /* set param */
-    buf[2]=(reg>>8) & 0xFF; /* set param */
-    buf[3]=(reg>>0) & 0xFF; /* set param */
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_RF_FREQUENCY, (uint8_t *) buf, 4); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: set rf frequency failed.\n"); /* set rf frequency failed */
-
-        return 1;
-    }
-
-    return 0;
-}
-
-/**
- * @brief     set the packet type
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] type packet type
- * @return    status code
- *            - 0 success
- *            - 1 set packet type failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_set_packet_type(sx1268_packet_type_t type)
+uint8_t sx1268_set_dio2_as_rf_switch_ctrl(sx1268_bool_t enable) // <editor-fold defaultstate="collapsed" desc="set dio2 as rf switch ctrl">
 {
     uint8_t prev;
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    prev=(uint8_t) type; /* set param */
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_PACKET_TYPE, (uint8_t *)&prev, 1); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: set packet type failed.\n"); /* set packet type failed */
+    prev=(uint8_t) enable;
 
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_DIO2_AS_RF_SWITCH_CTRL, &prev, 1)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief      get the packet type
- * @param[in]  *handle pointer to an sx1268 handle structure
- * @param[out] *type pointer to a packet type buffer
- * @return     status code
- *             - 0 success
- *             - 1 get packet type failed
- *             - 2 handle is NULL
- *             - 3 handle is not initialized
- *             - 4 chip is busy
- * @note       none
- */
-uint8_t sx1268_get_packet_type(sx1268_packet_type_t *type)
+uint8_t sx1268_set_dio3_as_tcxo_ctrl(sx1268_tcxo_voltage_t voltage, uint32_t delay) // <editor-fold defaultstate="collapsed" desc="set dio3 as tcxo ctrl">
+{
+    uint8_t buf[4];
+
+    if(a_sx1268_check_busy()!=0)
+        return 4;
+
+    buf[0]=(uint8_t) voltage;
+    buf[1]=(delay>>16) & 0xFF;
+    buf[2]=(delay>>8) & 0xFF;
+    buf[3]=(delay>>0) & 0xFF;
+
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_DIO3_AS_TCXO_CTRL, buf, 4)!=0)
+        return 1;
+
+    return 0;
+} // </editor-fold>
+
+uint8_t sx1268_frequency_convert_to_register(uint32_t freq, uint32_t *reg) // <editor-fold defaultstate="collapsed" desc="convert the frequency to the register raw data">
+{
+    *reg=(uint32_t) (powf(2.0f, 25.0f)/(32.0f*powf(10.0f, 6.0f))*(float) freq);
+
+    return 0;
+} // </editor-fold>
+
+uint8_t sx1268_frequency_convert_to_data(uint32_t reg, uint32_t *freq) // <editor-fold defaultstate="collapsed" desc="convert the register raw data to the frequency">
+{
+    *freq=(uint32_t) (32.0f*powf(10.0f, 6.0f)/powf(2.0f, 25.0f)*(float) reg);
+
+    return 0;
+} // </editor-fold>
+
+uint8_t sx1268_set_rf_frequency(uint32_t reg) // <editor-fold defaultstate="collapsed" desc="set the rf frequency">
+{
+    uint8_t buf[4];
+
+    if(a_sx1268_check_busy()!=0)
+        return 4;
+
+    buf[0]=(reg>>24) & 0xFF;
+    buf[1]=(reg>>16) & 0xFF;
+    buf[2]=(reg>>8) & 0xFF;
+    buf[3]=(reg>>0) & 0xFF;
+
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_RF_FREQUENCY, buf, 4)!=0)
+        return 1;
+
+    return 0;
+} // </editor-fold>
+
+uint8_t sx1268_set_packet_type(sx1268_packet_type_t type) // <editor-fold defaultstate="collapsed" desc="set the packet type">
+{
+    uint8_t prev;
+
+    if(a_sx1268_check_busy()!=0)
+        return 4;
+
+    prev=(uint8_t) type;
+
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_PACKET_TYPE, &prev, 1)!=0)
+        return 1;
+
+    return 0;
+} // </editor-fold>
+
+uint8_t sx1268_get_packet_type(sx1268_packet_type_t *type) // <editor-fold defaultstate="collapsed" desc="get the packet type">
 {
     uint8_t buf[2];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_read(SX1268_COMMAND_GET_PACKET_TYPE, (uint8_t *) buf, 2); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: get packet type failed.\n"); /* get packet type failed */
-
+    if(a_sx1268_spi_read(SX1268_COMMAND_GET_PACKET_TYPE, buf, 2)!=0)
         return 1;
-    }
-    *type=(sx1268_packet_type_t) (buf[1]); /* get type */
+
+    *type=(sx1268_packet_type_t) (buf[1]);
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     set the tx params
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] dbm rf power 
- * @param[in] t ramp time
- * @return    status code
- *            - 0 success
- *            - 1 set tx params failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_set_tx_params(int8_t dbm, sx1268_ramp_time_t t)
+uint8_t sx1268_set_tx_params(int8_t dbm, sx1268_ramp_time_t t) // <editor-fold defaultstate="collapsed" desc="set the tx params">
 {
     uint8_t buf[2];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    buf[0]=(uint8_t) dbm; /* set param */
-    buf[1]=(uint8_t) t; /* set param */
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_TX_PARAMS, (uint8_t *) buf, 2); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: set tx params failed.\n"); /* set tx params failed */
+    buf[0]=(uint8_t) dbm;
+    buf[1]=(uint8_t) t;
 
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_TX_PARAMS, buf, 2)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     set the modulation params in GFSK mode
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] br bit rate
- * @param[in] shape pulse shape
- * @param[in] bw bandwidth
- * @param[in] fdev frequency deviation
- * @return    status code
- *            - 0 success
- *            - 1 set gfsk modulation params failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
 uint8_t sx1268_set_gfsk_modulation_params(uint32_t br, sx1268_gfsk_pulse_shape_t shape,
-                                          sx1268_gfsk_bandwidth_t bw, uint32_t fdev)
+                                          sx1268_gfsk_bandwidth_t bw, uint32_t fdev) // <editor-fold defaultstate="collapsed" desc="set the modulation params in GFSK mode">
 {
     uint8_t buf[8];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    buf[0]=(br>>16) & 0xFF; /* set param */
-    buf[1]=(br>>8) & 0xFF; /* set param */
-    buf[2]=(br>>0) & 0xFF; /* set param */
-    buf[3]=(uint8_t) shape; /* set param */
-    buf[4]=(uint8_t) bw; /* set param */
-    buf[5]=(fdev>>16) & 0xFF; /* set param */
-    buf[6]=(fdev>>8) & 0xFF; /* set param */
-    buf[7]=(fdev>>0) & 0xFF; /* set param */
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_MODULATION_PARAMS, (uint8_t *) buf, 8); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: set gfsk modulation params failed.\n"); /* set gfsk modulation params failed */
+    buf[0]=(br>>16) & 0xFF;
+    buf[1]=(br>>8) & 0xFF;
+    buf[2]=(br>>0) & 0xFF;
+    buf[3]=(uint8_t) shape;
+    buf[4]=(uint8_t) bw;
+    buf[5]=(fdev>>16) & 0xFF;
+    buf[6]=(fdev>>8) & 0xFF;
+    buf[7]=(fdev>>0) & 0xFF;
 
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_MODULATION_PARAMS, buf, 8)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief      convert the bit rate to the register raw data
- * @param[in]  *handle pointer to an sx1268 handle structure
- * @param[in]  br bit rate
- * @param[out] *reg pointer to a register raw buffer
- * @return     status code
- *             - 0 success
- *             - 2 handle is NULL
- *             - 3 handle is not initialized
- * @note       none
- */
-uint8_t sx1268_gfsk_bit_rate_convert_to_register(uint32_t br, uint32_t *reg)
+uint8_t sx1268_gfsk_bit_rate_convert_to_register(uint32_t br, uint32_t *reg) // <editor-fold defaultstate="collapsed" desc="convert the bit rate to the register raw data">
 {
-    *reg=(uint32_t) (32*(32*powf(10.f, 6.0f)))/br; /* convert real data to register data */
+    *reg=(uint32_t) (32*(32*powf(10.f, 6.0f)))/br;
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief      convert the register raw data to the bit rate
- * @param[in]  *handle pointer to an sx1268 handle structure
- * @param[in]  reg register raw data
- * @param[out] *br pointer to a bit rate buffer
- * @return     status code
- *             - 0 success
- *             - 2 handle is NULL
- *             - 3 handle is not initialized
- * @note       none
- */
-uint8_t sx1268_gfsk_bit_rate_convert_to_data(uint32_t reg, uint32_t *br)
+uint8_t sx1268_gfsk_bit_rate_convert_to_data(uint32_t reg, uint32_t *br) // <editor-fold defaultstate="collapsed" desc="convert the register raw data to the bit rate">
 {
-    *br=(uint32_t) (32.0f*32.0f*powf(10.0f, 6.0f)/(float) reg); /* convert real data to register data */
+    *br=(uint32_t) (32.0f*32.0f*powf(10.0f, 6.0f)/(float) reg);
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief      convert the frequency deviation to the register raw data
- * @param[in]  *handle pointer to an sx1268 handle structure
- * @param[in]  freq frequency deviation
- * @param[out] *reg pointer to a register raw buffer
- * @return     status code
- *             - 0 success
- *             - 2 handle is NULL
- *             - 3 handle is not initialized
- * @note       none
- */
-uint8_t sx1268_gfsk_frequency_deviation_convert_to_register(uint32_t freq, uint32_t *reg)
+uint8_t sx1268_gfsk_frequency_deviation_convert_to_register(uint32_t freq, uint32_t *reg) // <editor-fold defaultstate="collapsed" desc="convert the frequency deviation to the register raw data">
 {
-    *reg=(uint32_t) (powf(2.0f, 25.0f)*(float) freq/(32.0f*powf(10.0f, 6.0f))); /* convert real data to register data */
+    *reg=(uint32_t) (powf(2.0f, 25.0f)*(float) freq/(32.0f*powf(10.0f, 6.0f)));
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief      convert the register raw data to the frequency deviation
- * @param[in]  *handle pointer to an sx1268 handle structure
- * @param[in]  reg register raw data
- * @param[out] *freq pointer to a frequency deviation buffer
- * @return     status code
- *             - 0 success
- *             - 2 handle is NULL
- *             - 3 handle is not initialized
- * @note       none
- */
-uint8_t sx1268_gfsk_frequency_deviation_convert_to_data(uint32_t reg, uint32_t *freq)
+uint8_t sx1268_gfsk_frequency_deviation_convert_to_data(uint32_t reg, uint32_t *freq) // <editor-fold defaultstate="collapsed" desc="convert the register raw data to the frequency deviation">
 {
-    *freq=(uint32_t) (32.0f*powf(10.0f, 6.0f)/powf(2.0f, 25.0f)*(float) reg); /* convert real data to register data */
+    *freq=(uint32_t) (32.0f*powf(10.0f, 6.0f)/powf(2.0f, 25.0f)*(float) reg);
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     set the modulation params in LoRa mode
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] sf spreading factor
- * @param[in] bw bandwidth
- * @param[in] cr coding rate
- * @param[in] low_data_rate_optimize_enable bool value
- * @return    status code
- *            - 0 success
- *            - 1 set lora modulation params failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
 uint8_t sx1268_set_lora_modulation_params(sx1268_lora_sf_t sf, sx1268_lora_bandwidth_t bw,
-                                          sx1268_lora_cr_t cr, sx1268_bool_t low_data_rate_optimize_enable)
+                                          sx1268_lora_cr_t cr, sx1268_bool_t low_data_rate_optimize_enable) // <editor-fold defaultstate="collapsed" desc="set the modulation params in LoRa mode">
 {
     uint8_t buf[4];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    buf[0]=(uint8_t) sf; /* set param */
-    buf[1]=(uint8_t) bw; /* set param */
-    buf[2]=(uint8_t) cr; /* set param */
-    buf[3]=(uint8_t) low_data_rate_optimize_enable; /* set param */
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_MODULATION_PARAMS, (uint8_t *) buf, 4); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: set lora modulation params failed.\n"); /* set lora modulation params failed */
+    buf[0]=(uint8_t) sf;
+    buf[1]=(uint8_t) bw;
+    buf[2]=(uint8_t) cr;
+    buf[3]=(uint8_t) low_data_rate_optimize_enable;
 
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_MODULATION_PARAMS, buf, 4)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     set the packet params in GFSK mode
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] preamble_length preamble length
- * @param[in] detector_length preamble detector length
- * @param[in] sync_word_length sync word length
- * @param[in] filter address filter
- * @param[in] packet_type packet type
- * @param[in] payload_length length of the payload
- * @param[in] crc_type crc type
- * @param[in] whitening_enable bool value
- * @return    status code
- *            - 0 success
- *            - 1 set gfsk packet params failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- *            - 5 sync word length is over 0x40
- * @note      none
- */
 uint8_t sx1268_set_gfsk_packet_params(uint16_t preamble_length,
                                       sx1268_gfsk_preamble_detector_length_t detector_length,
                                       uint8_t sync_word_length, sx1268_gfsk_addr_filter_t filter,
                                       sx1268_gfsk_packet_type_t packet_type, uint8_t payload_length,
-                                      sx1268_gfsk_crc_type_t crc_type, sx1268_bool_t whitening_enable)
+                                      sx1268_gfsk_crc_type_t crc_type, sx1268_bool_t whitening_enable) // <editor-fold defaultstate="collapsed" desc="set the packet params in GFSK mode">
 {
     uint8_t buf[9];
 
@@ -1742,1109 +1188,535 @@ uint8_t sx1268_set_gfsk_packet_params(uint16_t preamble_length,
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    buf[0]=(preamble_length>>8) & 0xFF; /* set param */
-    buf[1]=(preamble_length>>0) & 0xFF; /* set param */
-    buf[2]=(uint8_t) detector_length; /* set param */
-    buf[3]=sync_word_length; /* set param */
-    buf[4]=(uint8_t) filter; /* set param */
-    buf[5]=(uint8_t) packet_type; /* set param */
-    buf[6]=payload_length; /* set param */
-    buf[7]=(uint8_t) crc_type; /* set param */
-    buf[8]=(uint8_t) whitening_enable; /* set param */
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_PACKET_PARAMS, (uint8_t *) buf, 9); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: set gfsk modulation params failed.\n"); /* set gfsk modulation params failed */
+    buf[0]=(preamble_length>>8) & 0xFF;
+    buf[1]=(preamble_length>>0) & 0xFF;
+    buf[2]=(uint8_t) detector_length;
+    buf[3]=sync_word_length;
+    buf[4]=(uint8_t) filter;
+    buf[5]=(uint8_t) packet_type;
+    buf[6]=payload_length;
+    buf[7]=(uint8_t) crc_type;
+    buf[8]=(uint8_t) whitening_enable;
 
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_PACKET_PARAMS, buf, 9)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     set the packet params in LoRa mode
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] preamble_length preamble length
- * @param[in] header_type header type
- * @param[in] payload_length length of payload
- * @param[in] crc_type crc type
- * @param[in] invert_iq_enable bool value
- * @return    status code
- *            - 0 success
- *            - 1 set lora packet params failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
 uint8_t sx1268_set_lora_packet_params(uint16_t preamble_length,
                                       sx1268_lora_header_t header_type, uint8_t payload_length,
-                                      sx1268_lora_crc_type_t crc_type, sx1268_bool_t invert_iq_enable)
+                                      sx1268_lora_crc_type_t crc_type, sx1268_bool_t invert_iq_enable) // <editor-fold defaultstate="collapsed" desc="set the packet params in LoRa mode">
 {
     uint8_t buf[6];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    buf[0]=(preamble_length>>8) & 0xFF; /* set param */
-    buf[1]=(preamble_length>>0) & 0xFF; /* set param */
-    buf[2]=(uint8_t) header_type; /* set param */
-    buf[3]=payload_length; /* set param */
-    buf[4]=(uint8_t) crc_type; /* set param */
-    buf[5]=(uint8_t) invert_iq_enable; /* set param */
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_PACKET_PARAMS, (uint8_t *) buf, 6); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: set lora modulation params failed.\n"); /* set lora modulation params failed */
+    buf[0]=(preamble_length>>8) & 0xFF;
+    buf[1]=(preamble_length>>0) & 0xFF;
+    buf[2]=(uint8_t) header_type;
+    buf[3]=payload_length;
+    buf[4]=(uint8_t) crc_type;
+    buf[5]=(uint8_t) invert_iq_enable;
 
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_PACKET_PARAMS, buf, 6)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     set the cad params
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] num cad symbol number
- * @param[in] cad_det_peak cad detection peak
- * @param[in] cad_det_min min cad detection peak 
- * @param[in] mode cad exit mode
- * @param[in] timeout cad timeout
- * @return    status code
- *            - 0 success
- *            - 1 set cad params failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
 uint8_t sx1268_set_cad_params(sx1268_lora_cad_symbol_num_t num,
                               uint8_t cad_det_peak, uint8_t cad_det_min, sx1268_lora_cad_exit_mode_t mode,
-                              uint32_t timeout)
+                              uint32_t timeout) // <editor-fold defaultstate="collapsed" desc="set the cad params">
 {
     uint8_t buf[7];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    buf[0]=(uint8_t) num; /* set param */
-    buf[1]=cad_det_peak; /* set param */
-    buf[2]=cad_det_min; /* set param */
-    buf[3]=(uint8_t) mode; /* set param */
-    buf[4]=(timeout>>16) & 0xFF; /* set param */
-    buf[5]=(timeout>>8) & 0xFF; /* set param */
-    buf[6]=(timeout>>0) & 0xFF; /* set param */
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_CAD_PARAMS, (uint8_t *) buf, 7); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: set cad params failed.\n"); /* set cad params failed */
+    buf[0]=(uint8_t) num;
+    buf[1]=cad_det_peak;
+    buf[2]=cad_det_min;
+    buf[3]=(uint8_t) mode;
+    buf[4]=(timeout>>16) & 0xFF;
+    buf[5]=(timeout>>8) & 0xFF;
+    buf[6]=(timeout>>0) & 0xFF;
 
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_CAD_PARAMS, buf, 7)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     set the buffer base address
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] tx_base_addr tx base address
- * @param[in] rx_base_addr rx base address
- * @return    status code
- *            - 0 success
- *            - 1 set buffer base address failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_set_buffer_base_address(uint8_t tx_base_addr, uint8_t rx_base_addr)
+uint8_t sx1268_set_buffer_base_address(uint8_t tx_base_addr, uint8_t rx_base_addr) // <editor-fold defaultstate="collapsed" desc="set the buffer base address">
 {
     uint8_t buf[2];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    buf[0]=tx_base_addr; /* set param */
-    buf[1]=rx_base_addr; /* set param */
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_BUFFER_BASE_ADDRESS, (uint8_t *) buf, 2); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: set buffer base address failed.\n"); /* set buffer base address failed */
+    buf[0]=tx_base_addr;
+    buf[1]=rx_base_addr;
 
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_BUFFER_BASE_ADDRESS, buf, 2)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     set the lora symbol number timeout
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] symb_num symbol number
- * @return    status code
- *            - 0 success
- *            - 1 set lora symb num timeout failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_set_lora_symb_num_timeout(uint8_t symb_num)
+uint8_t sx1268_set_lora_symb_num_timeout(uint8_t symb_num) // <editor-fold defaultstate="collapsed" desc="set the lora symbol number timeout">
 {
     uint8_t prev;
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    prev=symb_num; /* set param */
-    res=a_sx1268_spi_write(SX1268_COMMAND_SET_LORA_SYMB_NUM_TIMEOUT, (uint8_t *)&prev, 1); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: set lora symb num timeout failed.\n"); /* set lora symb num timeout failed */
+    prev=symb_num;
 
+    if(a_sx1268_spi_write(SX1268_COMMAND_SET_LORA_SYMB_NUM_TIMEOUT, &prev, 1)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief      get the status
- * @param[in]  *handle pointer to an sx1268 handle structure
- * @param[out] *status pointer to a status buffer
- * @return     status code
- *             - 0 success
- *             - 1 get status failed
- *             - 2 handle is NULL
- *             - 3 handle is not initialized
- *             - 4 chip is busy
- * @note       none
- */
-uint8_t sx1268_get_status(uint8_t *status)
+uint8_t sx1268_get_status(uint8_t *status) // <editor-fold defaultstate="collapsed" desc="get the status">
 {
     uint8_t buf[1];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    memset(buf, 0, sizeof (uint8_t) * 1); /* clear the buffer */
-    res=a_sx1268_spi_read(SX1268_COMMAND_GET_STATUS, (uint8_t *) buf, 1); /* read command */
-    if(res!=0)
-    {
-        __db("sx1268: get status failed.\n"); /* get status failed */
+    memset(buf, 0, sizeof (uint8_t) * 1);
 
+    if(a_sx1268_spi_read(SX1268_COMMAND_GET_STATUS, buf, 1)!=0)
         return 1;
-    }
-    *status=buf[0]; /* set status */
+
+    *status=buf[0];
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief      get the rx buffer status
- * @param[in]  *handle pointer to an sx1268 handle structure
- * @param[out] *payload_length_rx pointer to an rx payload length buffer
- * @param[out] *rx_start_buffer_pointer pointer to an rx start pointer buffer
- * @return     status code
- *             - 0 success
- *             - 1 get rx buffer status failed
- *             - 2 handle is NULL
- *             - 3 handle is not initialized
- *             - 4 chip is busy
- * @note       none
- */
-uint8_t sx1268_get_rx_buffer_status(uint8_t *payload_length_rx, uint8_t *rx_start_buffer_pointer)
+uint8_t sx1268_get_rx_buffer_status(uint8_t *payload_length_rx, uint8_t *rx_start_buffer_pointer) // <editor-fold defaultstate="collapsed" desc="get the rx buffer status">
 {
     uint8_t buf[3];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_read(SX1268_COMMAND_GET_RX_BUFFER_STATUS, (uint8_t *) buf, 3); /* read command */
-    if(res!=0)
-    {
-        __db("sx1268: get rx buffer status failed.\n"); /* get rx buffer status failed */
-
+    if(a_sx1268_spi_read(SX1268_COMMAND_GET_RX_BUFFER_STATUS, buf, 3)!=0)
         return 1;
-    }
-    *payload_length_rx=buf[1]; /* set status */
-    *rx_start_buffer_pointer=buf[2]; /* set status */
+
+    *payload_length_rx=buf[1];
+    *rx_start_buffer_pointer=buf[2];
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief      get the packet status in GFSK mode
- * @param[in]  *handle pointer to an sx1268 handle structure
- * @param[out] *rx_status pointer to an rx status buffer
- * @param[out] *rssi_sync_raw pointer to an rssi sync raw buffer
- * @param[out] *rssi_avg_raw pointer to an rssi avg raw buffer
- * @param[out] *rssi_sync pointer to an rssi sync buffer
- * @param[out] *rssi_avg pointer to an rssi avg buffer
- * @return     status code
- *             - 0 success
- *             - 1 get gfsk packet status failed
- *             - 2 handle is NULL
- *             - 3 handle is not initialized
- *             - 4 chip is busy
- * @note       none
- */
 uint8_t sx1268_get_gfsk_packet_status(uint8_t *rx_status, uint8_t *rssi_sync_raw,
-                                      uint8_t *rssi_avg_raw, float *rssi_sync, float *rssi_avg)
+                                      uint8_t *rssi_avg_raw, float *rssi_sync, float *rssi_avg) // <editor-fold defaultstate="collapsed" desc="get the packet status in GFSK mode">
 {
     uint8_t buf[4];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_read(SX1268_COMMAND_GET_PACKET_STATUS, (uint8_t *) buf, 4); /* read command */
-    if(res!=0)
-    {
-        __db("sx1268: get packet status failed.\n"); /* get packet status failed */
-
+    if(a_sx1268_spi_read(SX1268_COMMAND_GET_PACKET_STATUS, buf, 4)!=0)
         return 1;
-    }
-    *rx_status=buf[1]; /* set status */
-    *rssi_sync_raw=buf[2]; /* set status */
-    *rssi_avg_raw=buf[3]; /* set status */
-    *rssi_sync= -(float) (*rssi_sync_raw)/2.0f; /* set status */
-    *rssi_avg= -(float) (*rssi_avg_raw)/2.0f; /* set status */
+
+    *rx_status=buf[1];
+    *rssi_sync_raw=buf[2];
+    *rssi_avg_raw=buf[3];
+    *rssi_sync= -(float) (*rssi_sync_raw)/2.0f;
+    *rssi_avg= -(float) (*rssi_avg_raw)/2.0f;
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief      get the packet status in LoRa mode
- * @param[in]  *handle pointer to an sx1268 handle structure
- * @param[out] *rssi_pkt_raw pointer to an rssi packet raw buffer
- * @param[out] *snr_pkt_raw pointer to an snr packet raw buffer
- * @param[out] *signal_rssi_pkt_raw pointer to a signal rssi packet raw buffer
- * @param[out] *rssi_pkt pointer to an rssi packet buffer
- * @param[out] *snr_pkt pointer to an snr packet buffer
- * @param[out] *signal_rssi_pkt pointer to a signal rssi packet buffer
- * @return     status code
- *             - 0 success
- *             - 1 get lora packet status failed
- *             - 2 handle is NULL
- *             - 3 handle is not initialized
- *             - 4 chip is busy
- * @note       none
- */
 uint8_t sx1268_get_lora_packet_status(uint8_t *rssi_pkt_raw, uint8_t *snr_pkt_raw,
-                                      uint8_t *signal_rssi_pkt_raw, float *rssi_pkt, float *snr_pkt, float *signal_rssi_pkt)
+                                      uint8_t *signal_rssi_pkt_raw, float *rssi_pkt, float *snr_pkt, float *signal_rssi_pkt) // <editor-fold defaultstate="collapsed" desc="get the packet status in LoRa mode">
 {
     uint8_t buf[4];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_read(SX1268_COMMAND_GET_PACKET_STATUS, (uint8_t *) buf, 4); /* read command */
-    if(res!=0)
-    {
-        __db("sx1268: get packet status failed.\n"); /* get packet status failed */
-
+    if(a_sx1268_spi_read(SX1268_COMMAND_GET_PACKET_STATUS, buf, 4)!=0)
         return 1;
-    }
-    *rssi_pkt_raw=buf[1]; /* set status */
-    *snr_pkt_raw=buf[2]; /* set status */
-    *signal_rssi_pkt_raw=buf[3]; /* set status */
-    *rssi_pkt= -(float) (*rssi_pkt_raw)/2.0f; /* set status */
-    *snr_pkt=(float) (*snr_pkt_raw)/4.0f; /* set status */
-    *signal_rssi_pkt= -(float) (*signal_rssi_pkt_raw)/2.0f; /* set status */
+
+    *rssi_pkt_raw=buf[1];
+    *snr_pkt_raw=buf[2];
+    *signal_rssi_pkt_raw=buf[3];
+    *rssi_pkt= -(float) (*rssi_pkt_raw)/2.0f;
+    *snr_pkt=(float) (*snr_pkt_raw)/4.0f;
+    *signal_rssi_pkt= -(float) (*signal_rssi_pkt_raw)/2.0f;
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief      get the instantaneous rssi
- * @param[in]  *handle pointer to an sx1268 handle structure
- * @param[out] *rssi_inst_raw pointer to an rssi instantaneous raw buffer
- * @param[out] *rssi_inst pointer to an rssi instantaneous buffer
- * @return     status code
- *             - 0 success
- *             - 1 get instantaneous rssi failed
- *             - 2 handle is NULL
- *             - 3 handle is not initialized
- *             - 4 chip is busy
- * @note       none
- */
-uint8_t sx1268_get_instantaneous_rssi(uint8_t *rssi_inst_raw, float *rssi_inst)
+uint8_t sx1268_get_instantaneous_rssi(uint8_t *rssi_inst_raw, float *rssi_inst) // <editor-fold defaultstate="collapsed" desc="get the instantaneous rssi">
 {
     uint8_t buf[2];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_read(SX1268_COMMAND_GET_RSSI_LNST, (uint8_t *) buf, 2); /* read command */
-    if(res!=0)
-    {
-        __db("sx1268: get instantaneous rssi failed.\n"); /* get instantaneous rssi failed */
-
+    if(a_sx1268_spi_read(SX1268_COMMAND_GET_RSSI_LNST, buf, 2)!=0)
         return 1;
-    }
-    *rssi_inst_raw=buf[1]; /* set status */
-    *rssi_inst= -(float) (*rssi_inst_raw)/2.0f; /* set status */
+
+    *rssi_inst_raw=buf[1];
+    *rssi_inst= -(float) (*rssi_inst_raw)/2.0f;
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief      get the stats
- * @param[in]  *handle pointer to an sx1268 handle structure
- * @param[out] *pkt_received pointer to a packet received counter buffer
- * @param[out] *pkt_crc_error pointer to a packet crc error buffer
- * @param[out] *pkt_length_header_error pointer to a packet length header error buffer
- * @return     status code
- *             - 0 success
- *             - 1 get stats failed
- *             - 2 handle is NULL
- *             - 3 handle is not initialized
- *             - 4 chip is busy
- * @note       none
- */
-uint8_t sx1268_get_stats(uint16_t *pkt_received, uint16_t *pkt_crc_error, uint16_t *pkt_length_header_error)
+uint8_t sx1268_get_stats(uint16_t *pkt_received, uint16_t *pkt_crc_error, uint16_t *pkt_length_header_error) // <editor-fold defaultstate="collapsed" desc="get the stats">
 {
     uint8_t buf[7];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_read(SX1268_COMMAND_GET_STATS, (uint8_t *) buf, 7); /* read command */
-    if(res!=0)
-    {
-        __db("sx1268: get stats failed.\n"); /* get stats failed */
-
+    if(a_sx1268_spi_read(SX1268_COMMAND_GET_STATS, buf, 7)!=0)
         return 1;
-    }
-    *pkt_received=(uint16_t) (((uint16_t) buf[1]<<8)|buf[2]); /* set status */
-    *pkt_crc_error=(uint16_t) (((uint16_t) buf[3]<<8)|buf[4]); /* set status */
-    *pkt_length_header_error=(uint16_t) (((uint16_t) buf[5]<<8)|buf[6]); /* set status */
+
+    //*pkt_received=(uint16_t) (((uint16_t) buf[1]<<8)|buf[2]); 
+    //*pkt_crc_error=(uint16_t) (((uint16_t) buf[3]<<8)|buf[4]); 
+    //*pkt_length_header_error=(uint16_t) (((uint16_t) buf[5]<<8)|buf[6]); 
+    *pkt_received=a_sx1268_make16(&buf[1]);
+    *pkt_crc_error=a_sx1268_make16(&buf[3]);
+    *pkt_length_header_error=a_sx1268_make16(&buf[5]);
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     reset the stats
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] pkt_received received packet counter mask
- * @param[in] pkt_crc_error packet crc error mask
- * @param[in] pkt_length_header_error packet length header error mask
- * @return    status code
- *            - 0 success
- *            - 1 reset stats failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_reset_stats(uint16_t pkt_received, uint16_t pkt_crc_error, uint16_t pkt_length_header_error)
+uint8_t sx1268_reset_stats(uint16_t pkt_received, uint16_t pkt_crc_error, uint16_t pkt_length_header_error) // <editor-fold defaultstate="collapsed" desc="reset the stats">
 {
     uint8_t buf[6];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    buf[0]=(pkt_received>>8) & 0xFF; /* set status */
-    buf[1]=(pkt_received>>0) & 0xFF; /* set status */
-    buf[2]=(pkt_crc_error>>8) & 0xFF; /* set status */
-    buf[3]=(pkt_crc_error>>0) & 0xFF; /* set status */
-    buf[4]=(pkt_length_header_error>>8) & 0xFF; /* set status */
-    buf[5]=(pkt_length_header_error>>0) & 0xFF; /* set status */
-    res=a_sx1268_spi_write(SX1268_COMMAND_RESET_STATS, (uint8_t *) buf, 6); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: reset stats failed.\n"); /* reset stats failed */
+    buf[0]=(pkt_received>>8) & 0xFF;
+    buf[1]=(pkt_received>>0) & 0xFF;
+    buf[2]=(pkt_crc_error>>8) & 0xFF;
+    buf[3]=(pkt_crc_error>>0) & 0xFF;
+    buf[4]=(pkt_length_header_error>>8) & 0xFF;
+    buf[5]=(pkt_length_header_error>>0) & 0xFF;
 
+    if(a_sx1268_spi_write(SX1268_COMMAND_RESET_STATS, buf, 6)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief      get the device errors
- * @param[in]  *handle pointer to an sx1268 handle structure
- * @param[out] *op_error pointer to an op error buffer
- * @return     status code
- *             - 0 success
- *             - 1 get device errors failed
- *             - 2 handle is NULL
- *             - 3 handle is not initialized
- *             - 4 chip is busy
- * @note       none
- */
-uint8_t sx1268_get_device_errors(uint16_t *op_error)
+uint8_t sx1268_get_device_errors(uint16_t *op_error) // <editor-fold defaultstate="collapsed" desc="get the device errors">
 {
     uint8_t buf[3];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_read(SX1268_COMMAND_GET_DEVICE_ERRORS, (uint8_t *) buf, 3); /* read command */
-    if(res!=0)
-    {
-        __db("sx1268: get device errors failed.\n"); /* get device errors failed */
-
+    if(a_sx1268_spi_read(SX1268_COMMAND_GET_DEVICE_ERRORS, buf, 3)!=0)
         return 1;
-    }
-    *op_error=(uint16_t) (((uint16_t) buf[1]<<8)|buf[2]); /* set status */
+
+    //*op_error=(uint16_t) (((uint16_t) buf[1]<<8)|buf[2]); 
+    *op_error=a_sx1268_make16(&buf[1]);
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     clear the device errors
- * @param[in] *handle pointer to an sx1268 handle structure
- * @return    status code
- *            - 0 success
- *            - 1 clear device errors failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_clear_device_errors(void)
+uint8_t sx1268_clear_device_errors(void) // <editor-fold defaultstate="collapsed" desc="clear the device errors">
 {
     uint8_t buf[2];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    buf[0]=0x00; /* set status */
-    buf[1]=0x00; /* set status */
-    res=a_sx1268_spi_write(SX1268_COMMAND_CLEAR_DEVICE_ERRORS, (uint8_t *) buf, 2); /* write command */
-    if(res!=0)
-    {
-        __db("sx1268: clear device errors failed.\n"); /* clear device errors failed */
+    buf[0]=0x00;
+    buf[1]=0x00;
 
+    if(a_sx1268_spi_write(SX1268_COMMAND_CLEAR_DEVICE_ERRORS, buf, 2)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     set the whitening initial value in FSK mode
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] value set value
- * @return    status code
- *            - 0 success
- *            - 1 set fsk whitening initial value failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_set_fsk_whitening_initial_value(uint16_t value)
+uint8_t sx1268_set_fsk_whitening_initial_value(uint16_t value) // <editor-fold defaultstate="collapsed" desc="set the whitening initial value in FSK mode">
 {
     uint8_t buf[2];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    buf[0]=(value>>8) & 0xFF; /* set msb */
-    buf[1]=(value>>0) & 0xFF; /* set lsb */
-    res=a_sx1268_spi_write_register(SX1268_REG_WHITENING_INIT_VALUE_MSB, (uint8_t *) buf, 2); /* write register */
-    if(res!=0)
-    {
-        __db("sx1268: write register failed.\n");
+    buf[0]=(value>>8) & 0xFF;
+    buf[1]=(value>>0) & 0xFF;
 
+    if(a_sx1268_spi_write_register(SX1268_REG_WHITENING_INIT_VALUE_MSB, buf, 2)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief      get the whitening initial value in FSK mode
- * @param[in]  *handle pointer to an sx1268 handle structure
- * @param[out] *value pointer to a value buffer
- * @return     status code
- *             - 0 success
- *             - 1 get fsk whitening initial value failed
- *             - 2 handle is NULL
- *             - 3 handle is not initialized
- *             - 4 chip is busy
- * @note       none
- */
-uint8_t sx1268_get_fsk_whitening_initial_value(uint16_t *value)
+uint8_t sx1268_get_fsk_whitening_initial_value(uint16_t *value) // <editor-fold defaultstate="collapsed" desc="get the whitening initial value in FSK mode">
 {
     uint8_t buf[2];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_read_register(SX1268_REG_WHITENING_INIT_VALUE_MSB, (uint8_t *) buf, 2);
-    if(res!=0)
-    {
-        __db("sx1268: read register failed.\n");
-
+    if(a_sx1268_spi_read_register(SX1268_REG_WHITENING_INIT_VALUE_MSB, buf, 2)!=0)
         return 1;
-    }
-    *value=(uint16_t) ((uint16_t) buf[0]<<8|buf[1]); /* set value */
+
+    //*value=(uint16_t) ((uint16_t) buf[0]<<8|buf[1]); 
+    *value=a_sx1268_make16(&buf[0]);
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     set the crc initial value in FSK mode
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] value set value
- * @return    status code
- *            - 0 success
- *            - 1 set fsk crc initial value failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_set_fsk_crc_initical_value(uint16_t value)
+uint8_t sx1268_set_fsk_crc_initical_value(uint16_t value) // <editor-fold defaultstate="collapsed" desc="set the crc initial value in FSK mode">
 {
     uint8_t buf[2];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    buf[0]=(value>>8) & 0xFF; /* set msb */
-    buf[1]=(value>>0) & 0xFF; /* set lsb */
-    res=a_sx1268_spi_write_register(SX1268_REG_CRC_INIT_VALUE_MSB, (uint8_t *) buf, 2); /* write register */
-    if(res!=0)
-    {
-        __db("sx1268: write register failed.\n");
+    buf[0]=(value>>8) & 0xFF;
+    buf[1]=(value>>0) & 0xFF;
 
+    if(a_sx1268_spi_write_register(SX1268_REG_CRC_INIT_VALUE_MSB, buf, 2)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief      get the crc initical value in FSK mode
- * @param[in]  *handle pointer to an sx1268 handle structure
- * @param[out] *value pointer to a value buffer
- * @return     status code
- *             - 0 success
- *             - 1 get fsk crc initical value failed
- *             - 2 handle is NULL
- *             - 3 handle is not initialized
- *             - 4 chip is busy
- * @note       none
- */
-uint8_t sx1268_get_fsk_crc_initical_value(uint16_t *value)
+uint8_t sx1268_get_fsk_crc_initical_value(uint16_t *value) // <editor-fold defaultstate="collapsed" desc="get the crc initical value in FSK mode">
 {
     uint8_t buf[2];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_read_register(SX1268_REG_CRC_INIT_VALUE_MSB, (uint8_t *) buf, 2);
-    if(res!=0)
-    {
-        __db("sx1268: read register failed.\n");
-
+    if(a_sx1268_spi_read_register(SX1268_REG_CRC_INIT_VALUE_MSB, buf, 2)!=0)
         return 1;
-    }
-    *value=(uint16_t) ((uint16_t) buf[0]<<8|buf[1]); /* set value */
+
+    //*value=(uint16_t) ((uint16_t) buf[0]<<8|buf[1]);
+    *value=a_sx1268_make16(&buf[0]);
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     set the crc polynomial value in FSK mode
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] value set value
- * @return    status code
- *            - 0 success
- *            - 1 set fsk crc polynomial value failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_set_fsk_crc_polynomial_value(uint16_t value)
+uint8_t sx1268_set_fsk_crc_polynomial_value(uint16_t value) // <editor-fold defaultstate="collapsed" desc="set the crc polynomial value in FSK mode">
 {
     uint8_t buf[2];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    buf[0]=(value>>8) & 0xFF; /* set msb */
-    buf[1]=(value>>0) & 0xFF; /* set lsb */
-    res=a_sx1268_spi_write_register(SX1268_REG_CRC_POLYNOMIAL_VALUE_MSB, (uint8_t *) buf, 2); /* write register */
-    if(res!=0)
-    {
-        __db("sx1268: write register failed.\n");
+    buf[0]=(value>>8) & 0xFF;
+    buf[1]=(value>>0) & 0xFF;
 
+    if(a_sx1268_spi_write_register(SX1268_REG_CRC_POLYNOMIAL_VALUE_MSB, buf, 2)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief      get the crc polynomial value in FSK mode
- * @param[in]  *handle pointer to an sx1268 handle structure
- * @param[out] *value pointer to a value buffer
- * @return     status code
- *             - 0 success
- *             - 1 get fsk crc polynomial value failed
- *             - 2 handle is NULL
- *             - 3 handle is not initialized
- *             - 4 chip is busy
- * @note       none
- */
-uint8_t sx1268_get_fsk_crc_polynomial_value(uint16_t *value)
+uint8_t sx1268_get_fsk_crc_polynomial_value(uint16_t *value) // <editor-fold defaultstate="collapsed" desc="get the crc polynomial value in FSK mode">
 {
     uint8_t buf[2];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_read_register(SX1268_REG_CRC_POLYNOMIAL_VALUE_MSB, (uint8_t *) buf, 2);
-    if(res!=0)
-    {
-        __db("sx1268: read register failed.\n");
-
+    if(a_sx1268_spi_read_register(SX1268_REG_CRC_POLYNOMIAL_VALUE_MSB, buf, 2)!=0)
         return 1;
-    }
-    *value=(uint16_t) ((uint16_t) buf[0]<<8|buf[1]); /* set value */
+
+    //*value=(uint16_t) ((uint16_t) buf[0]<<8|buf[1]);
+    *value=a_sx1268_make16(&buf[0]);
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     set the sync word in FSK mode
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] *sync_word pointer to sync word buffer
- * @return    status code
- *            - 0 success
- *            - 1 set fsk sync word failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_set_fsk_sync_word(uint8_t sync_word[8])
+uint8_t sx1268_set_fsk_sync_word(uint8_t sync_word[8]) // <editor-fold defaultstate="collapsed" desc="set the sync word in FSK mode">
 {
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_write_register(SX1268_REG_SYNC_WORD_0, (uint8_t *) sync_word, 8); /* write register */
-    if(res!=0)
-    {
-        __db("sx1268: write register failed.\n");
-
+    if(a_sx1268_spi_write_register(SX1268_REG_SYNC_WORD_0, (uint8_t *) sync_word, 8)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief      get the sync word in FSK mode
- * @param[in]  *handle pointer to an sx1268 handle structure
- * @param[out] *sync_word pointer to sync word buffer
- * @return     status code
- *             - 0 success
- *             - 1 get fsk sync word failed
- *             - 2 handle is NULL
- *             - 3 handle is not initialized
- *             - 4 chip is busy
- * @note       none
- */
-uint8_t sx1268_get_fsk_sync_word(uint8_t sync_word[8])
+uint8_t sx1268_get_fsk_sync_word(uint8_t sync_word[8]) // <editor-fold defaultstate="collapsed" desc="get the sync word in FSK mode">
 {
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_read_register(SX1268_REG_SYNC_WORD_0, (uint8_t *) sync_word, 8);
-    if(res!=0)
-    {
-        __db("sx1268: read register failed.\n");
-
+    if(a_sx1268_spi_read_register(SX1268_REG_SYNC_WORD_0, (uint8_t *) sync_word, 8)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     set the node address in FSK mode
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] addr node address
- * @return    status code
- *            - 0 success
- *            - 1 set fsk node address failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_set_fsk_node_address(uint8_t addr)
+uint8_t sx1268_set_fsk_node_address(uint8_t addr) // <editor-fold defaultstate="collapsed" desc="set the node address in FSK mode">
 {
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_write_register(SX1268_REG_NODE_ADDRESS, (uint8_t *)&addr, 1); /* write register */
-    if(res!=0)
-    {
-        __db("sx1268: write register failed.\n");
-
+    if(a_sx1268_spi_write_register(SX1268_REG_NODE_ADDRESS, (uint8_t *)&addr, 1)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief      get the node address in FSK mode
- * @param[in]  *handle pointer to an sx1268 handle structure
- * @param[out] *addr pointer to a node address buffer
- * @return     status code
- *             - 0 success
- *             - 1 get fsk node address failed
- *             - 2 handle is NULL
- *             - 3 handle is not initialized
- *             - 4 chip is busy
- * @note       none
- */
-uint8_t sx1268_get_fsk_node_address(uint8_t *addr)
+uint8_t sx1268_get_fsk_node_address(uint8_t *addr) // <editor-fold defaultstate="collapsed" desc="get the node address in FSK mode">
 {
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_read_register(SX1268_REG_NODE_ADDRESS, (uint8_t *) addr, 1);
-    if(res!=0)
-    {
-        __db("sx1268: read register failed.\n");
-
+    if(a_sx1268_spi_read_register(SX1268_REG_NODE_ADDRESS, (uint8_t *) addr, 1)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     set the broadcast address in FSK mode
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] addr broadcast address
- * @return    status code
- *            - 0 success
- *            - 1 set fsk broadcast address failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_set_fsk_broadcast_address(uint8_t addr)
+uint8_t sx1268_set_fsk_broadcast_address(uint8_t addr) // <editor-fold defaultstate="collapsed" desc="set the broadcast address in FSK mode">
 {
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_write_register(SX1268_REG_BROADCAST_ADDRESS, (uint8_t *)&addr, 1); /* write register */
-    if(res!=0)
-    {
-        __db("sx1268: write register failed.\n");
-
+    if(a_sx1268_spi_write_register(SX1268_REG_BROADCAST_ADDRESS, (uint8_t *)&addr, 1)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief      get the broadcast address in FSK mode
- * @param[in]  *handle pointer to an sx1268 handle structure
- * @param[out] *addr pointer to a broadcast address buffer
- * @return     status code
- *             - 0 success
- *             - 1 get fsk broadcast address failed
- *             - 2 handle is NULL
- *             - 3 handle is not initialized
- *             - 4 chip is busy
- * @note       none
- */
-uint8_t sx1268_get_fsk_broadcast_address(uint8_t *addr)
+uint8_t sx1268_get_fsk_broadcast_address(uint8_t *addr) // <editor-fold defaultstate="collapsed" desc="get the broadcast address in FSK mode">
 {
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_read_register(SX1268_REG_BROADCAST_ADDRESS, (uint8_t *) addr, 1);
-    if(res!=0)
-    {
-        __db("sx1268: read register failed.\n");
-
+    if(a_sx1268_spi_read_register(SX1268_REG_BROADCAST_ADDRESS, (uint8_t *) addr, 1)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     set the iq polarity
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] setup settings
- * @return    status code
- *            - 0 success
- *            - 1 set iq polarity failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_set_iq_polarity(uint8_t setup)
+uint8_t sx1268_set_iq_polarity(uint8_t setup) // <editor-fold defaultstate="collapsed" desc="set the iq polarity">
 {
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_write_register(SX1268_REG_IQ_POLARITY_SETUP, (uint8_t *)&setup, 1); /* write register */
-    if(res!=0)
-    {
-        __db("sx1268: write register failed.\n");
-
+    if(a_sx1268_spi_write_register(SX1268_REG_IQ_POLARITY_SETUP, (uint8_t *)&setup, 1)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief      get the iq polarity
- * @param[in]  *handle pointer to an sx1268 handle structure
- * @param[out] *setup pointer to a settings buffer
- * @return     status code
- *             - 0 success
- *             - 1 get iq polarity failed
- *             - 2 handle is NULL
- *             - 3 handle is not initialized
- *             - 4 chip is busy
- * @note       none
- */
-uint8_t sx1268_get_iq_polarity(uint8_t *setup)
+uint8_t sx1268_get_iq_polarity(uint8_t *setup) // <editor-fold defaultstate="collapsed" desc="get the iq polarity">
 {
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_read_register(SX1268_REG_IQ_POLARITY_SETUP, (uint8_t *) setup, 1);
-    if(res!=0)
-    {
-        __db("sx1268: read register failed.\n");
-
+    if(a_sx1268_spi_read_register(SX1268_REG_IQ_POLARITY_SETUP, (uint8_t *) setup, 1)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     set the lora sync word
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] sync_word sync word
- * @return    status code
- *            - 0 success
- *            - 1 set lora sync word failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_set_lora_sync_word(uint16_t sync_word)
+uint8_t sx1268_set_lora_sync_word(uint16_t sync_word) // <editor-fold defaultstate="collapsed" desc="set the lora sync word">
 {
     uint8_t buf[2];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    buf[0]=(sync_word>>8) & 0xFF; /* set msb */
-    buf[1]=(sync_word>>0) & 0xFF; /* set lsb */
-    res=a_sx1268_spi_write_register(SX1268_REG_LORA_SYNC_WORD_MSB, (uint8_t *) buf, 2); /* write register */
-    if(res!=0)
-    {
-        __db("sx1268: write register failed.\n");
+    buf[0]=(sync_word>>8) & 0xFF;
+    buf[1]=(sync_word>>0) & 0xFF;
 
+    if(a_sx1268_spi_write_register(SX1268_REG_LORA_SYNC_WORD_MSB, buf, 2)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief      get the lora sync word
- * @param[in]  *handle pointer to an sx1268 handle structure
- * @param[out] *sync_word pointer to an sync word buffer
- * @return     status code
- *             - 0 success
- *             - 1 get lora sync word failed
- *             - 2 handle is NULL
- *             - 3 handle is not initialized
- *             - 4 chip is busy
- * @note       none
- */
-uint8_t sx1268_get_lora_sync_word(uint16_t *sync_word)
+uint8_t sx1268_get_lora_sync_word(uint16_t *sync_word) // <editor-fold defaultstate="collapsed" desc="get the lora sync word">
 {
     uint8_t buf[2];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_read_register(SX1268_REG_LORA_SYNC_WORD_MSB, (uint8_t *) buf, 2);
-    if(res!=0)
-    {
-        __db("sx1268: read register failed.\n");
-
+    if(a_sx1268_spi_read_register(SX1268_REG_LORA_SYNC_WORD_MSB, buf, 2)!=0)
         return 1;
-    }
-    *sync_word=(uint16_t) ((uint16_t) buf[0]<<8|buf[1]); /* set value */
+
+    //*sync_word=(uint16_t) ((uint16_t) buf[0]<<8|buf[1]); 
+    *sync_word=a_sx1268_make16(&buf[0]);
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief      get the random number
- * @param[in]  *handle pointer to an sx1268 handle structure
- * @param[out] *r pointer to a random number buffer
- * @return     status code
- *             - 0 success
- *             - 1 get random number failed
- *             - 2 handle is NULL
- *             - 3 handle is not initialized
- *             - 4 chip is busy
- * @note       none
- */
-uint8_t sx1268_get_random_number(uint32_t *r)
+uint8_t sx1268_get_random_number(uint32_t *r) // <editor-fold defaultstate="collapsed" desc="get the random number">
 {
     uint8_t buf[4];
 
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_read_register(SX1268_REG_RANDOM_NUMBER_GEN_0, (uint8_t *) buf, 4);
-    if(res!=0)
-    {
-        __db("sx1268: read register failed.\n");
-
+    if(a_sx1268_spi_read_register(SX1268_REG_RANDOM_NUMBER_GEN_0, buf, 4)!=0)
         return 1;
-    }
-    *r=(uint32_t) ((uint32_t) buf[0]<<24|(uint32_t) buf[1]<<16|
-            (uint32_t) buf[2]<<8|buf[3]); /* set rand */
+
+    //*r=(uint32_t) ((uint32_t) buf[0]<<24|(uint32_t) buf[1]<<16|(uint32_t) buf[2]<<8|buf[3]);
+    *r=a_sx1268_make32(&buf[0]);
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     set the tx modulation
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] modulation tx modulation
- * @return    status code
- *            - 0 success
- *            - 1 set tx modulation failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_set_tx_modulation(uint8_t modulation)
+uint8_t sx1268_set_tx_modulation(uint8_t modulation) // <editor-fold defaultstate="collapsed" desc="set the tx modulation">
 {
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_write_register(SX1268_REG_TX_MODULATION, (uint8_t *)&modulation, 1); /* write register */
-    if(res!=0)
-    {
-        __db("sx1268: write register failed.\n");
-
+    if(a_sx1268_spi_write_register(SX1268_REG_TX_MODULATION, &modulation, 1)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief      get the tx modulation
- * @param[in]  *handle pointer to an sx1268 handle structure
- * @param[out] *modulation pointer to a tx modulation buffer
- * @return     status code
- *             - 0 success
- *             - 1 get tx modulation failed
- *             - 2 handle is NULL
- *             - 3 handle is not initialized
- *             - 4 chip is busy
- * @note       none
- */
-uint8_t sx1268_get_tx_modulation(uint8_t *modulation)
+uint8_t sx1268_get_tx_modulation(uint8_t *modulation) // <editor-fold defaultstate="collapsed" desc="get the tx modulation">
 {
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_read_register(SX1268_REG_TX_MODULATION, (uint8_t *) modulation, 1);
-    if(res!=0)
-    {
-        __db("sx1268: read register failed.\n");
-
+    if(a_sx1268_spi_read_register(SX1268_REG_TX_MODULATION, (uint8_t *) modulation, 1)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief     set the rx gain
- * @param[in] *handle pointer to an sx1268 handle structure
- * @param[in] gain rx gain
- * @return    status code
- *            - 0 success
- *            - 1 set rx gain failed
- *            - 2 handle is NULL
- *            - 3 handle is not initialized
- *            - 4 chip is busy
- * @note      none
- */
-uint8_t sx1268_set_rx_gain(uint8_t gain)
+uint8_t sx1268_set_rx_gain(uint8_t gain) // <editor-fold defaultstate="collapsed" desc="set the rx gain">
 {
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_write_register(SX1268_REG_RX_GAIN, (uint8_t *)&gain, 1); /* write register */
-    if(res!=0)
-    {
-        __db("sx1268: write register failed.\n");
-
+    if(a_sx1268_spi_write_register(SX1268_REG_RX_GAIN, (uint8_t *)&gain, 1)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
-/**
- * @brief      get the rx gain
- * @param[in]  *handle pointer to an sx1268 handle structure
- * @param[out] *gain pointer to an rx gain buffer
- * @return     status code
- *             - 0 success
- *             - 1 get rx gain failed
- *             - 2 handle is NULL
- *             - 3 handle is not initialized
- *             - 4 chip is busy
- * @note       none
- */
-uint8_t sx1268_get_rx_gain(uint8_t *gain)
+uint8_t sx1268_get_rx_gain(uint8_t *gain) // <editor-fold defaultstate="collapsed" desc="get the rx gain">
 {
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    res=a_sx1268_spi_read_register(SX1268_REG_RX_GAIN, (uint8_t *) gain, 1);
-    if(res!=0)
-    {
-        __db("sx1268: read register failed.\n");
-
+    if(a_sx1268_spi_read_register(SX1268_REG_RX_GAIN, (uint8_t *) gain, 1)!=0)
         return 1;
-    }
 
     return 0;
-}
+} // </editor-fold>
 
 uint8_t sx1268_set_tx_clamp_config(uint8_t config) // <editor-fold defaultstate="collapsed" desc="set the tx clamp config">
 {
@@ -2896,7 +1768,7 @@ uint8_t sx1268_set_rtc_control(uint8_t ctrl) // <editor-fold defaultstate="colla
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    if(a_sx1268_spi_write_register(SX1268_REG_RTC_CONTROL, (uint8_t *)&ctrl, 1)!=0)
+    if(a_sx1268_spi_write_register(SX1268_REG_RTC_CONTROL, &ctrl, 1)!=0)
         return 1;
 
     return 0;
@@ -2907,7 +1779,7 @@ uint8_t sx1268_get_rtc_control(uint8_t *ctrl) // <editor-fold defaultstate="coll
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    if(a_sx1268_spi_read_register(SX1268_REG_RTC_CONTROL, (uint8_t *) ctrl, 1)!=0)
+    if(a_sx1268_spi_read_register(SX1268_REG_RTC_CONTROL, ctrl, 1)!=0)
         return 1;
 
     return 0;
@@ -2962,7 +1834,7 @@ uint8_t sx1268_set_dio3_output_control(uint8_t ctrl) // <editor-fold defaultstat
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    if(a_sx1268_spi_write_register(SX1268_REG_DIO3_OUTPUT_CONTROL, (uint8_t *)&ctrl, 1)!=0)
+    if(a_sx1268_spi_write_register(SX1268_REG_DIO3_OUTPUT_CONTROL, &ctrl, 1)!=0)
         return 1;
 
     return 0;
@@ -2973,7 +1845,7 @@ uint8_t sx1268_get_dio3_output_control(uint8_t *ctrl) // <editor-fold defaultsta
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    if(a_sx1268_spi_read_register(SX1268_REG_DIO3_OUTPUT_CONTROL, (uint8_t *) ctrl, 1)!=0)
+    if(a_sx1268_spi_read_register(SX1268_REG_DIO3_OUTPUT_CONTROL, ctrl, 1)!=0)
         return 1;
 
     return 0;
@@ -2984,7 +1856,7 @@ uint8_t sx1268_set_event_mask(uint8_t mask) // <editor-fold defaultstate="collap
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    if(a_sx1268_spi_write_register(SX1268_REG_EVENT_MASK, (uint8_t *)&mask, 1)!=0)
+    if(a_sx1268_spi_write_register(SX1268_REG_EVENT_MASK, &mask, 1)!=0)
         return 1;
 
     return 0;
@@ -3047,12 +1919,10 @@ uint8_t sx1268_get_dio_input_enable(uint8_t *enable) // <editor-fold defaultstat
 
 uint8_t sx1268_set_pull_up_control(uint8_t ctrl) // <editor-fold defaultstate="collapsed" desc="set the pull up control">
 {
-    uint8_t res;
-
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    if(a_sx1268_spi_write_register(SX1268_REG_DIOX_PULL_UP_CONTROL, (uint8_t *)&ctrl, 1)!=0)
+    if(a_sx1268_spi_write_register(SX1268_REG_DIOX_PULL_UP_CONTROL, &ctrl, 1)!=0)
         return 1;
 
     return 0;
@@ -3063,7 +1933,7 @@ uint8_t sx1268_get_pull_up_control(uint8_t *ctrl) // <editor-fold defaultstate="
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    if(a_sx1268_spi_read_register(SX1268_REG_DIOX_PULL_UP_CONTROL, (uint8_t *) control, 1)!=0)
+    if(a_sx1268_spi_read_register(SX1268_REG_DIOX_PULL_UP_CONTROL, ctrl, 1)!=0)
         return 1;
 
     return 0;
@@ -3074,7 +1944,7 @@ uint8_t sx1268_set_pull_down_control(uint8_t ctrl) // <editor-fold defaultstate=
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    if(a_sx1268_spi_write_register(SX1268_REG_DIOX_PULL_DOWN_CONTROL, (uint8_t *)&ctrl, 1)!=0)
+    if(a_sx1268_spi_write_register(SX1268_REG_DIOX_PULL_DOWN_CONTROL, &ctrl, 1)!=0)
         return 1;
 
     return 0;
@@ -3085,7 +1955,7 @@ uint8_t sx1268_get_pull_down_control(uint8_t *ctrl) // <editor-fold defaultstate
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    if(a_sx1268_spi_read_register(SX1268_REG_DIOX_PULL_DOWN_CONTROL, (uint8_t *) control, 1)!=0)
+    if(a_sx1268_spi_read_register(SX1268_REG_DIOX_PULL_DOWN_CONTROL, ctrl, 1)!=0)
         return 1;
 
     return 0;

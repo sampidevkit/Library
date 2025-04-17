@@ -3,17 +3,9 @@
 
 #define __db(...)
 
-static sx1268_handle_t gs_handle; /**< sx1268 handle */
 static uint8_t gs_rx_done; /**< rx done */
 static uint8_t gs_send_buffer[256]; /**< inner send buffer*/
 
-/**
- * @brief     interface receive callback
- * @param[in] type receive callback type
- * @param[in] *buf pointer to a buffer address
- * @param[in] len buffer length
- * @note      none
- */
 void sx1268_interface_receive_callback(uint16_t type, uint8_t *buf, uint16_t len)
 {
     switch(type)
@@ -120,13 +112,6 @@ void sx1268_interface_receive_callback(uint16_t type, uint8_t *buf, uint16_t len
     }
 }
 
-/**
- * @brief  sx1268 interrupt test irq
- * @return status code
- *         - 0 success
- *         - 1 run failed
- * @note   none
- */
 uint8_t sx1268_interrupt_test_irq_handler(void)
 {
     if(sx1268_irq_handler()!=0)
@@ -139,13 +124,6 @@ uint8_t sx1268_interrupt_test_irq_handler(void)
     }
 }
 
-/**
- * @brief  send test
- * @return status code
- *         - 0 success
- *         - 1 test failed
- * @note   none
- */
 uint8_t sx1268_send_test(void)
 {
     uint8_t res;
@@ -158,7 +136,7 @@ uint8_t sx1268_send_test(void)
     __db("sx1268: start send test.\n");
 
     /* init the sx1268 */
-    res=sx1268_init(&gs_handle);
+    res=sx1268_init();
     if(res!=0)
     {
         __db("sx1268: init failed.\n");
@@ -447,7 +425,7 @@ uint8_t sx1268_receive_test(uint32_t s)
     __db("sx1268: start receive test.\n");
 
     /* init the sx1268 */
-    res=sx1268_init(&gs_handle);
+    res=sx1268_init();
     if(res!=0)
     {
         __db("sx1268: init failed.\n");
@@ -780,7 +758,7 @@ bool sx1268_transceiver_is_tx_done(void)
 
 void sx1268_transceiver_send(const uint8_t *pD, uint8_t len)
 {
-    
+    sx1268_send_test();
 }
 
 uint8_t sx1268_transceiver_receive(uint8_t *pD)
