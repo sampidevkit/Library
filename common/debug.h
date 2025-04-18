@@ -16,8 +16,10 @@ typedef struct {
     bool (*IsTxDone)(void);
     void (*Write)(uint8_t);
 } dbg_port_cxt_t;
-
-void debug_port_write(uint8_t c); // Defined in TynyPrintf_Cfg.h
+/* ****************************************************** External Prototypes */
+void debug_port_write(uint8_t c);
+uint32_t debug_tickget_ms(void);
+/* ********************************************************************* APIs */
 void debug_systime_stamp(void);
 void debug(const char *str, bool tsEn);
 /* debug_hex(b, dgcount): display b as hex format 0xABC... or ABC...
@@ -33,7 +35,6 @@ void debug_u32(uint32_t b);
 void debug_data(uint8_t *pD, int len);
 void debug_time(tm_t *time);
 void debug_date(tm_t *time);
-/* ********************************************************************* APIs */
 void dbsi(const char *str, int32_t x, bool tsEn);
 void dbsu(const char *str, uint32_t x, bool tsEn);
 void dbsh(const char *str, uint32_t x, bool tsEn);

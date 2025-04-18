@@ -1,8 +1,6 @@
 #include "sx1268.h"
 #include <math.h>
 
-#define __db(...)
-
 // <editor-fold defaultstate="collapsed" desc="chip information definition">
 #define CHIP_NAME                 "SX1268"                /**< chip name */
 #define MANUFACTURER_NAME         "Semtech"               /**< manufacturer name */
@@ -385,7 +383,6 @@ uint8_t sx1268_init(void) // <editor-fold defaultstate="collapsed" desc="initial
 
         if(a_sx1268_spi_read(SX1268_COMMAND_GET_STATUS, buf, 1)!=0)
         {
-            __db("sx1268: get status failed.\n"); /* get status failed */
             error_code=6;
             break;
         }
@@ -394,7 +391,6 @@ uint8_t sx1268_init(void) // <editor-fold defaultstate="collapsed" desc="initial
 
         if(a_sx1268_spi_write(SX1268_COMMAND_SET_STANDBY, buf, 1)!=0)
         {
-            __db("sx1268: set standby failed.\n"); /* set standby failed */
             error_code=6;
             break;
         }
@@ -1178,12 +1174,8 @@ uint8_t sx1268_set_gfsk_packet_params(uint16_t preamble_length,
 {
     uint8_t buf[9];
 
-    if(sync_word_length>0x40) /* check sync word length */
-    {
-        __db("sx1268: sync word length is over 0x40.\n");
-
+    if(sync_word_length>0x40) /* check sync word is over length */
         return 5;
-    }
 
     if(a_sx1268_check_busy()!=0)
         return 4;

@@ -4,24 +4,36 @@ static simple_fnc_t CbFnc=NULL;
 
 public bool Tick_Timer_Is_Over(tick_timer_t *pTick, tick_t Time, tick_timer_type_t TickType) // <editor-fold defaultstate="collapsed" desc="Check tick over microsecond">
 {
-    if(pTick->Timeout)
+    if(pTick->Timeout==2)
     {
-        pTick->Timeout=0;
+        pTick->Start=Tick_Timer_Get_TickVal();
 
+#if defined(__XC32__) || defined(USE_SYSTEM_TICK_US)
         if(TickType==US)
             pTick->Duration=TICK_PER_US*Time;
-        else if(TickType==MS)
-            pTick->Duration=TICK_PER_MS*Time;
         else
-            pTick->Duration=TICK_PER_SEC*Time;
+#endif
+        {
+            if(TickType==MS)
+                pTick->Duration=TICK_PER_MS*Time;
+            else
+                pTick->Duration=TICK_PER_SEC*Time;
+        }
 
-        pTick->Start=Tick_Timer_Get_TickVal();
+        pTick->Timeout=0;
     }
-
-    if((Tick_Timer_Get_TickVal()-pTick->Start)>=pTick->Duration)
+    else
     {
-        pTick->Timeout=1;
-        return 1;
+        tick_t Now=Tick_Get();
+        tick_t Dt=(tick_t) (Now-pTick->Start);
+
+        if(Dt>=pTick->Duration)
+        {
+            pTick->Timeout++;
+
+            if(pTick->Timeout>=2) // Double check
+                return 1;
+        }
     }
 
     return 0;
@@ -32,13 +44,18 @@ public void Delay(tick_t Time, tick_timer_type_t TickType) // <editor-fold defau
     tick_t Duration;
     tick_t Start=Tick_Timer_Get_TickVal();
 
+#if defined(__XC32__) || defined(USE_SYSTEM_TICK_US)
     if(TickType==US)
         Duration=TICK_PER_US*Time;
-    else if(TickType==MS)
-
-        Duration=TICK_PER_MS*Time;
     else
-        Duration=TICK_PER_SEC*Time;
+#endif
+    {
+        if(TickType==MS)
+
+            Duration=TICK_PER_MS*Time;
+        else
+            Duration=TICK_PER_SEC*Time;
+    }
 
     while((Tick_Timer_Get_TickVal()-Start)<Duration)
     {

@@ -13,7 +13,7 @@ void debug_systime_stamp(void)
 {
     debug_port_write('\n');
     debug_port_write('[');
-    debug_u32((uint32_t) Tick_Get()/TICK_PER_MS);
+    debug_u32(debug_tickget_ms());
     debug_port_write(']');
     debug_port_write(' ');
 }

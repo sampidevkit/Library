@@ -4,10 +4,7 @@
 #include "common/libdef.h"
 #include "project_cfg.h"
 
-extern const uint32_t TICK_PER_SEC;
-extern const uint32_t TICK_PER_MS;
-extern const uint32_t TICK_PER_US;
-
+#if defined(__XC32__) || defined(USE_SYSTEM_TICK_32BIT)
 #define tick_t  uint32_t
 
 typedef enum {
@@ -15,6 +12,14 @@ typedef enum {
     MS,
     SEC
 } tick_timer_type_t;
+#else
+#define tick_t  uint16_t
+
+typedef enum {
+    MS,
+    SEC
+} tick_timer_type_t;
+#endif
 
 typedef struct {
     tick_t Start;
@@ -22,10 +27,17 @@ typedef struct {
 } __attribute_packed__ elapse_t;
 
 typedef struct {
-    volatile bool Timeout;
+    volatile uint8_t Timeout;
     tick_t Start;
     tick_t Duration;
 } __attribute_packed__ tick_timer_t;
+
+extern const tick_t TICK_PER_SEC;
+extern const tick_t TICK_PER_MS;
+
+#if defined(__XC32__) || defined(USE_SYSTEM_TICK_US)
+extern const tick_t TICK_PER_US;
+#endif
 
 /* **************************************************************** PROTOTYPE */
 tick_t Tick_Timer_Get_TickVal(void);
@@ -35,14 +47,18 @@ public void Delay(tick_t Time, tick_timer_type_t TickType); // Do not use in mul
 public bool Tick_Timer_Is_Over(tick_timer_t *pTick, tick_t Time, tick_timer_type_t TickType);
 
 static inline void Tick_Reset(tick_timer_t *pTick) {
-    pTick->Timeout = 1;
+    pTick->Timeout = 2;
 }
 
 #define Tick_Timer_Init()                   Tick_Timer_SetFncCallInDelay(NULL)
 #define Tick_Timer_Reset(x)                 Tick_Reset(&(x))
 #define Delay_Us(Time)                      Delay(Time, US)
 #define delay_us(t)                         Delay_Us(t)
+
+#ifndef __XC8__
 #define __delay_us(t)                       Delay_Us(t)
+#endif
+
 #define Tick_GetTimeUs()                    (Tick_Timer_Get_TickVal() / TICK_PER_US)
 #define Tick_Timer_Is_Over_Us(pTick, Time)  Tick_Timer_Is_Over(&pTick, Time, US)
 
@@ -50,7 +66,11 @@ static inline void Tick_Reset(tick_timer_t *pTick) {
 #define Delay_Sec(Time)                     Delay(Time, SEC)
 #define delay_ms(t)                         Delay_Ms(t)
 #define delay_sec(t)                        Delay_Sec(t)
+
+#ifndef __XC8__
 #define __delay_ms(t)                       Delay_Ms(t)
+#endif
+
 #define __delay_sec(t)                      Delay_Sec(t)
 
 #define Tick_Timer_Read()                   Tick_Timer_Get_TickVal()
