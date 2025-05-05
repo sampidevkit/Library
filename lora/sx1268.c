@@ -425,7 +425,7 @@ EXIT:
     sx1268_interface_reset_gpio_write(0); /* set low */
 } // </editor-fold>
 
-uint8_t sx1268_single_receive(double us) // <editor-fold defaultstate="collapsed" desc="enter to the single receive mode">
+uint8_t sx1268_single_receive(uint32_t us) // <editor-fold defaultstate="collapsed" desc="enter to the single receive mode">
 {
     uint8_t buf[3];
     uint16_t clear_irq_param;
@@ -444,7 +444,8 @@ uint8_t sx1268_single_receive(double us) // <editor-fold defaultstate="collapsed
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    timeout=(uint32_t) (us/15.625);
+    //timeout=(uint32_t) (us/15.625);
+    timeout=(us*1000)/15625;
     buf[0]=(timeout>>16) & 0xFF; /* bit 23 : 16 */
     buf[1]=(timeout>>8) & 0xFF; /* bit 15 : 8 */
     buf[2]=(timeout>>0) & 0xFF; /* bit 7 : 0 */
@@ -619,7 +620,8 @@ uint8_t sx1268_lora_transmit(sx1268_clock_source_t standby_src,
     if(a_sx1268_check_busy()!=0)
         return 4;
 
-    reg=(uint32_t) ((float) us/15.625); /* convert the timeout */
+    //reg=(uint32_t) ((float) us/15.625); /* convert the timeout */
+    reg=(us*1000)/15625;
     buf[0]=(reg>>16) & 0xFF; /* bit 23 : 16 */
     buf[1]=(reg>>8) & 0xFF; /* bit 15 : 8 */
     buf[2]=(reg>>0) & 0xFF; /* bit 7 : 0 */
@@ -769,12 +771,19 @@ uint8_t sx1268_set_rx(uint32_t timeout) // <editor-fold defaultstate="collapsed"
     return 0;
 } // </editor-fold>
 
+#ifdef USE_SX1268_FULL_FEATURES
+
 uint8_t sx1268_timeout_convert_to_register(double us, uint32_t *reg) // <editor-fold defaultstate="collapsed" desc="convert the timeout to the register raw data">
 {
     *reg=(uint32_t) (us/15.625);
 
     return 0;
 } // </editor-fold>
+#else
+#warning "sx1268_timeout_convert_to_register(...) doesn't support"
+#endif
+
+#ifdef USE_SX1268_FULL_FEATURES
 
 uint8_t sx1268_timeout_convert_to_data(uint32_t reg, double *us) // <editor-fold defaultstate="collapsed" desc="convert the register raw data to the timeout">
 {
@@ -782,6 +791,9 @@ uint8_t sx1268_timeout_convert_to_data(uint32_t reg, double *us) // <editor-fold
 
     return 0;
 } // </editor-fold>
+#else
+#warning "sx1268_timeout_convert_to_data(...) doesn't support"
+#endif
 
 uint8_t sx1268_set_stop_timer_on_preamble(sx1268_bool_t enable) // <editor-fold defaultstate="collapsed" desc="stop timer on preamble">
 {
@@ -1317,13 +1329,18 @@ uint8_t sx1268_get_gfsk_packet_status(uint8_t *rx_status, uint8_t *rssi_sync_raw
         return 1;
 
     *rx_status=buf[1];
+
+#ifdef USE_SX1268_FULL_FEATURES
     *rssi_sync_raw=buf[2];
     *rssi_avg_raw=buf[3];
     *rssi_sync= -(float) (*rssi_sync_raw)/2.0f;
     *rssi_avg= -(float) (*rssi_avg_raw)/2.0f;
+#endif
 
     return 0;
 } // </editor-fold>
+
+#ifdef USE_SX1268_FULL_FEATURES
 
 uint8_t sx1268_get_lora_packet_status(uint8_t *rssi_pkt_raw, uint8_t *snr_pkt_raw,
                                       uint8_t *signal_rssi_pkt_raw, float *rssi_pkt, float *snr_pkt, float *signal_rssi_pkt) // <editor-fold defaultstate="collapsed" desc="get the packet status in LoRa mode">
@@ -1345,6 +1362,11 @@ uint8_t sx1268_get_lora_packet_status(uint8_t *rssi_pkt_raw, uint8_t *snr_pkt_ra
 
     return 0;
 } // </editor-fold>
+#else
+#warning "sx1268_get_lora_packet_status(...) doesn't support"
+#endif
+
+#ifdef USE_SX1268_FULL_FEATURES
 
 uint8_t sx1268_get_instantaneous_rssi(uint8_t *rssi_inst_raw, float *rssi_inst) // <editor-fold defaultstate="collapsed" desc="get the instantaneous rssi">
 {
@@ -1361,6 +1383,9 @@ uint8_t sx1268_get_instantaneous_rssi(uint8_t *rssi_inst_raw, float *rssi_inst) 
 
     return 0;
 } // </editor-fold>
+#else
+#warning "sx1268_get_instantaneous_rssi(...) doesn't support"
+#endif
 
 uint8_t sx1268_get_stats(uint16_t *pkt_received, uint16_t *pkt_crc_error, uint16_t *pkt_length_header_error) // <editor-fold defaultstate="collapsed" desc="get the stats">
 {
@@ -1962,6 +1987,8 @@ uint8_t sx1268_write_read_reg(uint8_t *in_buf, uint32_t in_len,
     return 0;
 } // </editor-fold>
 
+#ifdef USE_SX1268_FULL_FEATURES
+
 uint8_t sx1268_info(sx1268_info_t *info) // <editor-fold defaultstate="collapsed" desc="get chip's information">
 {
     if(info==NULL) /* check handle */
@@ -1980,3 +2007,6 @@ uint8_t sx1268_info(sx1268_info_t *info) // <editor-fold defaultstate="collapsed
 
     return 0;
 } // </editor-fold>
+#else
+#warning "sx1268_info(...) doesn't support"
+#endif

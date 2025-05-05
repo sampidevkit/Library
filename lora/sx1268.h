@@ -456,7 +456,7 @@ uint8_t sx1268_lora_cad(sx1268_bool_t *enable);
  *            - 4 chip is busy
  * @note      none
  */
-uint8_t sx1268_single_receive(double us);
+uint8_t sx1268_single_receive(uint32_t us);
 
 /**
  * @brief     enter to the continuous receive mode
