@@ -2,31 +2,25 @@
 #include "sx1268.h"
 #include "common/debug.h"
 
-static union
-{
-    uint8_t val;
-    struct
-    {
-        unsigned rxReady:1;
-        unsigned txDone:1;
-        unsigned rfu:6;
-    };
-} transState;
-
 static struct
 {
-    uint8_t len;
+    uint8_t head;
+    uint8_t tail;
     uint8_t data[32];
 } rxBuff;
 
+static uint8_t txBusy=0;
+
 void sx1268_interface_receive_callback(uint16_t type, uint8_t *buf, uint16_t len)
 {
+    __dbsu("\r\nsx1268 irq ", type);
+
     switch(type)
     {
         case SX1268_IRQ_TX_DONE:
         {
-            __dbs("sx1268: irq tx done.");
-
+            txBusy=0;
+            __dbs(": tx done.");
             break;
         }
 
@@ -34,78 +28,30 @@ void sx1268_interface_receive_callback(uint16_t type, uint8_t *buf, uint16_t len
         {
             uint16_t i;
             sx1268_bool_t enable;
-            __dbs("sx1268: irq rx done.");
+            __dbs(": rx ready.");
 
             /* check the error */
             if(sx1268_check_packet_error(&enable)!=0)
                 return;
-            
+
             if((enable==SX1268_BOOL_FALSE)&&len)
             {
                 for(i=0; i<len; i++)
                 {
-                    //__dbs("0x%02X ", buf[i]);
+                    if(rxBuff.head==rxBuff.tail) // over flow
+                    {
+                        rxBuff.head=0;
+                        rxBuff.tail=0;
+                    }
+
+                    rxBuff.data[rxBuff.head]=*buf;
+                    buf++;
+                    rxBuff.head++;
+
+                    if(rxBuff.head>=32)
+                        rxBuff.head=0;
                 }
-                __dbs("");
-                gs_rx_done=1;
             }
-
-            break;
-        }
-
-        case SX1268_IRQ_PREAMBLE_DETECTED:
-        {
-            __dbs("sx1268: irq preamble detected.");
-
-            break;
-        }
-
-        case SX1268_IRQ_SYNC_WORD_VALID:
-        {
-            __dbs("sx1268: irq valid sync word detected.");
-
-            break;
-        }
-
-        case SX1268_IRQ_HEADER_VALID:
-        {
-            __dbs("sx1268: irq valid header.");
-
-            break;
-        }
-
-        case SX1268_IRQ_HEADER_ERR:
-        {
-            __dbs("sx1268: irq header error.");
-
-            break;
-        }
-
-        case SX1268_IRQ_CRC_ERR:
-        {
-            __dbs("sx1268: irq crc error.");
-
-            break;
-        }
-
-        case SX1268_IRQ_CAD_DONE:
-        {
-            __dbs("sx1268: irq cad done.");
-
-            break;
-        }
-
-        case SX1268_IRQ_CAD_DETECTED:
-        {
-            __dbs("sx1268: irq cad detected.");
-
-            break;
-        }
-
-        case SX1268_IRQ_TIMEOUT:
-        {
-            __dbs("sx1268: irq timeout.");
-
             break;
         }
 
@@ -152,9 +98,12 @@ bool sx1268_transceiver_init(void) // <editor-fold defaultstate="collapsed" desc
     uint32_t reg;
     uint8_t modulation;
     uint8_t config;
-    uint8_t setup;
 
     __tsdbs("sx1268 init");
+
+    txBusy=0;
+    rxBuff.head=0;
+    rxBuff.tail=0;
 
     if(sx1268_init()!=0)
     {
@@ -297,59 +246,59 @@ bool sx1268_transceiver_init(void) // <editor-fold defaultstate="collapsed" desc
 
 bool sx1268_transceiver_is_rx_ready(void) // <editor-fold defaultstate="collapsed" desc="check rx state">
 {
-    return transState.rxReady;
+    return (rxBuff.head!=rxBuff.tail);
 } // </editor-fold>
 
-bool sx1268_transceiver_is_tx_ready(void) // <editor-fold defaultstate="collapsed" desc="comment">
+bool sx1268_transceiver_is_tx_ready(void) // <editor-fold defaultstate="collapsed" desc="check tx state">
 {
-    return transState.txDone;
-}
+    return (txBusy==1);
+} // </editor-fold>
 
-bool sx1268_transceiver_is_tx_done(void)
+bool sx1268_transceiver_is_tx_done(void) // <editor-fold defaultstate="collapsed" desc="check tx process state">
 {
-    return transState.txDone;
-}
+    return (txBusy==0);
+} // </editor-fold>
 
-bool sx1268_transceiver_send(const uint8_t *pD, uint8_t len)
+uint8_t sx1268_transceiver_send(const uint8_t *pD, uint8_t len) // <editor-fold defaultstate="collapsed" desc="send data">
 {
     uint8_t sent;
 
-    transState.txDone=0;
-    
-    do
+    txBusy=1;
+
+    if(len>32) // max 192 bytes
+        sent=32;
+    else
+        sent=len;
+
+    if(sx1268_lora_transmit(SX1268_CLOCK_SOURCE_XTAL_32MHZ,
+            50, SX1268_LORA_HEADER_EXPLICIT,
+            SX1268_LORA_CRC_TYPE_ON, SX1268_BOOL_FALSE,
+            (uint8_t *) pD, sent, 0))
     {
-        if(len>32) // max 192 bytes
-        {
-            sent=32;
-            len-=32;
-        }
-        else
-            sent=len;
+        sx1268_deinit();
 
-        if(sx1268_lora_transmit(SX1268_CLOCK_SOURCE_XTAL_32MHZ,
-                50, SX1268_LORA_HEADER_EXPLICIT,
-                SX1268_LORA_CRC_TYPE_ON, SX1268_BOOL_FALSE,
-                (uint8_t *) pD, sent, 0))
-        {
-            sx1268_deinit();
-
-            return 1;
-        }
-
-        pD+=sent;
+        return 0;
     }
-    while(len>0);
 
-    return 0;
-}
+    return sent;
+} // </editor-fold>
 
-uint8_t sx1268_transceiver_receive(uint8_t *pD)
+uint8_t sx1268_transceiver_receive(uint8_t *pD, uint8_t len) // <editor-fold defaultstate="collapsed" desc="receive data">
 {
-    return 0;
-}
+    uint8_t i=0;
 
-void sx1268_task(void)
+    while((rxBuff.tail!=rxBuff.head)&&(i<len))
+    {
+        pD[i]=rxBuff.data[rxBuff.tail];
+        i++;
+        rxBuff.tail++;
+    }
+
+    return i;
+} // </editor-fold>
+
+void sx1268_transceiver_task(void) // <editor-fold defaultstate="collapsed" desc="transceiver task">
 {
     if(sx1268_interface_busy_gpio_read()==0)
         sx1268_irq_handler();
-}
+} // </editor-fold>
