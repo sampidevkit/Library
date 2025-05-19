@@ -23,7 +23,7 @@ public void softWDT_SetCbBeforeReset(simple_fnc_t fnc);
 
 public void softWDT_Isr(void); // Call this function in timer interrupt
 
-#define NO_WDT  0xFFFFFFFF
-#define ClrWdt() TaskManager()
+#define NO_WDT      0xFFFFFFFF
+#define ClrWdt()    TaskManager()
 
 #endif

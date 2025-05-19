@@ -2,7 +2,6 @@
 #include "bld_extmem.h"
 #include "flash_access.h"
 #include "system/system_tick.h"
-#include "system/soft_wdt.h"
 
 enum
 {
@@ -19,27 +18,6 @@ private uint8_t *pBuffer;
 private tick_timer_t Tick;
 private uint8_t i, BufferLen;
 private uint8_t Buffer[BLD_BUFFER_SIZE];
-
-extern void appFunction(void);
-
-void _general_exception_handler(void) // <editor-fold defaultstate="collapsed" desc="Exception handler">
-{
-    // Do nothing
-    while(1);
-} // </editor-fold>
-
-private void Jump2App(void) // <editor-fold defaultstate="collapsed" desc="Jump to application">
-{
-    uint32_t AppPtr;
-
-    Flash_Access_Read(APP_RESET_ADDRESS, (void *) &AppPtr, 1);
-
-    if(AppPtr!=0xFFFFFFFF)
-    {
-        if(BLD_CheckCodeProtect()) // Code protection bit must be enabled
-            appFunction();
-    }
-} // </editor-fold>
 
 public void BootLoader_Tasks(void) // <editor-fold defaultstate="collapsed" desc="Boot loader task">
 {
@@ -85,14 +63,16 @@ public void BootLoader_Tasks(void) // <editor-fold defaultstate="collapsed" desc
 
         case BLD_RSLT_SUCCESS: // Success
             Buffer[0]='A';
-            Buffer[1]=0;
+            Buffer[1]='\r';
+            Buffer[2]=0;
             BufferLen=0;
             DoNext=BLD_COMM_WRITE;
             break;
 
         case BLD_RSLT_ERROR: // Error
             Buffer[0]='N';
-            Buffer[1]=0;
+            Buffer[1]='\r';
+            Buffer[2]=0;
             BufferLen=0;
             DoNext=BLD_COMM_WRITE;
             break;
@@ -120,8 +100,6 @@ public void BootLoader_Tasks(void) // <editor-fold defaultstate="collapsed" desc
 public void BootLoader_Initialize(void) // <editor-fold defaultstate="collapsed" desc="Boot loader initialize">
 {
     Tick_Timer_Reset(Tick);
-    Enable_Peripheral_Interrupt();
-    Enable_Global_Interrupt();
 
     if(BLD_Trigger_GetState()) // No trigger
     {
@@ -141,6 +119,5 @@ public void BootLoader_Initialize(void) // <editor-fold defaultstate="collapsed"
 
 public void BootLoader_Deinitialize(void) // <editor-fold defaultstate="collapsed" desc="Bootloader deinitialize">
 {
-    ClrWdt();
-    softWDT_Disable();
+    BLD_SystemReboot();
 } // </editor-fold>

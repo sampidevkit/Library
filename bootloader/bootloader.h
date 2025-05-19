@@ -8,11 +8,16 @@
 #define BLD_BUFFER_SIZE         48
 #endif
 
-/* **************************************************************** PROTOTYPE */
-void BLD_Comm_Init(void);
+/* ********************************************************* CONFIG PROTOTYPE */
 void BLD_SystemReboot(void);
 bool BLD_Trigger_GetState(void);
-bool BLD_CheckCodeProtect(void);
+void BLD_Comm_Init(void);
+bool BLD_IsRxReady(void);
+bool BLD_IsTxReady(void);
+void BLD_Write(uint8_t c);
+uint8_t BLD_Read(void);
+/* ***************************************************** TARGET MCU PROTOTYPE */
+void Jump2App(void);
 /* ************************************************************************** */
 public void BootLoader_Initialize(void);
 public void BootLoader_Deinitialize(void);

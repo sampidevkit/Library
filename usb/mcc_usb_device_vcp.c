@@ -1,9 +1,6 @@
-#include "VCP.h"
-#include "VCP_Debug.h"
-
-#ifdef USE_VCP_ATC
-#include "VCP_ATC.h"
-#endif
+#include "mcc_usb_device_vcp.h"
+#include "mcc_usb_device_atc.h"
+#include "mcc_usb_device_vcp_debug.h"
 
 void VCP_Init(void) // <editor-fold defaultstate="collapsed" desc="USB CDC initialize">
 {
