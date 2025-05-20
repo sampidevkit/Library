@@ -5,6 +5,41 @@ private uint8_t VcpPortIdx=0;
 private port_txbuf_t VcpTxBuf;
 private port_rxbuf_t VcpRxBuf;
 
+public bool VCP_Debug_IsTxReady(void) // <editor-fold defaultstate="collapsed" desc="Check TX ready">
+{
+    if(VcpTxBuf.ready==0)
+    {
+        VcpTxBuf.len=0;
+        return 0;
+    }
+
+    if(VcpTxBuf.len==CDC_DATA_IN_EP_SIZE)
+        return 0;
+
+    return 1;
+} // </editor-fold>
+
+public bool VCP_Debug_IsTxDone(void) // <editor-fold defaultstate="collapsed" desc="Check TX done">
+{
+    if(VcpTxBuf.len==0)
+        return 1;
+
+    return 0;
+} // </editor-fold>
+
+public bool VCP_Debug_IsRxReady(void) // <editor-fold defaultstate="collapsed" desc="Check RX ready">
+{
+    if(VcpRxBuf.len>0)
+        return 1;
+    
+    return 0;
+} // </editor-fold>
+
+public void VCP_Debug_ClearRxBuffer(void) // <editor-fold defaultstate="collapsed" desc="Clear RX buffer">
+{
+    VcpRxBuf.len=0;
+} // </editor-fold>
+
 public void VCP_Debug_Write(uint8_t c) // <editor-fold defaultstate="collapsed" desc="Debug write a byte">
 {
     Tick_Timer_Reset(VcpTxBuf.tk);

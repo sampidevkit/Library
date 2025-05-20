@@ -1,0 +1,103 @@
+#include "system.h"
+#include "clock.h"
+#include "uart2.h"
+#include "pin_manager.h"
+#include "mcc_usb_device_vcp0.h"
+
+void BridgePort0_TxdLedSetState(bool logic) // <editor-fold defaultstate="collapsed" desc="Set state of TX LED">
+{
+    if(logic==1)
+        LED_CH0_SetHigh();
+    else
+        LED_CH0_SetLow();
+} // </editor-fold>
+
+void BridgePort0_RxdLedSetState(bool logic) // <editor-fold defaultstate="collapsed" desc="Set state of RX LED">
+{
+    if(logic==1)
+        LED_CH1_SetHigh();
+    else
+        LED_CH1_SetLow();
+} // </editor-fold>
+
+void BridgePort0_DtrPinSetState(bool logic) // <editor-fold defaultstate="collapsed" desc="Set state of DTR pin">
+{
+    if(logic==1)
+        LED_SYS_SetHigh();
+    else
+        LED_SYS_SetLow();
+} // </editor-fold>
+
+void BridgePort0_Enable(uint32_t dwDTERate) // <editor-fold defaultstate="collapsed" desc="UART enable">
+{
+    uint32_t BaudValue;
+
+    // TX pin init
+    LATBbits.LATB3=1;
+    TRISBbits.TRISB3=0;
+    // RX pin init
+    LATBbits.LATB4=0;
+    TRISBbits.TRISB4=1;
+    // Uart2 enable
+    if(U2MODEbits.BRGH)
+    {
+        BaudValue=(CLOCK_SystemFrequencyGet()/(4*dwDTERate))-1;
+        U2BRG=BaudValue;
+    }
+    else
+    {
+        BaudValue=(CLOCK_SystemFrequencyGet()/(16*dwDTERate))-1;
+        U2BRG=BaudValue;
+    }
+
+    IEC1bits.U2TXIE=0;
+    IEC1bits.U2RXIE=1;
+    U2STASET=_U2STA_UTXEN_MASK;
+    U2STASET=_U2STA_URXEN_MASK;
+    U2MODESET=_U2MODE_ON_MASK;
+} // </editor-fold>
+
+void BridgePort0_Disable(void) // <editor-fold defaultstate="collapsed" desc="UART disable">
+{
+    if(U2MODEbits.ON==1)
+    {
+        UART2_Initialize(); // Reload default configure of UART2
+        // Uart2 disable
+        U2MODECLR=_U2MODE_ON_MASK;
+        U2STACLR=_U2STA_UTXEN_MASK;
+        U2STACLR=_U2STA_URXEN_MASK;
+        IEC1bits.U2TXIE=0;
+        IEC1bits.U2RXIE=0;
+        // TX pin deinit
+        LATBbits.LATB3=0;
+        TRISBbits.TRISB3=0;
+        // RX pin deinit
+        LATBbits.LATB4=0;
+        TRISBbits.TRISB4=0;
+    }
+} // </editor-fold>
+
+bool BridgePort0_IsTxReady(void)
+{
+    return UART2_isTxReady();
+}
+
+bool BridgePort0_IsTxDone(void)
+{
+    return UART2_isTxDone();
+}
+
+bool BridgePort0_IsRxReady(void)
+{
+    return UART2_isRxReady();
+}
+
+void BridgePort0_WriteByte(uint8_t b)
+{
+    UART2_Write(b);
+}
+
+uint8_t BridgePort0_ReadByte(void)
+{
+    return UART2_Read();
+}
