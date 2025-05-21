@@ -21,97 +21,45 @@ private void DTRPinHandler(char logic) // <editor-fold defaultstate="collapsed" 
     BridgePort0_DtrPinSetState(VcpCxt[PortIdx].opened);
 } // </editor-fold>
 
-public void VCP0_Task(void) // <editor-fold defaultstate="collapsed" desc="VCP0 task">
-{
-    uint8_t i;
-
-    if(VcpCxt[PortIdx].opened==1)
-    {
-        uint8_t data[CDC_DATA_IN_EP_SIZE];
-        uint8_t len=getsUSBUSART(PortIdx, data, CDC_DATA_IN_EP_SIZE);
-
-        if(len>0)
-        {
-            BridgePort0_RxdLedSetState(1);
-            Tick_Timer_Reset(VcpCxt[PortIdx].tkRxLed);
-        }
-
-        for(i=0; i<len; i++)
-        {
-            while(!BridgePort0_IsTxReady());
-            BridgePort0_WriteByte(data[i]);
-        }
-
-        switch(VcpCxt[PortIdx].txBuf.next)
-        {
-            case 0: // Get RX data
-                if(BridgePort0_IsRxReady())
-                {
-                    i=0;
-
-                    do
-                    {
-                        VcpCxt[PortIdx].txBuf.data[i]=BridgePort0_ReadByte();
-
-                        if(++i>=CDC_DATA_OUT_EP_SIZE)
-                            break;
-                    }
-                    while(BridgePort0_IsRxReady());
-
-                    VcpCxt[PortIdx].txBuf.len=i;
-                    VcpCxt[PortIdx].txBuf.next=1;
-                }
-                else
-                    break;
-
-            case 1: // Put TX data
-                if(USBUSARTIsTxTrfReady(PortIdx))
-                {
-                    VcpCxt[PortIdx].txBuf.next=2;
-                    putUSBUSART(PortIdx, VcpCxt[PortIdx].txBuf.data, VcpCxt[PortIdx].txBuf.len);
-                }
-                break;
-
-            default: // Waiting for TX done
-                CDCTxService(PortIdx);
-                BridgePort0_TxdLedSetState(1);
-                Tick_Timer_Reset(VcpCxt[PortIdx].tkTxLed);
-
-                if(USBUSARTIsTxTrfReady(PortIdx)||(VcpCxt[PortIdx].opened==0)) // check TX state again
-                    VcpCxt[PortIdx].txBuf.next=0;
-                break;
-        }
-
-        if(BridgePort0_IsTxDone())
-        {
-            if(Tick_Timer_Is_Over_Ms(VcpCxt[PortIdx].tkTxLed, 20))
-                BridgePort0_TxdLedSetState(0);
-        }
-
-        if(BridgePort0_IsRxReady()==0)
-        {
-            if(Tick_Timer_Is_Over_Ms(VcpCxt[PortIdx].tkRxLed, 20))
-                BridgePort0_RxdLedSetState(0);
-        }
-    }
-    else
-    {
-        Tick_Timer_Reset(VcpCxt[PortIdx].txBuf.tkData);
-        VcpCxt[PortIdx].txBuf.next=0;
-        BridgePort0_TxdLedSetState(0);
-        BridgePort0_RxdLedSetState(0);
-    }
-} // </editor-fold>
-
-
-
 public void VCP0_Init(uint8_t PortIdx)
 {
     PortIdx=PortIdx;
-    BridgePort0_TxdLedSetState(0);
-    BridgePort0_RxdLedSetState(0);
-    Tick_Timer_Reset(VcpCxt[PortIdx].tkRxLed);
-    Tick_Timer_Reset(VcpCxt[PortIdx].tkTxLed);
+    Vcp0RxBuf.head=0;
+    Vcp0RxBuf.tail=0;
     USB_CDC_SetLineCodingHandler(PortIdx, LineCodingHandler);
     DTRPin_SetHandler(PortIdx, DTRPinHandler);
+}
+
+public bool VCP_IsTxReady(void)
+{
+    if(VcpCxt[portIdx].txBuf.len<CDC_DATA_OUT_EP_SIZE)
+        return 1;
+
+    return 0;
+}
+
+public bool VCP_IsTxDone(void)
+{
+    if(VcpCxt[portIdx].txBuf.len==0)
+        return 1;
+
+    return 0;
+}
+
+public bool VCP_IsRxReady(void)
+{
+    if(VcpCxt[portIdx].rxBuf.len<CDC_DATA_OUT_EP_SIZE)
+        return 1;
+
+    return 0;
+}
+
+public void VCP_WriteByte(uint8_t portIdx, uint8_t b)
+{
+
+}
+
+public uint8_t VCP_ReadByte(void)
+{
+
 }

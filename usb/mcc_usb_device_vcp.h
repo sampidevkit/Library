@@ -7,17 +7,19 @@
 #include "system/task_manager.h"
 #include "project_cfg.h"
 
-#ifndef NUM_OF_VCP_PORT
-#define NUM_OF_VCP_PORT 1
-#warning "You are using only 1 VCP port"
-#endif
-
 typedef struct {
     uint8_t data[CDC_DATA_OUT_EP_SIZE];
     uint8_t len;
     uint8_t next;
     tick_timer_t tkData;
 } port_txbuf_t;
+
+typedef struct {
+    const uint16_t size;
+    uint16_t head;
+    uint16_t tail;
+    uint8_t *data;
+} port_rxbuf_t;
 
 typedef struct {
     port_txbuf_t txBuf; // TX buffer
@@ -27,8 +29,8 @@ typedef struct {
     bool opened; // Port status
 } port_cxt_t;
 
-extern port_cxt_t VcpCxt[NUM_OF_VCP_PORT];
+extern port_cxt_t VcpCxt[NUM_OF_CDC_PORTS];
 
-void VCP_Init(void);
+public void VCP_Init(void);
 
 #endif

@@ -2,6 +2,9 @@
 #define	MCC_USB_DEVICE_VCP0_H
 
 #include "Common/LibDef.h"
+#include "mcc_usb_device_vcp.h"
+
+extern port_rxbuf_t Vcp0RxBuf;
 /* ******************************************************* EXTERNAL PROTOTYPE */
 void BridgePort0_TxdLedSetState(bool logic);
 void BridgePort0_RxdLedSetState(bool logic);
@@ -15,6 +18,10 @@ void BridgePort0_WriteByte(uint8_t b);
 uint8_t BridgePort0_ReadByte(void);
 /* ************************************************************************** */
 public void VCP0_Init(uint8_t PortIdx);
-public void VCP0_Task(void);
+public bool VCP0_IsTxReady(void);
+public bool VCP0_IsTxDone(void);
+public bool VCP0_IsRxReady(void);
+public void VCP0_WriteByte(uint8_t b);
+public uint8_t VCP0_ReadByte(void);
 
 #endif
