@@ -1,5 +1,6 @@
 #include "../bootloader.h"
 #include "../flash_access.h"
+#include "../memmap.h"
 
 extern void appFunction(void); // defined in app.s
 

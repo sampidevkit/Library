@@ -14,52 +14,84 @@ private void LineCodingHandler(void) // <editor-fold defaultstate="collapsed" de
 private void DTRPinHandler(char logic) // <editor-fold defaultstate="collapsed" desc="DTR pin handler">
 {
     if(logic==USB_CDC_DTR_ACTIVE_LEVEL)
-        VcpCxt[PortIdx].opened=1;
+        VcpCxt[PortIdx].Ctrl.opened=1;
     else
-        VcpCxt[PortIdx].opened=0;
+        VcpCxt[PortIdx].Ctrl.opened=0;
 
-    BridgePort0_DtrPinSetState(VcpCxt[PortIdx].opened);
+    BridgePort0_DtrPinSetState(VcpCxt[PortIdx].Ctrl.opened);
 } // </editor-fold>
 
-public void VCP0_Init(uint8_t PortIdx)
+public void VCP0_Init(uint8_t portIdx) // <editor-fold defaultstate="collapsed" desc="Initialize">
 {
-    PortIdx=PortIdx;
+    PortIdx=portIdx;
     Vcp0RxBuf.head=0;
     Vcp0RxBuf.tail=0;
+    VcpCxt[PortIdx].rxBuf=&Vcp0RxBuf;
+    VcpCxt[PortIdx].bridgePort.IsRxReady=BridgePort0_IsRxReady;
+    VcpCxt[PortIdx].bridgePort.IsTxDone=BridgePort0_IsTxDone;
+    VcpCxt[PortIdx].bridgePort.IsTxReady=BridgePort0_IsTxReady;
+    VcpCxt[PortIdx].bridgePort.ReadByte=BridgePort0_ReadByte;
+    VcpCxt[PortIdx].bridgePort.RxdLedSetState=BridgePort0_RxdLedSetState;
+    VcpCxt[PortIdx].bridgePort.TxdLedSetState=BridgePort0_TxdLedSetState;
+    VcpCxt[PortIdx].bridgePort.WriteByte=BridgePort0_WriteByte;
     USB_CDC_SetLineCodingHandler(PortIdx, LineCodingHandler);
     DTRPin_SetHandler(PortIdx, DTRPinHandler);
-}
+} // </editor-fold>
 
-public bool VCP_IsTxReady(void)
+public bool VCP0_IsTxReady(void) // <editor-fold defaultstate="collapsed" desc="check TX state">
 {
-    if(VcpCxt[portIdx].txBuf.len<CDC_DATA_OUT_EP_SIZE)
+    if(VcpCxt[PortIdx].txBuf.len==CDC_DATA_IN_EP_SIZE)
+        return 0;
+
+    return VcpCxt[PortIdx].Ctrl.opened;
+} // </editor-fold>
+
+public bool VCP0_IsTxDone(void) // <editor-fold defaultstate="collapsed" desc="check TX transmitte state">
+{
+    if(VcpCxt[PortIdx].txBuf.len==0)
+        return 0;
+
+    return 1;
+} // </editor-fold>
+
+public bool VCP0_IsRxReady(void) // <editor-fold defaultstate="collapsed" desc="check RX state">
+{
+    if(VcpCxt[PortIdx].rxBuf->tail!=VcpCxt[PortIdx].rxBuf->head)
         return 1;
 
     return 0;
-}
+} // </editor-fold>
 
-public bool VCP_IsTxDone(void)
+public void VCP0_WriteByte(uint8_t b) // <editor-fold defaultstate="collapsed" desc="Write 1 byte to VCP">
 {
-    if(VcpCxt[portIdx].txBuf.len==0)
-        return 1;
+    Tick_Timer_Reset(VcpCxt[PortIdx].txBuf.tkData);
 
-    return 0;
-}
+    while(VcpCxt[PortIdx].txBuf.len==CDC_DATA_IN_EP_SIZE)
+    {
+        if(VcpCxt[PortIdx].Ctrl.opened==0)
+        {
+            VcpCxt[PortIdx].txBuf.len=0;
+            return;
+        }
 
-public bool VCP_IsRxReady(void)
+        TaskManager();
+    }
+
+    VcpCxt[PortIdx].txBuf.data[VcpCxt[PortIdx].txBuf.len++]=b;
+} // </editor-fold>
+
+public uint8_t VCP0_ReadByte(void) // <editor-fold defaultstate="collapsed" desc="Get 1 byte from VCP">
 {
-    if(VcpCxt[portIdx].rxBuf.len<CDC_DATA_OUT_EP_SIZE)
-        return 1;
+    uint8_t b;
+    
+    if(VcpCxt[PortIdx].rxBuf->tail==VcpCxt[PortIdx].rxBuf->head)
+        return 0xFF;
+    
+    b=VcpCxt[PortIdx].rxBuf->data[VcpCxt[PortIdx].rxBuf->tail];
 
-    return 0;
-}
+    if(VcpCxt[PortIdx].rxBuf->tail>=VcpCxt[PortIdx].rxBuf->size)
+        VcpCxt[PortIdx].rxBuf->tail=0;
+    
+    return b;
+} // </editor-fold>
 
-public void VCP_WriteByte(uint8_t portIdx, uint8_t b)
-{
-
-}
-
-public uint8_t VCP_ReadByte(void)
-{
-
-}

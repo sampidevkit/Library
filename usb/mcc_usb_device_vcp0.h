@@ -17,7 +17,7 @@ bool BridgePort0_IsRxReady(void);
 void BridgePort0_WriteByte(uint8_t b);
 uint8_t BridgePort0_ReadByte(void);
 /* ************************************************************************** */
-public void VCP0_Init(uint8_t PortIdx);
+public void VCP0_Init(uint8_t portIdx);
 public bool VCP0_IsTxReady(void);
 public bool VCP0_IsTxDone(void);
 public bool VCP0_IsRxReady(void);

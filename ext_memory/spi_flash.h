@@ -63,18 +63,21 @@ typedef enum SST_PROTECT_RANGE {
     FLASH_PROTECT_2MB = 6,
     FLASH_PROTECT_ALL = 7
 } sst_protect_range_t;
-
-/*************************************************************PUBLIC FUNCTIONS*/
+/* ******************************************************* EXTERNAL FUNCTIONS */
+void SPI_Flash_Open(void);
+void SPI_Flash_NCS_SetLow(void);
+uint8_t SPI_Flash_Exchange8bit(uint8_t b);
+void SPI_Flash_NCS_SetHigh(void);
+void SPI_Flash_Close(void);
+/* ********************************************************* PUBLIC FUNCTIONS */
 // address= 0x00000 to MAX_MEM_ADDR
 // range= see in FLASH_PROTECT_RANGE
 // len=1 to 256, if over 256 bytes, this function will not execute
 
-public void SST_Chip_Erase(void); // Erase full-memory
-public void SST_Sector_Erase(uint32_t BAddr); // Erase a sector
-public void SST_Read_nByte(uint32_t BAddr, uint32_t len, uint8_t *buffer); // Read n byte(s)
-public void SST_Write_nByte(uint32_t BAddr, uint16_t len, const uint8_t *data); // Write n byte(s)
-public void SST_Write_Byte(uint32_t Addr, uint8_t data); // Write 1 byte
-public void SST_Protect(sst_protect_range_t range); // Protect memory zone
-public bool SST_Init(void); // Call this function first (SPI must be initialized before)
+public void SPI_Flash_Chip_Erase(void); // Erase full-memory
+public void SPI_Flash_Sector_Erase(uint32_t BAddr); // Erase a sector
+public void SPI_Flash_Read_nByte(uint32_t BAddr, uint32_t len, uint8_t *buffer); // Read n byte(s)
+public void SPI_Flash_Write_nByte(uint32_t BAddr, uint16_t len, const uint8_t *data); // Write n byte(s)
+public bool SPI_Flash_Init(void); // Call this function first (SPI must be initialized before)
 
 #endif
