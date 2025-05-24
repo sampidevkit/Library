@@ -1,6 +1,7 @@
 #include "bootloader.h"
 #include "bld_extmem.h"
 #include "flash_access.h"
+#include "misc/intel_hex.h"
 #include "system/system_tick.h"
 
 enum
@@ -14,7 +15,6 @@ enum
 };
 
 private uint8_t DoNext;
-private uint8_t *pBuffer;
 private tick_timer_t Tick;
 private uint8_t i, BufferLen;
 private uint8_t Buffer[BLD_BUFFER_SIZE];

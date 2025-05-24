@@ -1,8 +1,7 @@
 /*
-    ** file: app.s
+    ** file: app_asm.s
 */
 #include <xc.h>
-#include "BLD_Target_Device.h"
     
     .text
     .set noreorder 
@@ -21,7 +20,7 @@ appFunction:
     nop
     nop
     nop
-    jals APP_RESET_ADDRESS /* 0x9D005000 */
+    jals 0x9D005000
     nop
     
 .end appFunction     
