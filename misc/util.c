@@ -201,9 +201,13 @@ uint16_t str_len2break(const uint8_t *pData, uint8_t break_byte) // <editor-fold
 public bool str_cmp(const char *pDatain, const char *pSample) // <editor-fold defaultstate="collapsed" desc="Compare sub-string in string">
 {
     int i;
-    int l=(int)slen(pSample);
+    int l1=(int)slen(pDatain);
+    int l2=(int)slen(pSample);
+    
+    if(l1!=l2)
+        return 0;
 
-    for(i=0; i<l; i++)
+    for(i=0; i<l1; i++)
     {
         if(pDatain[i]!=pSample[i])
             return 0;

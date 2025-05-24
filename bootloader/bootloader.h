@@ -21,6 +21,5 @@ void Jump2App(void);
 /* ************************************************************************** */
 public void BootLoader_Initialize(void);
 public void BootLoader_Deinitialize(void);
-public void BootLoader_Tasks(void);
 
 #endif

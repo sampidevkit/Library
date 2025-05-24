@@ -10,6 +10,15 @@ typedef struct
 } flash_t;
 
 private bool flash_initialized=0;
+private bool flash_locked=1;
+
+public void Flash_Access_Lock(uint8_t Opt) // <editor-fold defaultstate="collapsed" desc="Software lock">
+{
+    if(Opt<2)
+        flash_locked=(bool) Opt;
+    else
+        flash_initialized=0;
+} // </editor-fold>
 
 private uint32_t Flash_Access_Convert4x8to32(const uint8_t *pArr) // <editor-fold defaultstate="collapsed" desc="Convert 32bit to 4x8bit">
 {
@@ -151,7 +160,7 @@ public void Flash_Access_Read(uint32_t Addr, void *pData, int Len) // <editor-fo
     uint32_t *pD=(uint32_t *) pData;
 
     Addr&=4;
-    
+
     for(i=0; i<Len; i++)
     {
         *pD=FLASH_ReadWord(Addr+i);
