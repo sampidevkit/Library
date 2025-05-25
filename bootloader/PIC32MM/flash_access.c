@@ -47,6 +47,9 @@ private bool Flash_Access_FullErase(void) // <editor-fold defaultstate="collapse
     uint32_t Addr=APP_BEGIN_ADDRESS;
     uint32_t NumOfPage=APP_SIZE_IN_PAGE;
 
+    if(flash_locked==1)
+        return 1;
+
     while(NumOfPage>0)
     {
         NumOfPage--;
@@ -87,7 +90,9 @@ private bool Flash_Access_DWordPack(flash_t *pBldNvm) // <editor-fold defaultsta
         {
             if(Flash_Access_IsWritable(pBldNvm->Address))
             {
-                if(FLASH_WriteDoubleWord(pBldNvm->Address, pBldNvm->Word0, pBldNvm->Word1))
+                if(flash_locked==1)
+                    rslt=1;
+                else if(FLASH_WriteDoubleWord(pBldNvm->Address, pBldNvm->Word0, pBldNvm->Word1))
                     rslt=1;
             }
             else
@@ -159,11 +164,15 @@ public void Flash_Access_Read(uint32_t Addr, void *pData, int Len) // <editor-fo
     int i;
     uint32_t *pD=(uint32_t *) pData;
 
-    Addr&=4;
+    Addr&=0xFFFFFFFC;
 
-    for(i=0; i<Len; i++)
+    for(i=0; i<Len; i+=4)
     {
-        *pD=FLASH_ReadWord(Addr+i);
+        uint32_t *AppPtr;
+
+        Addr+=i;
+        AppPtr=(uint32_t *) Addr;
+        *pD=*AppPtr;
         pD++;
     }
 } // </editor-fold>

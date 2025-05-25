@@ -16,6 +16,8 @@ bool BLD_IsRxReady(void);
 bool BLD_IsTxReady(void);
 void BLD_Write(uint8_t c);
 uint8_t BLD_Read(void);
+void BLD_DownloadLed_SetState(bool state);
+void BLD_UpgradeLed_SetState(bool state);
 /* ***************************************************** TARGET MCU PROTOTYPE */
 void Jump2App(void);
 /* ************************************************************************** */

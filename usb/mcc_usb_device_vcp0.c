@@ -87,7 +87,7 @@ public uint8_t VCP0_ReadByte(void) // <editor-fold defaultstate="collapsed" desc
     if(VcpCxt[PortIdx].rxBuf->tail==VcpCxt[PortIdx].rxBuf->head)
         return 0xFF;
     
-    b=VcpCxt[PortIdx].rxBuf->data[VcpCxt[PortIdx].rxBuf->tail];
+    b=VcpCxt[PortIdx].rxBuf->data[VcpCxt[PortIdx].rxBuf->tail++];
 
     if(VcpCxt[PortIdx].rxBuf->tail>=VcpCxt[PortIdx].rxBuf->size)
         VcpCxt[PortIdx].rxBuf->tail=0;

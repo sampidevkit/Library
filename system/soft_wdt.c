@@ -2,7 +2,6 @@
 #include "soft_wdt.h"
 #include "system_tick.h"
 
-private gpio_pin_t WdtLed=NOT_USE;
 private tick_timer_t Tick={1, 0, 0};
 private simple_fnc_t CbFnc=NULL;
 
@@ -51,7 +50,7 @@ public new_simple_task_t(softWDT_Tasks) // <editor-fold defaultstate="collapsed"
     if(Tick_Timer_Is_Over_Ms(Tick, 500))
     {
         softWdtCount=0;
-        Gpio_Toggle(WdtLed);
+        softWDT_LedSetState(2); // toggle
     }
 
     Task_Done();
@@ -59,33 +58,26 @@ public new_simple_task_t(softWDT_Tasks) // <editor-fold defaultstate="collapsed"
 
 public void softWDT_Enable(void) // <editor-fold defaultstate="collapsed" desc="WDT enable">
 {
-    Gpio_SetHigh(WdtLed);
+    softWDT_LedSetState(1);
     Tick_Timer_Reset(Tick);
     TaskManager_Create_NewSimpleTask(softWDT_Tasks);
 } // </editor-fold>
 
 public void softWDT_Disable(void) // <editor-fold defaultstate="collapsed" desc="WDT disable">
 {
-    Gpio_SetLow(WdtLed);
+    softWDT_LedSetState(0);
     TaskManager_End_Task(softWDT_Tasks);
 } // </editor-fold>
-
-public void softWDT_SetLedIndicator(gpio_pin_t pin)
-{
-    WdtLed=pin;
-    Gpio_SetLow(pin);
-    Gpio_SetDigitalOutput(pin);
-}
 
 public void softWDT_SetCbBeforeReset(simple_fnc_t fnc)
 {
     CbFnc=fnc;
 }
 
-void softWDT_Init(uint32_t tout, gpio_pin_t led, simple_fnc_t cb) {
-    softWdtCountMax = tout;
-    softWdtCount = 0;
-    softWDT_SetLedIndicator(led);
+void softWDT_Init(uint32_t tout, simple_fnc_t cb)
+{
+    softWdtCountMax=tout;
+    softWdtCount=0;
     softWDT_SetCbBeforeReset(cb);
     softWDT_Enable();
     softWDT_TmrSetInterruptHandler(softWDT_Isr);

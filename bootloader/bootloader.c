@@ -12,7 +12,7 @@ enum UPGRADE_TASKS
     UPGRADE_DECODE,
     UPGRADE_SUCCESS,
     UPGRADE_ERROR,
-    UPGRADE_IDLE
+    UPGRADE_REBOOT
 };
 
 enum DOWNLOAD_TASKS
@@ -22,7 +22,7 @@ enum DOWNLOAD_TASKS
     DOWNLOAD_WRITE,
     DOWNLOAD_REPORT_ACK,
     DOWNLOAD_REPORT_NACK,
-    DOWNLOAD_IDLE
+    DOWNLOAD_REBOOT
 };
 
 private int8_t rslt;
@@ -38,8 +38,10 @@ private new_simple_task_t(Download_Tasks) // <editor-fold defaultstate="collapse
             BufferLen=0;
             BLD_Comm_Init();
             IHEX_Init(1);
-            BLD_ExtMem_WriteState(BLD_STATE_DOWNLOADING);
+            
+            //BLD_ExtMem_WriteState(BLD_STATE_DOWNLOADING);
             Tick_Timer_Reset(Tick);
+            BLD_DownloadLed_SetState(1);
             DoNext=DOWNLOAD_READ;
             break;
 
@@ -49,7 +51,7 @@ private new_simple_task_t(Download_Tasks) // <editor-fold defaultstate="collapse
                 Tick_Timer_Reset(Tick);
                 Buffer[BufferLen]=BLD_Read();
 
-                if(Buffer[BufferLen]=='\n')
+                if(Buffer[BufferLen]=='\r')
                 {
                     BufferLen++;
                     DoNext=DOWNLOAD_WRITE;
@@ -67,6 +69,7 @@ private new_simple_task_t(Download_Tasks) // <editor-fold defaultstate="collapse
                         DoNext=DOWNLOAD_WRITE;
                     else
                     {
+                        Buffer[0]='R';
                         DoNext=DOWNLOAD_REPORT_NACK;
                         ToDo=DOWNLOAD_READ;
                     }
@@ -82,28 +85,27 @@ private new_simple_task_t(Download_Tasks) // <editor-fold defaultstate="collapse
             {
                 rslt=IHEX_Decode(Buffer[i]);
 
-                if(rslt==PROC_ERR)
+                if(rslt==IHEX_ERROR)
                 {
+                    Buffer[0]='W';
                     DoNext=DOWNLOAD_REPORT_NACK;
-                    ToDo=DOWNLOAD_IDLE;
                 }
-                else if(rslt==PROC_DONE)
-                    ToDo=DOWNLOAD_IDLE;
+                else if(rslt==IHEX_DONE)
+                    ToDo=DOWNLOAD_REBOOT;
             }
 
             if(DoNext==DOWNLOAD_REPORT_ACK)
             {
                 for(i=0; i<BufferLen; i++)
-                    BLD_ExtMem_WriteData(Buffer[i]);
+                    ;//BLD_ExtMem_WriteData(Buffer[i]);
 
-                if(ToDo==DOWNLOAD_IDLE)
-                    BLD_ExtMem_WriteState(BLD_STATE_NEWFW);
+                if(ToDo==DOWNLOAD_REBOOT)
+                    ;//BLD_ExtMem_WriteState(BLD_STATE_NEWFW);
             }
             break;
 
         case DOWNLOAD_REPORT_ACK:
             BLD_Write('A');
-            BLD_Write('\r');
             BufferLen=0;
             Tick_Timer_Reset(Tick);
             DoNext=ToDo;
@@ -111,13 +113,13 @@ private new_simple_task_t(Download_Tasks) // <editor-fold defaultstate="collapse
 
         case DOWNLOAD_REPORT_NACK:
             BLD_Write('K');
-            BLD_Write('\r');
+            BLD_Write(Buffer[0]);
             BufferLen=0;
             Tick_Timer_Reset(Tick);
             DoNext=ToDo;
             break;
 
-        case DOWNLOAD_IDLE:
+        case DOWNLOAD_REBOOT:
         default:
             BLD_SystemReboot();
             TaskManager_End_Task(Download_Tasks);
@@ -134,6 +136,7 @@ private new_simple_task_t(Upgrade_Tasks) // <editor-fold defaultstate="collapsed
         case UPGRADE_INIT:
             BufferLen=0;
             IHEX_Init(0); // disable lock
+            BLD_UpgradeLed_SetState(1);
             DoNext=UPGRADE_READ;
             break;
 
@@ -171,15 +174,16 @@ private new_simple_task_t(Upgrade_Tasks) // <editor-fold defaultstate="collapsed
 
         case UPGRADE_SUCCESS: // Success
             BLD_ExtMem_WriteState(BLD_STATE_FIRST_RUN);
-            DoNext=UPGRADE_IDLE;
+            Jump2App(); // Jump out this function if no application
+            DoNext=UPGRADE_REBOOT;
             break;
 
         case UPGRADE_ERROR: // Error
             BLD_ExtMem_WriteState(BLD_STATE_DOWNLOADING);
-            DoNext=UPGRADE_IDLE;
+            DoNext=UPGRADE_REBOOT;
             break;
 
-        case UPGRADE_IDLE: // Do nothing
+        case UPGRADE_REBOOT: // Do nothing
         default:
             BLD_SystemReboot();
             TaskManager_End_Task(Upgrade_Tasks);
@@ -193,8 +197,13 @@ public void BootLoader_Initialize(void) // <editor-fold defaultstate="collapsed"
 {
     bld_stt_t bldStt=BLD_ExtMem_Init();
 
-    if((BLD_Trigger_GetState()==0)||(bldStt==BLD_STATE_DOWNLOADING)) // IO trigger
+    BLD_DownloadLed_SetState(0);
+    BLD_UpgradeLed_SetState(0);
+
+    if((BLD_Trigger_GetState()==0)||(bldStt==BLD_STATE_DOWNLOADING)||(bldStt==BLD_STATE_FIRST_RUN)) // IO trigger
     {
+        // bldStt==BLD_STATE_DOWNLOADING : Download process is in progress
+        // bldStt==BLD_STATE_FIRST_RUN : Application crash, it can not clear this state before system reboot
         DoNext=DOWNLOAD_INIT;
         TaskManager_Create_NewSimpleTask(Download_Tasks);
     }

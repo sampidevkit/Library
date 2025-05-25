@@ -6,63 +6,63 @@
 
 #if defined USE_SST25VF020B 
 #define MEMORY_CAPACITY         0x040000
-#define SPI_FLASH_JDECID             0xBF
-#define SPI_FLASH_DEVICE_ID1         0x25
-#define SPI_FLASH_DEVICE_ID2         0x8C
-#define SPI_FLASH_AAI_WORD_PROG      0xAD // AAI command
+#define SPI_FLASH_JDECID        0xBF
+#define SPI_FLASH_DEVICE_ID1    0x25
+#define SPI_FLASH_DEVICE_ID2    0x8C
+#define SPI_FLASH_AAI_WORD_PROG 0xAD // AAI command
 #elif defined USE_SST25VF040B
 #define MEMORY_CAPACITY         0x080000
-#define SPI_FLASH_JDECID             0xBF
-#define SPI_FLASH_DEVICE_ID1         0x25
-#define SPI_FLASH_DEVICE_ID2         0x8D
-#define SPI_FLASH_AAI_WORD_PROG      0xAD // AAI command
+#define SPI_FLASH_JDECID        0xBF
+#define SPI_FLASH_DEVICE_ID1    0x25
+#define SPI_FLASH_DEVICE_ID2    0x8D
+#define SPI_FLASH_AAI_WORD_PROG 0xAD // AAI command
 #elif defined USE_SST25VF080B
 #define MEMORY_CAPACITY         0x100000
-#define SPI_FLASH_JDECID             0xBF
-#define SPI_FLASH_DEVICE_ID1         0x25
-#define SPI_FLASH_DEVICE_ID2         0x8E
-#define SPI_FLASH_AAI_WORD_PROG      0xAD // AAI command
+#define SPI_FLASH_JDECID        0xBF
+#define SPI_FLASH_DEVICE_ID1    0x25
+#define SPI_FLASH_DEVICE_ID2    0x8E
+#define SPI_FLASH_AAI_WORD_PROG 0xAD // AAI command
 #elif defined USE_SST25VF016B
 #define MEMORY_CAPACITY         0x200000
-#define SPI_FLASH_JDECID             0xBF
-#define SPI_FLASH_DEVICE_ID1         0x25
-#define SPI_FLASH_DEVICE_ID2         0x41
-#define SPI_FLASH_AAI_WORD_PROG      0xAD // AAI command
+#define SPI_FLASH_JDECID        0xBF
+#define SPI_FLASH_DEVICE_ID1    0x25
+#define SPI_FLASH_DEVICE_ID2    0x41
+#define SPI_FLASH_AAI_WORD_PROG 0xAD // AAI command
 #elif defined USE_SST25VF032B
 #define MEMORY_CAPACITY         0x400000
-#define SPI_FLASH_JDECID             0xBF
-#define SPI_FLASH_DEVICE_ID1         0x01
-#define SPI_FLASH_DEVICE_ID2         0x4A
-#define SPI_FLASH_AAI_WORD_PROG      0xAD // AAI command
+#define SPI_FLASH_JDECID        0xBF
+#define SPI_FLASH_DEVICE_ID1    0x01
+#define SPI_FLASH_DEVICE_ID2    0x4A
+#define SPI_FLASH_AAI_WORD_PROG 0xAD // AAI command
 #elif defined USE_SST25PF020B
 #define MEMORY_CAPACITY         0x040000
-#define SPI_FLASH_JDECID             0xBF
-#define SPI_FLASH_DEVICE_ID1         0x25
-#define SPI_FLASH_DEVICE_ID2         0x8C
-#define SPI_FLASH_AAI_WORD_PROG      0xAD // AAI command
+#define SPI_FLASH_JDECID        0xBF
+#define SPI_FLASH_DEVICE_ID1    0x25
+#define SPI_FLASH_DEVICE_ID2    0x8C
+#define SPI_FLASH_AAI_WORD_PROG 0xAD // AAI command
 #elif defined USE_SST25PF040B
 #define MEMORY_CAPACITY         0x080000
-#define SPI_FLASH_JDECID             0xBF
-#define SPI_FLASH_DEVICE_ID1         0x25
-#define SPI_FLASH_DEVICE_ID2         0x8D
-#define SPI_FLASH_AAI_WORD_PROG      0xAD // AAI command
+#define SPI_FLASH_JDECID        0xBF
+#define SPI_FLASH_DEVICE_ID1    0x25
+#define SPI_FLASH_DEVICE_ID2    0x8D
+#define SPI_FLASH_AAI_WORD_PROG 0xAD // AAI command
 #elif defined USE_SST25PF080B
 #define MEMORY_CAPACITY         0x100000
-#define SPI_FLASH_JDECID             0xBF
-#define SPI_FLASH_DEVICE_ID1         0x25
-#define SPI_FLASH_DEVICE_ID2         0x8E
-#define SPI_FLASH_AAI_WORD_PROG      0xAD // AAI command
+#define SPI_FLASH_JDECID        0xBF
+#define SPI_FLASH_DEVICE_ID1    0x25
+#define SPI_FLASH_DEVICE_ID2    0x8E
+#define SPI_FLASH_AAI_WORD_PROG 0xAD // AAI command
 #elif defined USE_SST25PF040C
 #define MEMORY_CAPACITY         0x080000
-#define SPI_FLASH_JDECID             0x62
-#define SPI_FLASH_DEVICE_ID1         0x06
-#define SPI_FLASH_DEVICE_ID2         0x13
-#define SPI_FLASH_AAI_WORD_PROG      0xAD // AAI command
+#define SPI_FLASH_JDECID        0x62
+#define SPI_FLASH_DEVICE_ID1    0x06
+#define SPI_FLASH_DEVICE_ID2    0x13
+#define SPI_FLASH_AAI_WORD_PROG 0xAD // AAI command
 #elif defined USE_AT25SF161B
 #define MEMORY_CAPACITY         0x200000
-#define SPI_FLASH_JDECID             0x1F
-#define SPI_FLASH_DEVICE_ID1         0x86
-#define SPI_FLASH_DEVICE_ID2         0x01
+#define SPI_FLASH_JDECID        0x1F
+#define SPI_FLASH_DEVICE_ID1    0x86
+#define SPI_FLASH_DEVICE_ID2    0x01
 #else
 #error "Not support your device"
 #endif

@@ -23,7 +23,10 @@ private void Vcp_Task(uint8_t portIdx) // <editor-fold defaultstate="collapsed" 
             VcpCxt[portIdx].rxBuf->data[VcpCxt[portIdx].rxBuf->head++]=tmpData[i];
 
             if(VcpCxt[portIdx].rxBuf->head>=VcpCxt[portIdx].rxBuf->size)
+            {
                 VcpCxt[portIdx].rxBuf->head=0;
+                VcpCxt[portIdx].rxBuf->tail=0;
+            }
         }
         // USB CDC0 put data
         switch(VcpCxt[portIdx].txBuf.next)
@@ -40,7 +43,7 @@ private void Vcp_Task(uint8_t portIdx) // <editor-fold defaultstate="collapsed" 
                     break;
 
             case 1:
-                if(USBUSARTIsTxTrfReady(0))
+                if(USBUSARTIsTxTrfReady(portIdx))
                 {
                     VcpCxt[portIdx].txBuf.next=2;
                     putUSBUSART(portIdx, VcpCxt[portIdx].txBuf.data, VcpCxt[portIdx].txBuf.len);
@@ -185,11 +188,6 @@ public void VCP_Init(void) // <editor-fold defaultstate="collapsed" desc="USB CD
 
     for(i=0; i<NUM_OF_CDC_PORTS; i++)
     {
-        VcpCxt[i].bridgePort.TxdLedSetState(0);
-        VcpCxt[i].bridgePort.RxdLedSetState(0);
-        Tick_Timer_Reset(VcpCxt[i].tkRxLed);
-        Tick_Timer_Reset(VcpCxt[i].tkTxLed);
-
         switch(i)
         {
             case 0:
@@ -235,7 +233,12 @@ public void VCP_Init(void) // <editor-fold defaultstate="collapsed" desc="USB CD
             default:
                 break;
         }
+
+        VcpCxt[i].bridgePort.TxdLedSetState(0);
+        VcpCxt[i].bridgePort.RxdLedSetState(0);
+        Tick_Timer_Reset(VcpCxt[i].tkRxLed);
+        Tick_Timer_Reset(VcpCxt[i].tkTxLed);
     }
-    
+
     TaskManager_Create_NewSimpleTask(VCP_Tasks);
 } // </editor-fold>

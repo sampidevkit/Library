@@ -139,7 +139,7 @@ public void SPI_Flash_Sector_Erase(uint32_t BAddr)
 
 public void SPI_Flash_Read_nByte(uint32_t BAddr, uint16_t len, uint8_t *buffer)
 {
-    SPI_Flash_Wait_Busy();
+    //SPI_Flash_Wait_Busy();
     spiData[0]=SPI_FLASH_FAST_READ_DATA;
     SPI_Flash_Make_Address(BAddr);
     spiData[4]=0x00;
@@ -151,7 +151,7 @@ public uint8_t SPI_Flash_Read_Byte(uint32_t BAddr)
 {
     uint8_t data;
 
-    SPI_Flash_Wait_Busy();
+    //SPI_Flash_Wait_Busy();
     spiData[0]=SPI_FLASH_FAST_READ_DATA;
     SPI_Flash_Make_Address(BAddr);
     spiData[4]=0x00;
