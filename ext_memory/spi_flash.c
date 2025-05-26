@@ -32,7 +32,7 @@
 #define SPI_FLASH_PROTECT_LOCK       0x80
 #define SPI_FLASH_PROTECT_UNLOCK     0x00
 
-static uint8_t spiData[6];
+static uint8_t spiData[8];
 
 /* [Chip select On/Off=1/0][data buffer][write length][read length][Chip select On/Off=1/0] */
 private void SPI_Xfer(bool enCS, uint8_t *data, uint16_t lenIn, uint16_t lenOut, bool dnCS) // <editor-fold defaultstate="collapsed" desc="SPI xfer data">
@@ -139,7 +139,7 @@ public void SPI_Flash_Sector_Erase(uint32_t BAddr)
 
 public void SPI_Flash_Read_nByte(uint32_t BAddr, uint16_t len, uint8_t *buffer)
 {
-    //SPI_Flash_Wait_Busy();
+    SPI_Flash_Wait_Busy();
     spiData[0]=SPI_FLASH_FAST_READ_DATA;
     SPI_Flash_Make_Address(BAddr);
     spiData[4]=0x00;
@@ -151,7 +151,7 @@ public uint8_t SPI_Flash_Read_Byte(uint32_t BAddr)
 {
     uint8_t data;
 
-    //SPI_Flash_Wait_Busy();
+    SPI_Flash_Wait_Busy();
     spiData[0]=SPI_FLASH_FAST_READ_DATA;
     SPI_Flash_Make_Address(BAddr);
     spiData[4]=0x00;

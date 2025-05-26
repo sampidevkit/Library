@@ -38,8 +38,7 @@ private new_simple_task_t(Download_Tasks) // <editor-fold defaultstate="collapse
             BufferLen=0;
             BLD_Comm_Init();
             IHEX_Init(1);
-            
-            //BLD_ExtMem_WriteState(BLD_STATE_DOWNLOADING);
+            BLD_ExtMem_WriteState(BLD_STATE_DOWNLOADING);
             Tick_Timer_Reset(Tick);
             BLD_DownloadLed_SetState(1);
             DoNext=DOWNLOAD_READ;
