@@ -22,6 +22,7 @@ enum DOWNLOAD_TASKS
     DOWNLOAD_WRITE,
     DOWNLOAD_REPORT_ACK,
     DOWNLOAD_REPORT_NACK,
+    DOWNLOAD_WAIT,
     DOWNLOAD_REBOOT
 };
 
@@ -80,42 +81,54 @@ private new_simple_task_t(Download_Tasks) // <editor-fold defaultstate="collapse
             DoNext=DOWNLOAD_REPORT_ACK;
             ToDo=DOWNLOAD_READ;
 
-            for(i=0; i<BufferLen; i++)
-            {
-                rslt=IHEX_Decode(Buffer[i]);
-
-                if(rslt==IHEX_ERROR)
-                {
-                    Buffer[0]='W';
-                    DoNext=DOWNLOAD_REPORT_NACK;
-                }
-                else if(rslt==IHEX_DONE)
-                    ToDo=DOWNLOAD_REBOOT;
-            }
-
-            if(DoNext==DOWNLOAD_REPORT_ACK)
-            {
-                for(i=0; i<BufferLen; i++)
-                    ;//BLD_ExtMem_WriteData(Buffer[i]);
-
-                if(ToDo==DOWNLOAD_REBOOT)
-                    ;//BLD_ExtMem_WriteState(BLD_STATE_NEWFW);
-            }
+            //            for(i=0; i<BufferLen; i++)
+            //            {
+            //                rslt=IHEX_Decode(Buffer[i]);
+            //
+            //                if(rslt==IHEX_ERROR)
+            //                {
+            //                    Buffer[0]='W';
+            //                    DoNext=DOWNLOAD_REPORT_NACK;
+            //                }
+            //                else if(rslt==IHEX_DONE)
+            //                    ToDo=DOWNLOAD_REBOOT;
+            //            }
+            //
+            //            if(DoNext==DOWNLOAD_REPORT_ACK)
+            //            {
+            //                for(i=0; i<BufferLen; i++)
+            //                    ; //BLD_ExtMem_WriteData(Buffer[i]);
+            //
+            //                if(ToDo==DOWNLOAD_REBOOT)
+            //                    ; //BLD_ExtMem_WriteState(BLD_STATE_NEWFW);
+            //            }
             break;
 
         case DOWNLOAD_REPORT_ACK:
-            BLD_Write('A');
-            BufferLen=0;
-            Tick_Timer_Reset(Tick);
-            DoNext=ToDo;
+            if(BLD_IsTxReady())
+            {
+                BLD_Write('A');
+                Tick_Timer_Reset(Tick);
+                DoNext=DOWNLOAD_WAIT;
+            }
             break;
 
         case DOWNLOAD_REPORT_NACK:
-            BLD_Write('K');
-            BLD_Write(Buffer[0]);
-            BufferLen=0;
-            Tick_Timer_Reset(Tick);
-            DoNext=ToDo;
+            if(BLD_IsTxReady())
+            {
+                BLD_Write('K');
+                BLD_Write(Buffer[0]);
+                Tick_Timer_Reset(Tick);
+                DoNext=DOWNLOAD_WAIT;
+            }
+            break;
+
+        case DOWNLOAD_WAIT:
+            if(BLD_IsTxDone())
+            {
+                BufferLen=0;
+                DoNext=ToDo;
+            }
             break;
 
         case DOWNLOAD_REBOOT:

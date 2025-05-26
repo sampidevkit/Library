@@ -46,6 +46,8 @@ private void Vcp_Task(uint8_t portIdx) // <editor-fold defaultstate="collapsed" 
                 if(USBUSARTIsTxTrfReady(portIdx))
                 {
                     VcpCxt[portIdx].txBuf.next=2;
+                    VcpCxt[portIdx].bridgePort.TxdLedSetState(1);
+                    Tick_Timer_Reset(VcpCxt[portIdx].tkTxLed);
                     putUSBUSART(portIdx, VcpCxt[portIdx].txBuf.data, VcpCxt[portIdx].txBuf.len);
                 }
                 break;
@@ -129,14 +131,14 @@ private void Bridge_Task(uint8_t portIdx) // <editor-fold defaultstate="collapse
                 if(USBUSARTIsTxTrfReady(portIdx))
                 {
                     VcpCxt[portIdx].txBuf.next=2;
+                    VcpCxt[portIdx].bridgePort.TxdLedSetState(1);
+                    Tick_Timer_Reset(VcpCxt[portIdx].tkTxLed);
                     putUSBUSART(portIdx, VcpCxt[portIdx].txBuf.data, VcpCxt[portIdx].txBuf.len);
                 }
                 break;
 
             default: // Waiting for TX done
                 CDCTxService(portIdx);
-                VcpCxt[portIdx].bridgePort.TxdLedSetState(1);
-                Tick_Timer_Reset(VcpCxt[portIdx].tkTxLed);
 
                 if(USBUSARTIsTxTrfReady(portIdx)||(VcpCxt[portIdx].Ctrl.opened==0)) // check TX state again
                     VcpCxt[portIdx].txBuf.next=0;

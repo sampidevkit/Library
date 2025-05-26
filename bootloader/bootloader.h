@@ -14,6 +14,7 @@ bool BLD_Trigger_GetState(void);
 void BLD_Comm_Init(void);
 bool BLD_IsRxReady(void);
 bool BLD_IsTxReady(void);
+bool BLD_IsTxDone(void);
 void BLD_Write(uint8_t c);
 uint8_t BLD_Read(void);
 void BLD_DownloadLed_SetState(bool state);

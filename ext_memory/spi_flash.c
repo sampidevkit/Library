@@ -1,4 +1,5 @@
 #include "spi_flash.h"
+#include "system/system_tick.h"
 
 #ifdef USE_SPI_FLASH_DEBUG
 #include "Common/debug.h"
@@ -39,16 +40,16 @@ private void SPI_Xfer(bool enCS, uint8_t *data, uint16_t lenIn, uint16_t lenOut,
 {
     uint16_t i;
 
-    if(enCS)
+    if(enCS==1)
         SPI_Flash_NCS_SetLow();
 
     for(i=0; i<lenIn; i++)
         SPI_Flash_Exchange8bit(data[i]);
-
+    
     for(i=0; i<lenOut; i++)
         data[i]=SPI_Flash_Exchange8bit(0xFF);
 
-    if(dnCS)
+    if(dnCS==1)
         SPI_Flash_NCS_SetHigh();
 } // </editor-fold>
 
