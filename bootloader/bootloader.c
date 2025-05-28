@@ -81,33 +81,34 @@ private new_simple_task_t(Download_Tasks) // <editor-fold defaultstate="collapse
             DoNext=DOWNLOAD_REPORT_ACK;
             ToDo=DOWNLOAD_READ;
 
-            //            for(i=0; i<BufferLen; i++)
-            //            {
-            //                rslt=IHEX_Decode(Buffer[i]);
-            //
-            //                if(rslt==IHEX_ERROR)
-            //                {
-            //                    Buffer[0]='W';
-            //                    DoNext=DOWNLOAD_REPORT_NACK;
-            //                }
-            //                else if(rslt==IHEX_DONE)
-            //                    ToDo=DOWNLOAD_REBOOT;
-            //            }
-            //
-            //            if(DoNext==DOWNLOAD_REPORT_ACK)
-            //            {
-            //                for(i=0; i<BufferLen; i++)
-            //                    ; //BLD_ExtMem_WriteData(Buffer[i]);
-            //
-            //                if(ToDo==DOWNLOAD_REBOOT)
-            //                    ; //BLD_ExtMem_WriteState(BLD_STATE_NEWFW);
-            //            }
+//            for(i=0; i<BufferLen; i++)
+//            {
+//                rslt=IHEX_Decode(Buffer[i]);
+//
+//                if(rslt==IHEX_ERROR)
+//                {
+//                    Buffer[0]='W';
+//                    DoNext=DOWNLOAD_REPORT_NACK;
+//                }
+//                else if(rslt==IHEX_DONE)
+//                    ToDo=DOWNLOAD_REBOOT;
+//            }
+//
+//            if(DoNext==DOWNLOAD_REPORT_ACK)
+//            {
+//                for(i=0; i<BufferLen; i++)
+//                    ; //BLD_ExtMem_WriteData(Buffer[i]);
+//
+//                if(ToDo==DOWNLOAD_REBOOT)
+//                    ; //BLD_ExtMem_WriteState(BLD_STATE_NEWFW);
+//            }
             break;
 
         case DOWNLOAD_REPORT_ACK:
             if(BLD_IsTxReady())
             {
                 BLD_Write('A');
+                BLD_Write('\r');
                 Tick_Timer_Reset(Tick);
                 DoNext=DOWNLOAD_WAIT;
             }

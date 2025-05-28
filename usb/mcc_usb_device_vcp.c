@@ -32,7 +32,8 @@ private void Vcp_Task(uint8_t portIdx) // <editor-fold defaultstate="collapsed" 
         switch(VcpCxt[portIdx].txBuf.next)
         {
             case 0:
-                if(Tick_Timer_Is_Over_Ms(VcpCxt[portIdx].txBuf.tkData, 10)||(VcpCxt[portIdx].txBuf.len==CDC_DATA_IN_EP_SIZE))
+                if(Tick_Timer_Is_Over_Ms(VcpCxt[portIdx].txBuf.tkData, 10)
+                        ||(VcpCxt[portIdx].txBuf.len==CDC_DATA_IN_EP_SIZE))
                 {
                     if(VcpCxt[portIdx].txBuf.len>0)
                         VcpCxt[portIdx].txBuf.next=1;

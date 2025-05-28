@@ -64,8 +64,6 @@ public bool VCP0_IsRxReady(void) // <editor-fold defaultstate="collapsed" desc="
 
 public void VCP0_WriteByte(uint8_t b) // <editor-fold defaultstate="collapsed" desc="Write 1 byte to VCP">
 {
-    Tick_Timer_Reset(VcpCxt[PortIdx].txBuf.tkData);
-
     while(VcpCxt[PortIdx].txBuf.len==CDC_DATA_IN_EP_SIZE)
     {
         if(VcpCxt[PortIdx].Ctrl.opened==0)
@@ -77,6 +75,7 @@ public void VCP0_WriteByte(uint8_t b) // <editor-fold defaultstate="collapsed" d
         TaskManager();
     }
 
+    Tick_Timer_Reset(VcpCxt[PortIdx].txBuf.tkData);
     VcpCxt[PortIdx].txBuf.data[VcpCxt[PortIdx].txBuf.len++]=b;
 } // </editor-fold>
 
