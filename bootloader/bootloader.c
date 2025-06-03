@@ -8,127 +8,78 @@
 enum UPGRADE_TASKS
 {
     UPGRADE_INIT=0,
-    UPGRADE_READ,
-    UPGRADE_DECODE,
-    UPGRADE_SUCCESS,
-    UPGRADE_ERROR,
+    UPGRADE_PROCESS,
     UPGRADE_REBOOT
 };
 
 enum DOWNLOAD_TASKS
 {
     DOWNLOAD_INIT=0,
-    DOWNLOAD_READ,
-    DOWNLOAD_WRITE,
-    DOWNLOAD_REPORT_ACK,
-    DOWNLOAD_REPORT_NACK,
-    DOWNLOAD_WAIT,
+    DOWNLOAD_PROCESS,
+    DOWNLOAD_REPORT,
     DOWNLOAD_REBOOT
 };
 
 private int8_t rslt;
 private tick_timer_t Tick;
-private uint8_t Buffer[BLD_BUFFER_SIZE];
-private uint8_t i, DoNext, ToDo, BufferLen;
+private uint8_t i, DoNext, RebootReq, Buff;
 
 private new_simple_task_t(Download_Tasks) // <editor-fold defaultstate="collapsed" desc="Download task">
 {
     switch(DoNext)
     {
         case DOWNLOAD_INIT:
-            BufferLen=0;
             BLD_Comm_Init();
             IHEX_Init(1);
             BLD_ExtMem_WriteState(BLD_STATE_DOWNLOADING);
             Tick_Timer_Reset(Tick);
             BLD_DownloadLed_SetState(1);
-            DoNext=DOWNLOAD_READ;
+            DoNext=DOWNLOAD_PROCESS;
+            RebootReq=0;
             break;
 
-        case DOWNLOAD_READ:
+        case DOWNLOAD_PROCESS:
             if(BLD_IsRxReady())
             {
                 Tick_Timer_Reset(Tick);
-                Buffer[BufferLen]=BLD_Read();
+                Buff=BLD_Read();
+                rslt=IHEX_BUSY; //IHEX_Decode(Buff);
 
-                if(Buffer[BufferLen]=='\r')
+                if(rslt!=IHEX_ERROR)
                 {
-                    BufferLen++;
-                    DoNext=DOWNLOAD_WRITE;
-                    break;
-                }
-                else if(BufferLen<BLD_BUFFER_SIZE)
-                    BufferLen++;
-            }
+                    BLD_ExtMem_WriteData(Buff);
 
-            if(BufferLen>0)
-            {
-                if(Tick_Timer_Is_Over_Ms(Tick, 100))
-                {
-                    if(BufferLen<BLD_BUFFER_SIZE)
-                        DoNext=DOWNLOAD_WRITE;
-                    else
+                    if(rslt==IHEX_DONE)
                     {
-                        Buffer[0]='R';
-                        DoNext=DOWNLOAD_REPORT_NACK;
-                        ToDo=DOWNLOAD_READ;
+                        RebootReq=1;
+                        BLD_ExtMem_WriteState(BLD_STATE_NEWFW);
+                    }
+
+                    if(Buff=='\n')
+                    {
+                        Buff='A';
+                        DoNext=DOWNLOAD_REPORT;
                     }
                 }
             }
-            break;
 
-        case DOWNLOAD_WRITE:
-            DoNext=DOWNLOAD_REPORT_ACK;
-            ToDo=DOWNLOAD_READ;
-
-//            for(i=0; i<BufferLen; i++)
-//            {
-//                rslt=IHEX_Decode(Buffer[i]);
-//
-//                if(rslt==IHEX_ERROR)
-//                {
-//                    Buffer[0]='W';
-//                    DoNext=DOWNLOAD_REPORT_NACK;
-//                }
-//                else if(rslt==IHEX_DONE)
-//                    ToDo=DOWNLOAD_REBOOT;
-//            }
-//
-//            if(DoNext==DOWNLOAD_REPORT_ACK)
-//            {
-//                for(i=0; i<BufferLen; i++)
-//                    ; //BLD_ExtMem_WriteData(Buffer[i]);
-//
-//                if(ToDo==DOWNLOAD_REBOOT)
-//                    ; //BLD_ExtMem_WriteState(BLD_STATE_NEWFW);
-//            }
-            break;
-
-        case DOWNLOAD_REPORT_ACK:
-            if(BLD_IsTxReady())
+            if((rslt==IHEX_ERROR)||Tick_Timer_Is_Over_Ms(Tick, 30000))
             {
-                BLD_Write('A');
-                BLD_Write('\r');
-                Tick_Timer_Reset(Tick);
-                DoNext=DOWNLOAD_WAIT;
+                Buff='N';
+                DoNext=DOWNLOAD_REPORT;
             }
             break;
 
-        case DOWNLOAD_REPORT_NACK:
+        case DOWNLOAD_REPORT:
             if(BLD_IsTxReady())
             {
-                BLD_Write('K');
-                BLD_Write(Buffer[0]);
+                BLD_Write(Buff);
                 Tick_Timer_Reset(Tick);
-                DoNext=DOWNLOAD_WAIT;
-            }
-            break;
 
-        case DOWNLOAD_WAIT:
-            if(BLD_IsTxDone())
-            {
-                BufferLen=0;
-                DoNext=ToDo;
+                if(RebootReq==1)
+                    DoNext=DOWNLOAD_REBOOT;
+                else
+                    DoNext=DOWNLOAD_PROCESS;
             }
             break;
 
@@ -147,53 +98,27 @@ private new_simple_task_t(Upgrade_Tasks) // <editor-fold defaultstate="collapsed
     switch(DoNext)
     {
         case UPGRADE_INIT:
-            BufferLen=0;
             IHEX_Init(0); // disable lock
             BLD_UpgradeLed_SetState(1);
-            DoNext=UPGRADE_READ;
+            DoNext=UPGRADE_PROCESS;
             break;
 
-        case UPGRADE_READ:
-            Buffer[BufferLen]=BLD_ExtMem_ReadData();
+        case UPGRADE_PROCESS:
+            rslt=IHEX_Decode(BLD_ExtMem_ReadData());
 
-            if(Buffer[BufferLen]=='\n')
-                DoNext=UPGRADE_DECODE;
-            else if(BufferLen<BLD_BUFFER_SIZE)
-                BufferLen++;
-            else
-                DoNext=UPGRADE_ERROR;
-            break;
-
-        case UPGRADE_DECODE: // Process data
-            for(i=0; i<BufferLen; i++)
+            if(rslt==PROC_DONE)
             {
-                rslt=IHEX_Decode(Buffer[i]);
-
-                if(rslt==PROC_DONE)
-                {
-                    DoNext=UPGRADE_SUCCESS;
-                    break;
-                }
-                else if(rslt==PROC_ERR)
-                {
-                    DoNext=UPGRADE_ERROR;
-                    break;
-                }
+                BLD_ExtMem_WriteState(BLD_STATE_FIRST_RUN);
+                Jump2App(); // Jump out this function if no application
+                DoNext=UPGRADE_REBOOT;
+                break;
             }
-
-            if(DoNext==UPGRADE_DECODE)
-                DoNext=UPGRADE_READ;
-            break;
-
-        case UPGRADE_SUCCESS: // Success
-            BLD_ExtMem_WriteState(BLD_STATE_FIRST_RUN);
-            Jump2App(); // Jump out this function if no application
-            DoNext=UPGRADE_REBOOT;
-            break;
-
-        case UPGRADE_ERROR: // Error
-            BLD_ExtMem_WriteState(BLD_STATE_DOWNLOADING);
-            DoNext=UPGRADE_REBOOT;
+            else if(rslt==PROC_ERR)
+            {
+                BLD_ExtMem_WriteState(BLD_STATE_DOWNLOADING);
+                DoNext=UPGRADE_REBOOT;
+                break;
+            }
             break;
 
         case UPGRADE_REBOOT: // Do nothing
