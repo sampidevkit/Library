@@ -4,7 +4,6 @@
 #include "common/libdef.h"
 #include "project_cfg.h"
 
-public void Flash_Access_Lock(uint8_t Opt); // Opt=0: unlock; Opt=1: lock; Opt>=2: reset internal state, keep previous access state
 public int8_t Flash_Access_Write(uint32_t Addr, const uint8_t *pData, int Len);
 public void Flash_Access_Read(uint32_t Addr, void *pData, int Len);
     

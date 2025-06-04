@@ -10,15 +10,6 @@ typedef struct
 } flash_t;
 
 private bool flash_initialized=0;
-private bool flash_locked=1;
-
-public void Flash_Access_Lock(uint8_t Opt) // <editor-fold defaultstate="collapsed" desc="Software lock">
-{
-    if(Opt<2)
-        flash_locked=(bool) Opt;
-    else
-        flash_initialized=0;
-} // </editor-fold>
 
 private uint32_t Flash_Access_Convert4x8to32(const uint8_t *pArr) // <editor-fold defaultstate="collapsed" desc="Convert 32bit to 4x8bit">
 {
@@ -46,9 +37,6 @@ private bool Flash_Access_FullErase(void) // <editor-fold defaultstate="collapse
 {
     uint32_t Addr=APP_BEGIN_ADDRESS;
     uint32_t NumOfPage=APP_SIZE_IN_PAGE;
-
-    if(flash_locked==1)
-        return 1;
 
     while(NumOfPage>0)
     {
@@ -90,9 +78,7 @@ private bool Flash_Access_DWordPack(flash_t *pBldNvm) // <editor-fold defaultsta
         {
             if(Flash_Access_IsWritable(pBldNvm->Address))
             {
-                if(flash_locked==1)
-                    rslt=1;
-                else if(FLASH_WriteDoubleWord(pBldNvm->Address, pBldNvm->Word0, pBldNvm->Word1))
+                if(FLASH_WriteDoubleWord(pBldNvm->Address, pBldNvm->Word0, pBldNvm->Word1))
                     rslt=1;
             }
             else

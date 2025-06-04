@@ -4,6 +4,7 @@
 #include "misc/intel_hex.h"
 #include "system/system_tick.h"
 #include "system/task_manager.h"
+#include "misc/util.h"
 
 enum UPGRADE_TASKS
 {
@@ -20,9 +21,12 @@ enum DOWNLOAD_TASKS
     DOWNLOAD_REBOOT
 };
 
+private bool first;
+private int Opcode;
+private size_t Idx;
 private int8_t rslt;
 private tick_timer_t Tick;
-private uint8_t i, DoNext, RebootReq, Buff;
+private uint8_t DoNext, RebootReq, Buff;
 
 private new_simple_task_t(Download_Tasks) // <editor-fold defaultstate="collapsed" desc="Download task">
 {
@@ -30,43 +34,43 @@ private new_simple_task_t(Download_Tasks) // <editor-fold defaultstate="collapse
     {
         case DOWNLOAD_INIT:
             BLD_Comm_Init();
-            IHEX_Init(1);
             BLD_ExtMem_WriteState(BLD_STATE_DOWNLOADING);
             Tick_Timer_Reset(Tick);
             BLD_DownloadLed_SetState(1);
             DoNext=DOWNLOAD_PROCESS;
             RebootReq=0;
+            first=1;
+            Idx=0;
             break;
 
         case DOWNLOAD_PROCESS:
             if(BLD_IsRxReady())
             {
+                first=0;
                 Tick_Timer_Reset(Tick);
                 Buff=BLD_Read();
-                rslt=IHEX_BUSY; //IHEX_Decode(Buff);
+                //BLD_ExtMem_WriteData(Buff);
 
-                if(rslt!=IHEX_ERROR)
+                if(FindString(Buff, &Idx, ":00000001FF"))
                 {
-                    BLD_ExtMem_WriteData(Buff);
+                    RebootReq=1;
+                    BLD_ExtMem_WriteState(BLD_STATE_NEWFW);
+                }
 
-                    if(rslt==IHEX_DONE)
-                    {
-                        RebootReq=1;
-                        BLD_ExtMem_WriteState(BLD_STATE_NEWFW);
-                    }
-
-                    if(Buff=='\n')
-                    {
-                        Buff='A';
-                        DoNext=DOWNLOAD_REPORT;
-                    }
+                if(Buff=='\n')
+                {
+                    Buff='A';
+                    DoNext=DOWNLOAD_REPORT;
                 }
             }
 
-            if((rslt==IHEX_ERROR)||Tick_Timer_Is_Over_Ms(Tick, 30000))
+            if(first==0)
             {
-                Buff='N';
-                DoNext=DOWNLOAD_REPORT;
+                if(Tick_Timer_Is_Over_Ms(Tick, 1000))
+                {
+                    Buff='N';
+                    DoNext=DOWNLOAD_REPORT;
+                }
             }
             break;
 
@@ -79,7 +83,10 @@ private new_simple_task_t(Download_Tasks) // <editor-fold defaultstate="collapse
                 if(RebootReq==1)
                     DoNext=DOWNLOAD_REBOOT;
                 else
+                {
+                    Idx=0;
                     DoNext=DOWNLOAD_PROCESS;
+                }
             }
             break;
 
@@ -98,22 +105,31 @@ private new_simple_task_t(Upgrade_Tasks) // <editor-fold defaultstate="collapsed
     switch(DoNext)
     {
         case UPGRADE_INIT:
-            IHEX_Init(0); // disable lock
+            IHEX_Init();
             BLD_UpgradeLed_SetState(1);
             DoNext=UPGRADE_PROCESS;
             break;
 
         case UPGRADE_PROCESS:
-            rslt=IHEX_Decode(BLD_ExtMem_ReadData());
+            BLD_UpgradeLed_SetState(0);
+            Opcode=BLD_ExtMem_ReadData();
 
-            if(rslt==PROC_DONE)
+            if(Opcode==EOF)
+                rslt=IHEX_ERROR;
+            else
+            {
+                BLD_UpgradeLed_SetState(1);
+                rslt=IHEX_Decode((uint8_t) Opcode);
+            }
+
+            if(rslt==IHEX_DONE)
             {
                 BLD_ExtMem_WriteState(BLD_STATE_FIRST_RUN);
                 Jump2App(); // Jump out this function if no application
                 DoNext=UPGRADE_REBOOT;
                 break;
             }
-            else if(rslt==PROC_ERR)
+            else if(rslt==IHEX_ERROR)
             {
                 BLD_ExtMem_WriteState(BLD_STATE_DOWNLOADING);
                 DoNext=UPGRADE_REBOOT;

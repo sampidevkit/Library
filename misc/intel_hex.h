@@ -42,14 +42,9 @@ typedef unsigned long _paddr_t;
 
 /* ****************************************************** EXTRANAL PROTOTYPES */
 public void IHEX_ErrorLogWrite(uint16_t line);
-    
-#define IHEX_NVM_UNLOCK                 0
-#define IHEX_NVM_LOCK                   1
-#define IHEX_NVM_INTERNAL_STATE_RESET   2 // Keep previous access mode, reset internal process state only
-public void IHEX_NVM_Lock(uint8_t Opt);
 public uint8_t IHEX_NVM_Write(uint32_t addr, uint8_t *pData, uint8_t len);
 /* ************************************************************************** */
-public void IHEX_Init(bool testEna);
+public void IHEX_Init(void);
 public int8_t IHEX_Decode(int8_t c);
 
 #endif

@@ -23,10 +23,7 @@ private void Vcp_Task(uint8_t portIdx) // <editor-fold defaultstate="collapsed" 
             VcpCxt[portIdx].rxBuf->data[VcpCxt[portIdx].rxBuf->head++]=tmpData[i];
 
             if(VcpCxt[portIdx].rxBuf->head>=VcpCxt[portIdx].rxBuf->size)
-            {
                 VcpCxt[portIdx].rxBuf->head=0;
-                VcpCxt[portIdx].rxBuf->tail=0;
-            }
         }
         // USB CDC0 put data
         switch(VcpCxt[portIdx].txBuf.next)
@@ -81,6 +78,7 @@ private void Vcp_Task(uint8_t portIdx) // <editor-fold defaultstate="collapsed" 
     {
         Tick_Timer_Reset(VcpCxt[portIdx].txBuf.tkData);
         VcpCxt[portIdx].txBuf.next=0;
+        VcpCxt[portIdx].txBuf.len=0;
         VcpCxt[portIdx].bridgePort.TxdLedSetState(0);
         VcpCxt[portIdx].bridgePort.RxdLedSetState(0);
     }

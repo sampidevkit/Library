@@ -17,12 +17,12 @@ bld_stt_t BLD_ExtMem_Init(void)
     return bldState;
 }
 
-uint8_t BLD_ExtMem_ReadData(void)
+int BLD_ExtMem_ReadData(void)
 {
     if(DataAddr<=BLD_EXTMEM_END)
         return BLD_ExtMem_Driver_Read(DataAddr++);
 
-    return 0xFF;
+    return EOF;
 }
 
 void BLD_ExtMem_SetDataAddr(uint32_t addr)
@@ -48,6 +48,7 @@ void BLD_ExtMem_WriteData(uint8_t b)
                 {
                     BLD_ExtMem_Driver_Erase(DataAddr);
                     DataAddr+=BLD_EXTMEM_SECTOR_LEN;
+                    i--;
                 }
 
                 break;

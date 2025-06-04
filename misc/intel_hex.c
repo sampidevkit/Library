@@ -67,9 +67,8 @@ private uint8_t IHEX_Hex2Int(int8_t c, uint8_t NumOfDigit, uint32_t *pVal, uint8
     return IHEX_BUSY;
 } // </editor-fold>
 
-public void IHEX_Init(bool testEna) // <editor-fold defaultstate="collapsed" desc="Intel hex process initialize">
+public void IHEX_Init(void) // <editor-fold defaultstate="collapsed" desc="Intel hex process initialize">
 {
-    IHEX_NVM_Lock(testEna); // software lock, for test hex file format, do not write to memory
     memset(&Hex2IntCxt, 0, sizeof (Hex2IntCxt));
     memset(&Decode, 0, sizeof (Decode)); // Set all members to 0
     Decode.numofdigit=2;
@@ -218,7 +217,7 @@ public int8_t IHEX_Decode(int8_t c) // <editor-fold defaultstate="collapsed" des
     return IHEX_BUSY;
 
 EXIT:
-    IHEX_Init(IHEX_NVM_INTERNAL_STATE_RESET);
+    IHEX_Init();
 
     if(this_task_rslt==IHEX_DONE)
     {
