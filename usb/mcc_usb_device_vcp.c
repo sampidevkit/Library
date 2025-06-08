@@ -1,6 +1,30 @@
 #include "mcc_usb_device_vcp.h"
 #include "mcc_usb_device_vcp0.h"
 
+#if(NUM_OF_CDC_PORTS>=2)
+#include "mcc_usb_device_vcp1.h"
+#endif
+
+#if(NUM_OF_CDC_PORTS>=3)
+#include "mcc_usb_device_vcp2.h"
+#endif
+
+#if(NUM_OF_CDC_PORTS>=4)
+#include "mcc_usb_device_vcp3.h"
+#endif
+
+#if(NUM_OF_CDC_PORTS>=5)
+#include "mcc_usb_device_vcp4.h"
+#endif
+
+#if(NUM_OF_CDC_PORTS>=6)
+#include "mcc_usb_device_vcp5.h"
+#endif
+
+#if(NUM_OF_CDC_PORTS>=7)
+#include "mcc_usb_device_vcp6.h"
+#endif
+
 port_cxt_t VcpCxt[NUM_OF_CDC_PORTS];
 static uint8_t tmpData[CDC_DATA_OUT_EP_SIZE];
 

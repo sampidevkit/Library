@@ -45,12 +45,22 @@ private void SPI_Xfer(bool enCS, uint8_t *data, uint16_t lenIn, uint16_t lenOut,
 
     for(i=0; i<lenIn; i++)
         SPI_Flash_Exchange8bit(data[i]);
-    
+
     for(i=0; i<lenOut; i++)
         data[i]=SPI_Flash_Exchange8bit(0xFF);
 
     if(dnCS==1)
         SPI_Flash_NCS_SetHigh();
+} // </editor-fold>
+
+public uint32_t SPI_Flash_GetSectorIndex(uint32_t Addr) // <editor-fold defaultstate="collapsed" desc="Get index of a sector">
+{
+    return (Addr>>12);
+} // </editor-fold>
+
+public uint32_t SPI_Flash_GetSectorBeginAddress(uint32_t Addr) // <editor-fold defaultstate="collapsed" desc="Get begin address of a sector">
+{
+    return (Addr&0xFFFFF000);
 } // </editor-fold>
 
 public void SPI_Flash_Enable_Write(void)
@@ -132,7 +142,7 @@ public void SPI_Flash_Sector_Erase(uint32_t BAddr)
 {
     SPI_Flash_Enable_Write();
     spiData[0]=SPI_FLASH_SECTOR_ERASE;
-    SPI_Flash_Make_Address(BAddr);
+    SPI_Flash_Make_Address(SPI_Flash_GetSectorBeginAddress(BAddr));
     SPI_Xfer(1, spiData, 4, 0, 1);
     SPI_Flash_Wait_Busy();
     SPI_Flash_Disable_Write();

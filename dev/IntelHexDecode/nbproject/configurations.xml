@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="100">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="HeaderFiles"
+                   displayName="Header Files"
+                   projectFiles="true">
+      <logicalFolder name="f3" displayName="cfg" projectFiles="true">
+        <itemPath>cfg/project_cfg.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f2" displayName="common" projectFiles="true">
+        <itemPath>../../common/libdef.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f1" displayName="misc" projectFiles="true">
+        <itemPath>../../misc/intel_hex.h</itemPath>
+      </logicalFolder>
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Resource Files"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="SourceFiles"
+                   displayName="Source Files"
+                   projectFiles="true">
+      <logicalFolder name="f1" displayName="cfg" projectFiles="true">
+        <itemPath>cfg/intel_hex_cfg.c</itemPath>
+      </logicalFolder>
+      <logicalFolder name="misc" displayName="misc" projectFiles="true">
+        <itemPath>../../misc/intel_hex.c</itemPath>
+      </logicalFolder>
+      <itemPath>main.c</itemPath>
+    </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <sourceRootList>
+    <Elem>../../misc</Elem>
+  </sourceRootList>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Debug" type="1">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <standard>3</standard>
+          <incDir>
+            <pElem>../..</pElem>
+            <pElem>cfg</pElem>
+          </incDir>
+        </cTool>
+      </compileType>
+      <item path="../../common/libdef.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../misc/intel_hex.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../misc/intel_hex.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="cfg/intel_hex_cfg.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="cfg/project_cfg.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="main.c" ex="false" tool="0" flavor2="0">
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>

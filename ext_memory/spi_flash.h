@@ -91,6 +91,8 @@ public uint32_t SPI_Flash_Get_JDECID(void); // Get JEDECID
 public void SPI_Flash_Protect(uint8_t BPval); // Protect memory zone
 
 public void SPI_Flash_Make_Address(uint32_t address);
+public uint32_t SPI_Flash_GetSectorBeginAddress(uint32_t Addr);
+public uint32_t SPI_Flash_GetSectorIndex(uint32_t Addr);
 public void SPI_Flash_Wait_Busy(void);
 public void SPI_Flash_Write_Status(uint8_t SttRegIdx, uint8_t stt);
 public uint8_t SPI_Flash_Read_Status(uint8_t SttRegIdx);

@@ -6,7 +6,7 @@
 #include "system/system_tick.h"
 
 #if !defined(__PICC18__) && !defined(__PICC__) && !defined(__PICCLITE__)
-#include "system/taskmanager.h"
+#include "system/task_manager.h"
 #endif
 
 #define HEX_HEADER 0x80

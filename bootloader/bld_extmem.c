@@ -2,7 +2,7 @@
 #include "misc/util.h"
 
 static uint8_t BldInfo[BLD_EXTMEM_INFO_LEN];
-static uint32_t DataAddr=BLD_EXTMEM_DATA_ADDR;
+static uint32_t DataSector, DataAddr=BLD_EXTMEM_DATA_ADDR;
 
 bld_stt_t BLD_ExtMem_Init(void)
 {
@@ -12,17 +12,15 @@ bld_stt_t BLD_ExtMem_Init(void)
     {
         bldState=BLD_ExtMem_ReadState();
         DataAddr=BLD_EXTMEM_DATA_ADDR;
+        DataSector=0xFFFFFFFF;
     }
 
     return bldState;
 }
 
-int BLD_ExtMem_ReadData(void)
+uint8_t BLD_ExtMem_ReadData(void)
 {
-    if(DataAddr<=BLD_EXTMEM_END)
-        return BLD_ExtMem_Driver_Read(DataAddr++);
-
-    return EOF;
+    return BLD_ExtMem_Driver_Read(DataAddr++);
 }
 
 void BLD_ExtMem_SetDataAddr(uint32_t addr)
@@ -33,37 +31,18 @@ void BLD_ExtMem_SetDataAddr(uint32_t addr)
 
 void BLD_ExtMem_WriteData(uint8_t b)
 {
-    uint32_t i;
-
-    if(DataAddr==BLD_EXTMEM_DATA_ADDR) // check blank
-    {
-        do
-        {
-            if(BLD_ExtMem_Driver_Read(DataAddr)!=0xFF)
-            {
-                i=BLD_EXTMEM_DATA_LEN/BLD_EXTMEM_SECTOR_LEN; // get number of sector
-                DataAddr=BLD_EXTMEM_DATA_ADDR;
-
-                while(i>0)
-                {
-                    BLD_ExtMem_Driver_Erase(DataAddr);
-                    DataAddr+=BLD_EXTMEM_SECTOR_LEN;
-                    i--;
-                }
-
-                break;
-            }
-            else
-                DataAddr++;
-
-        }
-        while(DataAddr<=BLD_EXTMEM_END);
-
-        DataAddr=BLD_EXTMEM_DATA_ADDR;
-    }
-
     if(DataAddr<=BLD_EXTMEM_END)
+    {
+        uint32_t currentSector=DataAddr/BLD_EXTMEM_SECTOR_LEN;
+
+        if(currentSector!=DataSector)
+        {
+            DataSector=currentSector;
+            BLD_ExtMem_Driver_Erase(DataAddr);
+        }
+
         BLD_ExtMem_Driver_Write(DataAddr++, b);
+    }
 }
 
 bld_stt_t BLD_ExtMem_ReadState(void)
@@ -138,7 +117,7 @@ void BLD_ExtMem_WriteServerName(const uint8_t *pServerName)
 {
     uint32_t i;
 
-    if(str_cmp((char *) &BldInfo[INFO_HOST_OFFSET], (char *)pServerName))
+    if(str_cmp((char *) &BldInfo[INFO_HOST_OFFSET], (char *) pServerName))
         return;
 
     BLD_ExtMem_Driver_Erase(BLD_EXTMEM_INFO_ADDR);
@@ -159,7 +138,7 @@ void BLD_ExtMem_WriteUserName(const uint8_t *pUserName)
 {
     uint32_t i;
 
-    if(str_cmp((char *) &BldInfo[INFO_USER_OFFSET], (char *)pUserName))
+    if(str_cmp((char *) &BldInfo[INFO_USER_OFFSET], (char *) pUserName))
         return;
 
     BLD_ExtMem_Driver_Erase(BLD_EXTMEM_INFO_ADDR);
@@ -180,7 +159,7 @@ void BLD_ExtMem_WritePassword(const uint8_t *pPassword)
 {
     uint32_t i;
 
-    if(str_cmp((char *) &BldInfo[INFO_PASSWORD_OFFSET], (char *)pPassword))
+    if(str_cmp((char *) &BldInfo[INFO_PASSWORD_OFFSET], (char *) pPassword))
         return;
 
     BLD_ExtMem_Driver_Erase(BLD_EXTMEM_INFO_ADDR);

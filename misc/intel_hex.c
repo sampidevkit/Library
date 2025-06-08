@@ -1,5 +1,7 @@
 #include "intel_hex.h"
 
+#define __db(...) printf(__VA_ARGS__)
+
 private __PACKED_STRUCT
 {
     uint8_t i;
@@ -15,8 +17,7 @@ private __PACKED_STRUCT{
     uint8_t i;
     uint8_t cks;
     uint8_t phase;
-    uint8_t numofdigit;
-}
+    uint8_t numofdigit;}
 Decode;
 
 private uint8_t IHEX_Hex2Int(int8_t c, uint8_t NumOfDigit, uint32_t *pVal, uint8_t *pCks) // <editor-fold defaultstate="collapsed" desc="Check hex">
@@ -67,6 +68,29 @@ private uint8_t IHEX_Hex2Int(int8_t c, uint8_t NumOfDigit, uint32_t *pVal, uint8
     return IHEX_BUSY;
 } // </editor-fold>
 
+public bool IHEX_IsHexData(uint8_t c) // <editor-fold defaultstate="collapsed" desc="Check hex data">
+{
+    if((c>='0')&&(c<='9'))
+        return 1;
+
+    if((c>='A')&&(c<='F'))
+        return 1;
+
+    if((c>='a')&&(c<='f'))
+        return 1;
+
+    if(c=='\r')
+        return 1;
+
+    if(c=='\n')
+        return 1;
+
+    if(c==':')
+        return 1;
+
+    return 0;
+} // </editor-fold>
+
 public void IHEX_Init(void) // <editor-fold defaultstate="collapsed" desc="Intel hex process initialize">
 {
     memset(&Hex2IntCxt, 0, sizeof (Hex2IntCxt));
@@ -74,10 +98,12 @@ public void IHEX_Init(void) // <editor-fold defaultstate="collapsed" desc="Intel
     Decode.numofdigit=2;
 } // </editor-fold>
 
-public int8_t IHEX_Decode(int8_t c) // <editor-fold defaultstate="collapsed" desc="Intel hex parsing">
+public uint8_t IHEX_Decode(int8_t c) // <editor-fold defaultstate="collapsed" desc="Intel hex parsing">
 {
     uint32_t tmp;
-    int8_t this_task_rslt=IHEX_Hex2Int(c, Decode.numofdigit, &Decode.val, &Decode.cks);
+    uint8_t this_task_rslt;
+
+    this_task_rslt=IHEX_Hex2Int(c, Decode.numofdigit, &Decode.val, &Decode.cks);
 
     if(this_task_rslt==IHEX_ERROR)
     {
@@ -88,9 +114,11 @@ public int8_t IHEX_Decode(int8_t c) // <editor-fold defaultstate="collapsed" des
         }
     }
     else if(this_task_rslt==IHEX_BUSY)
+    {
         return IHEX_BUSY;
-
-    this_task_rslt=IHEX_ERROR;
+    }
+    else
+        this_task_rslt=IHEX_ERROR;
 
     switch(Decode.phase)
     {
@@ -126,6 +154,7 @@ public int8_t IHEX_Decode(int8_t c) // <editor-fold defaultstate="collapsed" des
                     Decode.phase=4;
                     Decode.numofdigit=2;
                     Decode.Hex.Address.Value=Decode.addr;
+                    memset(Decode.Hex.Data, 0xFF, IHEX_DATA_SIZE); // reset buffer to blank
                     break;
 
                 case IHEX_RECTYPE_EOF:
@@ -147,6 +176,10 @@ public int8_t IHEX_Decode(int8_t c) // <editor-fold defaultstate="collapsed" des
 
                 case IHEX_RECTYPE_SSA:
                 case IHEX_RECTYPE_SLA:
+                    Decode.phase=8;
+                    Decode.numofdigit=8;
+                    break;
+
                 default:
                     IHEX_ErrorLogWrite(__LINE__);
                     goto EXIT;
@@ -207,6 +240,11 @@ public int8_t IHEX_Decode(int8_t c) // <editor-fold defaultstate="collapsed" des
                 IHEX_ErrorLogWrite(__LINE__);
                 goto EXIT;
             } // </editor-fold>
+            break;
+
+        case 8: // <editor-fold defaultstate="collapsed" desc="Exception">
+            Decode.phase=7;
+            Decode.numofdigit=2; // </editor-fold>
             break;
 
         default:

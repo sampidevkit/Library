@@ -1,3 +1,5 @@
+#include <xc-pic32m.h>
+
 #include "bootloader.h"
 #include "bld_extmem.h"
 #include "flash_access.h"
@@ -22,11 +24,9 @@ enum DOWNLOAD_TASKS
 };
 
 private bool first;
-private int Opcode;
 private size_t Idx;
-private int8_t rslt;
 private tick_timer_t Tick;
-private uint8_t DoNext, RebootReq, Buff;
+private uint8_t rslt, DoNext, RebootReq, Buff, Opcode;
 
 private new_simple_task_t(Download_Tasks) // <editor-fold defaultstate="collapsed" desc="Download task">
 {
@@ -36,7 +36,7 @@ private new_simple_task_t(Download_Tasks) // <editor-fold defaultstate="collapse
             BLD_Comm_Init();
             BLD_ExtMem_WriteState(BLD_STATE_DOWNLOADING);
             Tick_Timer_Reset(Tick);
-            BLD_DownloadLed_SetState(1);
+            BLD_DownloadLed_SetState(BLD_LED_HIGH);
             DoNext=DOWNLOAD_PROCESS;
             RebootReq=0;
             first=1;
@@ -49,7 +49,7 @@ private new_simple_task_t(Download_Tasks) // <editor-fold defaultstate="collapse
                 first=0;
                 Tick_Timer_Reset(Tick);
                 Buff=BLD_Read();
-                //BLD_ExtMem_WriteData(Buff);
+                BLD_ExtMem_WriteData(Buff);
 
                 if(FindString(Buff, &Idx, ":00000001FF"))
                 {
@@ -106,21 +106,21 @@ private new_simple_task_t(Upgrade_Tasks) // <editor-fold defaultstate="collapsed
     {
         case UPGRADE_INIT:
             IHEX_Init();
-            BLD_UpgradeLed_SetState(1);
+            Tick_Timer_Reset(Tick);
+            BLD_UpgradeLed_SetState(BLD_LED_HIGH);
             DoNext=UPGRADE_PROCESS;
             break;
 
         case UPGRADE_PROCESS:
-            BLD_UpgradeLed_SetState(0);
+            if(Tick_Timer_Is_Over_Ms(Tick, 50))
+                BLD_UpgradeLed_SetState(BLD_LED_TOGGLE);
+
             Opcode=BLD_ExtMem_ReadData();
 
-            if(Opcode==EOF)
+            if(!IHEX_IsHexData(Opcode))
                 rslt=IHEX_ERROR;
             else
-            {
-                BLD_UpgradeLed_SetState(1);
-                rslt=IHEX_Decode((uint8_t) Opcode);
-            }
+                rslt=IHEX_Decode(Opcode);
 
             if(rslt==IHEX_DONE)
             {
@@ -140,6 +140,7 @@ private new_simple_task_t(Upgrade_Tasks) // <editor-fold defaultstate="collapsed
         case UPGRADE_REBOOT: // Do nothing
         default:
             BLD_SystemReboot();
+            BLD_UpgradeLed_SetState(BLD_LED_HIGH);
             TaskManager_End_Task(Upgrade_Tasks);
             break;
     }
@@ -151,13 +152,11 @@ public void BootLoader_Initialize(void) // <editor-fold defaultstate="collapsed"
 {
     bld_stt_t bldStt=BLD_ExtMem_Init();
 
-    BLD_DownloadLed_SetState(0);
-    BLD_UpgradeLed_SetState(0);
+    BLD_DownloadLed_SetState(BLD_LED_LOW);
+    BLD_UpgradeLed_SetState(BLD_LED_LOW);
 
-    if((BLD_Trigger_GetState()==0)||(bldStt==BLD_STATE_DOWNLOADING)||(bldStt==BLD_STATE_FIRST_RUN)) // IO trigger
+    if(BLD_Trigger_GetState()==0) // IO trigger
     {
-        // bldStt==BLD_STATE_DOWNLOADING : Download process is in progress
-        // bldStt==BLD_STATE_FIRST_RUN : Application crash, it can not clear this state before system reboot
         DoNext=DOWNLOAD_INIT;
         TaskManager_Create_NewSimpleTask(Download_Tasks);
     }
@@ -165,7 +164,6 @@ public void BootLoader_Initialize(void) // <editor-fold defaultstate="collapsed"
     {
         DoNext=UPGRADE_INIT;
         TaskManager_Create_NewSimpleTask(Upgrade_Tasks);
-        return;
     }
     else // Up to date
     {

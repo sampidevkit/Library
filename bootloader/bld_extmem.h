@@ -41,7 +41,7 @@ typedef enum {
 } bld_stt_t;
 
 bld_stt_t BLD_ExtMem_Init(void);
-int BLD_ExtMem_ReadData(void);
+uint8_t BLD_ExtMem_ReadData(void);
 void BLD_ExtMem_SetDataAddr(uint32_t addr);
 void BLD_ExtMem_WriteData(uint8_t b);
 bld_stt_t BLD_ExtMem_ReadState(void);

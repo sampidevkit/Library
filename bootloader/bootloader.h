@@ -17,8 +17,12 @@ bool BLD_IsTxReady(void);
 bool BLD_IsTxDone(void);
 void BLD_Write(uint8_t c);
 uint8_t BLD_Read(void);
-void BLD_DownloadLed_SetState(bool state);
-void BLD_UpgradeLed_SetState(bool state);
+
+#define BLD_LED_LOW     0
+#define BLD_LED_HIGH    1
+#define BLD_LED_TOGGLE  2
+void BLD_DownloadLed_SetState(uint8_t state);
+void BLD_UpgradeLed_SetState(uint8_t state);
 /* ***************************************************** TARGET MCU PROTOTYPE */
 void Jump2App(void);
 /* ************************************************************************** */
