@@ -32,7 +32,7 @@ void Jump2App(void) // <editor-fold defaultstate="collapsed" desc="Jump to appli
 
     if(AppPtr!=0xFFFFFFFF)
     {
-        if(FSECbits.CP==1) // Code protection bit must be enabled
+        if(FSECbits.CP==0) // Code protection bit must be enabled
             appFunction();
     }
 } // </editor-fold>
