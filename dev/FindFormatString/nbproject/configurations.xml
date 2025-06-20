@@ -5,7 +5,6 @@
                    displayName="Header Files"
                    projectFiles="true">
       <logicalFolder name="f1" displayName="misc" projectFiles="true">
-        <itemPath>../../misc/util.h</itemPath>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
@@ -15,9 +14,6 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
-      <logicalFolder name="f1" displayName="misc" projectFiles="true">
-        <itemPath>../../misc/util.c</itemPath>
-      </logicalFolder>
       <itemPath>main.c</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
@@ -48,10 +44,6 @@
           </incDir>
         </cTool>
       </compileType>
-      <item path="../../misc/util.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="../../misc/util.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="main.c" ex="false" tool="0" flavor2="0">
       </item>
     </conf>
@@ -76,10 +68,6 @@
           <developmentMode>5</developmentMode>
         </asmTool>
       </compileType>
-      <item path="../../misc/util.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="../../misc/util.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="main.c" ex="false" tool="0" flavor2="0">
       </item>
     </conf>
