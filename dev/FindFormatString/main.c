@@ -5,6 +5,14 @@
 
 // --- PHẦN MÃ GỐC (chỉ giữ lại slen) ---
 
+bool is_printable(uint8_t c)
+{
+    if((c>=' ')&&(c<='~'))
+        return 1;
+
+    return 0;
+}
+
 size_t slen(const char *pStr)
 {
     size_t len=0;
@@ -35,73 +43,51 @@ typedef struct
     uint8_t Skip;
 } find_state_t;
 
-/**
- * @brief Hàm tìm kiếm đã được tối ưu.
- *
- * @param c Ký tự đầu vào hiện tại.
- * @param pState Con trỏ đến trạng thái tìm kiếm (thay đổi).
- * @param pConfig Con trỏ đến cấu hình tìm kiếm (không đổi).
- * @return true nếu tìm thấy toàn bộ chuỗi, false trong các trường hợp khác.
- */
-bool FindFormatString_Optimized(char c, find_state_t *pState, const find_config_t *pConfig)
+bool FindFormatString(char c, find_state_t *pCxt, const find_config_t *pFormat)
 {
-    // Xử lý ký tự đại diện '*'
-    // Vòng lặp này chỉ chạy khi con trỏ mẫu đang ở vị trí của '*'
-    while(pState->Idx<pConfig->Len&&pConfig->Pattern[pState->Idx]=='*')
+    if(pCxt->Len==0)
     {
-        pState->Skip^=1; // Đảo trạng thái Skip
-        pState->Idx++;
-    }
+        pCxt->Idx=0;
+        pCxt->Skip=0;
+        pCxt->Len=slen(pFormat);
 
-    // Nếu đã duyệt hết mẫu sau khi xử lý '*', nghĩa là mẫu kết thúc bằng '*'
-    if(pState->Idx==pConfig->Len)
-    {
-        return true;
-    }
-
-    bool match=false;
-    if(pState->Skip==1) // Chế độ bỏ qua
-    {
-        if(c==pConfig->Pattern[pState->Idx])
+        if(pCxt->Len==0)
         {
-            pState->Skip=0; // Tắt chế độ bỏ qua khi tìm thấy ký tự khớp
-            pState->Idx++;
-            match=true;
-        }
-    }
-    else // Chế độ so khớp bình thường
-    {
-        if(c==pConfig->Pattern[pState->Idx])
-        {
-            pState->Idx++;
-            match=true;
+            return 0;
         }
     }
 
-    if(!match)
+    while(pFormat[pCxt->Idx]=='*')
     {
-        // Nếu không khớp, reset trạng thái để bắt đầu tìm lại từ đầu mẫu
-        pState->Idx=0;
-        pState->Skip=0;
+        pCxt->Skip^=1;
+        pCxt->Idx++;
+    }
 
-        // QUAN TRỌNG: Kiểm tra lại ký tự hiện tại với ký tự đầu tiên của mẫu
-        // Điều này xử lý trường hợp như tìm "aba" trong "ababa"
-        if(c==pConfig->Pattern[pState->Idx])
+    if(pCxt->Skip==1)
+    {
+        if(c==pFormat[pCxt->Idx])
         {
-            pState->Idx++;
+            pCxt->Skip=0;
+            pCxt->Idx++;
         }
     }
-
-    // Kiểm tra xem đã khớp toàn bộ mẫu chưa
-    if(pState->Idx==pConfig->Len)
+    else if(c==pFormat[pCxt->Idx])
     {
-        // Khớp hoàn toàn, reset để có thể tìm lần nữa (nếu muốn)
-        pState->Idx=0;
-        pState->Skip=0;
-        return true;
+        pCxt->Idx++;
+    }
+    else
+    {
+        pCxt->Len=0;
+        return 0;
     }
 
-    return false;
+    if(pCxt->Idx==pCxt->Len)
+    {
+        pCxt->Len=0;
+        return 1;
+    }
+
+    return 0;
 }
 
 /**
@@ -109,23 +95,35 @@ bool FindFormatString_Optimized(char c, find_state_t *pState, const find_config_
  */
 void TestAndPrintResult(const char* input_data, const char* pattern)
 {
-    printf("\nSearching for: \"%s\"", pattern);
+    size_t i;
 
     // 2. Cấu hình chỉ được thiết lập một lần
     find_config_t config={.Pattern=pattern, .Len=slen(pattern)};
+
     if(config.Len==0)
     {
         printf("\n -> Pattern is empty, cannot search.");
         return;
     }
 
+    printf("\nSearching for: \"");
+
+    for(i=0; i<config.Len; i++)
+    {
+        if(is_printable((uint8_t) config.Pattern[i]))
+            printf("%c", config.Pattern[i]);
+        else
+            printf("<%02X>", config.Pattern[i]);
+    }
+    
+    printf("\", len=%d", config.Len);
+
     // Trạng thái tìm kiếm được khởi tạo
     find_state_t state={.Idx=0, .Skip=0};
-
     bool found=false;
     size_t input_len=slen(input_data);
 
-    for(size_t i=0; i<input_len; i++)
+    for(i=0; i<input_len; i++)
     {
         if(FindFormatString_Optimized(input_data[i], &state, &config))
         {
@@ -142,7 +140,7 @@ void TestAndPrintResult(const char* input_data, const char* pattern)
 
 int main(int argc, char** argv)
 {
-    char input_data[]="Visit my page at https://github.com/sampidevkit to download the source code\r\n";
+    char input_data[]="Visit my page at * * https://github.com/sampidevkit to download the source code\r\n";
 
     // 3. Hàm main giờ đây gọn gàng và dễ đọc hơn rất nhiều
     TestAndPrintResult(input_data, "sampidevkit");
@@ -151,6 +149,7 @@ int main(int argc, char** argv)
     TestAndPrintResult(input_data, "https://*.*/ "); // Sẽ thất bại
     TestAndPrintResult(input_data, "https://*.*/*to");
     TestAndPrintResult(input_data, "https://*.*/* to");
+    TestAndPrintResult(input_data, "page at **");
 
     printf("\n");
     return (EXIT_SUCCESS);
