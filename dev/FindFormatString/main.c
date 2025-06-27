@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-// --- PHẦN MÃ GỐC (chỉ giữ lại slen) ---
-
 bool is_printable(uint8_t c)
 {
     if((c>=' ')&&(c<='~'))
@@ -24,108 +22,105 @@ size_t slen(const char *pStr)
     return len;
 }
 
-// --- PHẦN TỐI ƯU ---
-
-// 1. Tách cấu hình (không đổi) và trạng thái (thay đổi liên tục)
-// Cấu hình tìm kiếm: chứa thông tin tĩnh về mẫu cần tìm
-
 typedef struct
 {
     const char *Pattern;
     size_t Len;
-} find_config_t;
-
-// Trạng thái tìm kiếm: chứa các biến thay đổi trong quá trình tìm
-
-typedef struct
-{
     uint16_t Idx;
     uint8_t Skip;
-} find_state_t;
+} find_cxt_t;
 
-bool FindFormatString(char c, find_state_t *pCxt, const find_config_t *pFormat)
+void FindStrf_Init(find_cxt_t *pFindCxt, const uint8_t *pSample)
 {
-    if(pCxt->Len==0)
-    {
-        pCxt->Idx=0;
-        pCxt->Skip=0;
-        pCxt->Len=slen(pFormat);
+    pFindCxt->Pattern=pSample;
+    pFindCxt->Len=slen(pSample);
+    pFindCxt->Idx=0;
+    pFindCxt->Skip=false;
+}
 
-        if(pCxt->Len==0)
+bool FindStrf(char c, find_cxt_t *pFindCxt)
+{
+    if(pFindCxt->Len==0)
+        return false;
+
+    while(pFindCxt->Pattern[pFindCxt->Idx]=='*')
+    {
+        pFindCxt->Skip=1;
+        pFindCxt->Idx++;
+    }
+
+    if(pFindCxt->Skip==1)
+    {
+        if(c==pFindCxt->Pattern[pFindCxt->Idx])
         {
-            return 0;
+            pFindCxt->Idx++;
+            pFindCxt->Skip++;
         }
     }
-
-    while(pFormat[pCxt->Idx]=='*')
+    else if(pFindCxt->Skip>1)
     {
-        pCxt->Skip^=1;
-        pCxt->Idx++;
-    }
-
-    if(pCxt->Skip==1)
-    {
-        if(c==pFormat[pCxt->Idx])
+        if(c!=pFindCxt->Pattern[pFindCxt->Idx])
         {
-            pCxt->Skip=0;
-            pCxt->Idx++;
+            pFindCxt->Idx-=pFindCxt->Skip;
+            pFindCxt->Skip=1;
+        }
+        else
+        {
+            pFindCxt->Idx++;
+            pFindCxt->Skip++;
         }
     }
-    else if(c==pFormat[pCxt->Idx])
+    else if(c==pFindCxt->Pattern[pFindCxt->Idx])
     {
-        pCxt->Idx++;
+        pFindCxt->Idx++;
     }
     else
     {
-        pCxt->Len=0;
-        return 0;
+        pFindCxt->Idx=0;
     }
 
-    if(pCxt->Idx==pCxt->Len)
+EXIT:
+    if(pFindCxt->Idx==pFindCxt->Len)
     {
-        pCxt->Len=0;
+        pFindCxt->Idx=0;
+        pFindCxt->Skip=0;
         return 1;
     }
 
     return 0;
 }
 
-/**
- * @brief Hàm trợ giúp để thực hiện tìm kiếm và in kết quả
- */
-void TestAndPrintResult(const char* input_data, const char* pattern)
+void TestAndPrintResult(const char* input_data, const char* pattern, bool resultCheck)
 {
     size_t i;
+    find_cxt_t FindCxt;
 
-    // 2. Cấu hình chỉ được thiết lập một lần
-    find_config_t config={.Pattern=pattern, .Len=slen(pattern)};
+    FindStrf_Init(&FindCxt, pattern);
 
-    if(config.Len==0)
+    if(FindCxt.Len==0)
     {
-        printf("\n -> Pattern is empty, cannot search.");
+        printf("\n\n -> Pattern is empty, cannot search.");
         return;
     }
 
-    printf("\nSearching for: \"");
+    printf("\n\nSearching for: \"");
 
-    for(i=0; i<config.Len; i++)
+    for(i=0; i<FindCxt.Len; i++)
     {
-        if(is_printable((uint8_t) config.Pattern[i]))
-            printf("%c", config.Pattern[i]);
+        if(is_printable((uint8_t) FindCxt.Pattern[i]))
+            printf("%c", FindCxt.Pattern[i]);
         else
-            printf("<%02X>", config.Pattern[i]);
+            printf("<%02X>", FindCxt.Pattern[i]);
     }
-    
-    printf("\", len=%d", config.Len);
 
-    // Trạng thái tìm kiếm được khởi tạo
-    find_state_t state={.Idx=0, .Skip=0};
+    printf("\", len=%d", FindCxt.Len);
+
     bool found=false;
     size_t input_len=slen(input_data);
 
     for(i=0; i<input_len; i++)
     {
-        if(FindFormatString_Optimized(input_data[i], &state, &config))
+        if(FindStrf(input_data[i], &FindCxt))
         {
             found=true;
             break;
@@ -136,21 +131,25 @@ void TestAndPrintResult(const char* input_data, const char* pattern)
         printf("\n -> Founded your string");
     else
         printf("\n -> Your string not found");
+
+    if(resultCheck==found)
+        printf("\n  |\n  |--> Correct");
+    else
+        printf("\n  |\n  |--> Incorrect");
 }
 
 int main(int argc, char** argv)
 {
-    char input_data[]="Visit my page at * * https://github.com/sampidevkit to download the source code\r\n";
+    char input_data[]="Visit my page at https://github.com/sampidevkit to download the source code\r\n";
 
-    // 3. Hàm main giờ đây gọn gàng và dễ đọc hơn rất nhiều
-    TestAndPrintResult(input_data, "sampidevkit");
-    TestAndPrintResult(input_data, "\r");
-    TestAndPrintResult(input_data, "https://*.*/*");
-    TestAndPrintResult(input_data, "https://*.*/ "); // Sẽ thất bại
-    TestAndPrintResult(input_data, "https://*.*/*to");
-    TestAndPrintResult(input_data, "https://*.*/* to");
-    TestAndPrintResult(input_data, "page at **");
-
+    TestAndPrintResult(input_data, "sampidevkit", true);
+    TestAndPrintResult(input_data, "\r", true);
+    TestAndPrintResult(input_data, "https://*.*/*", true);
+    TestAndPrintResult(input_data, "https://*.*/ ", false);
+    TestAndPrintResult(input_data, "https://*.*/*to", true);
+    TestAndPrintResult(input_data, "https://*.*/* to", true);
+    TestAndPrintResult(input_data, "https://*.*/* t0", false);
+    TestAndPrintResult("192.168.1.123:456", "*.*.*.*:457", false);
     printf("\n");
     return (EXIT_SUCCESS);
 }
