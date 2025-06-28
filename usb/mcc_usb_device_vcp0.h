@@ -4,8 +4,8 @@
 #include "Common/LibDef.h"
 #include "mcc_usb_device_vcp.h"
 
-extern port_rxbuf_t Vcp0RxBuf;
 /* ******************************************************* EXTERNAL PROTOTYPE */
+port_rxbuf_t *BridgePort0_Init(void);
 void BridgePort0_TxdLedSetState(bool logic);
 void BridgePort0_RxdLedSetState(bool logic);
 void BridgePort0_DtrPinSetState(bool logic);

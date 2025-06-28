@@ -1,5 +1,5 @@
 /*--------------------------------------------------------------------------
- * MPLAB XC Compiler -  PIC32MM0256GPMxxx linker script
+ * MPLAB XC Compiler -  PIC32MM0256GPM048 linker script
  * Build date : Feb 12 2020
  * 
  * Copyright (c) 2020, Microchip Technology Inc. and its subsidiaries ("Microchip")

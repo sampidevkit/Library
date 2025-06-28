@@ -4,8 +4,8 @@
 #include "common/libdef.h"
 #include "project_cfg.h"
 
-#ifndef HEX_DATA_SIZE
-#define HEX_DATA_SIZE   16
+#ifndef IHEX_DATA_SIZE
+#define IHEX_DATA_SIZE   16
 #warning "Default value of HEX_DATA_SIZE is 16"
 #endif
 
@@ -33,7 +33,7 @@ typedef __PACKED_STRUCT{
     uint8_t ByteCount;
     hex_addr_t Address;
     uint8_t RecordType;
-    uint8_t Data[HEX_DATA_SIZE];
+    uint8_t Data[IHEX_DATA_SIZE];
     uint8_t Checksum;
 }
 hex_t;

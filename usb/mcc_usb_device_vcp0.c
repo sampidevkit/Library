@@ -2,6 +2,7 @@
 #include "mcc_usb_device_vcp0.h"
 
 private uint8_t PortIdx=0;
+private port_rxbuf_t *pVcp0RxBuf;
 
 private void LineCodingHandler(void) // <editor-fold defaultstate="collapsed" desc="Line coding handler">
 {
@@ -24,15 +25,16 @@ private void DTRPinHandler(char logic) // <editor-fold defaultstate="collapsed" 
 public void VCP0_Init(uint8_t portIdx) // <editor-fold defaultstate="collapsed" desc="Initialize">
 {
     PortIdx=portIdx;
-    Vcp0RxBuf.head=0;
-    Vcp0RxBuf.tail=0;
+    pVcp0RxBuf=BridgePort0_Init();
+    pVcp0RxBuf->head=0;
+    pVcp0RxBuf->tail=0;
 
-    if(Vcp0RxBuf.data==NULL)
+    if(pVcp0RxBuf->data==NULL)
         VcpCxt[PortIdx].Ctrl.mode=1; // default is Bright mode
     else
         VcpCxt[PortIdx].Ctrl.mode=0; // default is VCP mode
 
-    VcpCxt[PortIdx].rxBuf=&Vcp0RxBuf;
+    VcpCxt[PortIdx].rxBuf=pVcp0RxBuf;
     VcpCxt[PortIdx].bridgePort.IsRxReady=BridgePort0_IsRxReady;
     VcpCxt[PortIdx].bridgePort.IsTxDone=BridgePort0_IsTxDone;
     VcpCxt[PortIdx].bridgePort.IsTxReady=BridgePort0_IsTxReady;

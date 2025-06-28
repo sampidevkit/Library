@@ -1,17 +1,12 @@
-#include "TelitPwrCtrl.h"
-#include "System/TickTimer.h"
-#include "System/TaskManager.h"
+#include "pwr_ctrl.h"
+#include "system/system_tick.h"
+#include "system/task_manager.h"
 
-#ifdef USE_TELITPWRCTRL_DEBUG
-#include "Common/Debug.h"
-#else
-#define __dbs(...)
-#define __dbs_t(...)
-#define __dbsu_t(...)
-#define __tsdbs(...)
-#define __tsdbsu_t(...)
-#define __tsdbs_t(...)
+#ifndef USE_CELL_PWRCTRL_DEBUG
+#define DEBUG_H
 #endif
+
+#include "common/debug.h"
 
 typedef enum
 {
@@ -21,15 +16,10 @@ typedef enum
     PWRCTRL_PWREN, // 3
     PWRCTRL_TRIG_ON, // 4
     PWRCTRL_CHECK_VAUX, // 5
-    PWRCTRL_CHECK_SWRDY, // 6
-    PWRCTRL_MODULE_RDY, // 7
-    PWRCTRL_TRIG_FSDN, // 8
-    PWRCTRL_RELEASE_FSDN, // 9
-    PWRCTRL_TRIG_OFF, // 10
-    PWRCTRL_RELEASE_OFF, // 11
-    PWRCTRL_TRIG_HWSDN, // 12
-    PWRCTRL_RELEASE_HWSDN, // 13
-    PWRCTRL_PWRDISABLE // 14
+    PWRCTRL_MODULE_RDY, // 6
+    PWRCTRL_TRIG_OFF, // 7
+    PWRCTRL_RELEASE_OFF, // 8
+    PWRCTRL_PWRDISABLE // 9
 } pwrctrl_task_t;
 
 typedef struct
@@ -37,7 +27,6 @@ typedef struct
     uint8_t dischr;
     uint8_t vcell;
     uint8_t vaux;
-    uint8_t swrdy;
     uint8_t reboot;
 } pwr_try_t;
 
@@ -50,61 +39,55 @@ static struct
     pwrctrl_task_t Next;
 } PwrCtrlCxt;
 
-telit_stt_t TelitState; // Global variable
+static const cell_para_t *CellPara;
+static cell_stt_t CellState;
 
-public new_simple_task_t(Telit_PwrCtrl_Tasks) // <editor-fold defaultstate="collapsed" desc="Power control task">
+public new_simple_task_t(Cell_PwrCtrl_Tasks) // <editor-fold defaultstate="collapsed" desc="Power control task">
 {
-    if(TelitState.vcelRdy==0)
+    if(CellState.vcelRdy==0)
     {
-        if(TELIT_VCEL_Get()>=TelitPara.TELIT_VCEL_STARTUP_MIN)
-            TelitState.vcelRdy=1;
+        if(CELL_VCEL_Get()>=CellPara->CELL_VCEL_STARTUP)
+            CellState.vcelRdy=1;
     }
-    else if(TELIT_VCEL_Get()<TelitPara.TELIT_VCEL_PPWRDN_MIN)
-        TelitState.vcelRdy=0;
+    else if(CELL_VCEL_Get()<CellPara->CELL_VCEL_PWRDN)
+        CellState.vcelRdy=0;
 
-    if(TELIT_VAUX_Get()>=TelitPara.TELIT_VAUX_MIN)
-        TelitState.vauxRdy=1;
+    if(CELL_VAUX_Get()>=CellPara->CELL_VAUX_MIN)
+        CellState.vauxRdy=1;
     else
-        TelitState.vauxRdy=0;
-
-    if(TELIT_SWRDY_GetState())
-        TelitState.swRdy=1;
-    else
-        TelitState.swRdy=0;
+        CellState.vauxRdy=0;
 
     switch(PwrCtrlCxt.Now)
     {
         default:
         case PWRCTRL_MODULE_OFF: // Do nothing
-            TelitState.busy=0;
-            __tsdbs_t("Close task: Telit_PwrCtrl_Tasks");
-            TaskManager_End_Task(Telit_PwrCtrl_Tasks);
+            CellState.busy=0;
+            __tsdbs_t("Close task: Cell_PwrCtrl_Tasks");
+            TaskManager_End_Task(Cell_PwrCtrl_Tasks);
             break;
 
         case PWRCTRL_INIT:
-            TELIT_PWREN_SetState(0);
-            TELIT_HWSDN_SetState(0);
-            TELIT_FSDN_SetState(0);
-            TELIT_ONOFF_SetState(0);
+            CELL_PWREN_SetState(0);
+            CELL_ONOFF_SetState(0);
             Tick_Timer_Reset(PwrCtrlCxt.Tick);
             PwrCtrlCxt.Now=PwrCtrlCxt.Next;
             __tsdbsu_t("Prog=", PwrCtrlCxt.Now);
             break;
 
         case PWRCTRL_DISCHR:
-            TelitState.dischrErr=0;
+            CellState.dischrErr=0;
 
-            if(TELIT_VCEL_Get()<400)
+            if(CELL_VCEL_Get()<400)
             {
                 Tick_Timer_Reset(PwrCtrlCxt.Tick);
                 PwrCtrlCxt.Now=PWRCTRL_PWREN;
                 PwrCtrlCxt.Count.dischr=0;
                 __tsdbs_t("Pwr ena");
             }
-            else if(Tick_Timer_Is_Over_Ms(PwrCtrlCxt.Tick, TelitPara.TELIT_PWR_DISCHR_WAIT)) // Power is not ready in TELIT_PWR_DISCHR_WAIT ms
+            else if(Tick_Timer_Is_Over_Ms(PwrCtrlCxt.Tick, CellPara->CELL_PWR_DISCHR_WAIT)) // Power is not ready in CELL_PWR_DISCHR_WAIT ms
             {
-                __tsdbsu_t("DisChr err: ", TELIT_VCEL_Get());
-                TelitState.dischrErr=1;
+                __tsdbsu_t("DisChr err: ", CELL_VCEL_Get());
+                CellState.dischrErr=1;
                 PwrCtrlCxt.Now=PWRCTRL_INIT;
 
                 if(PwrCtrlCxt.Count.dischr<PwrCtrlCxt.Retry)
@@ -118,19 +101,19 @@ public new_simple_task_t(Telit_PwrCtrl_Tasks) // <editor-fold defaultstate="coll
             break;
 
         case PWRCTRL_PWREN:
-            TELIT_PWREN_SetState(1);
+            CELL_PWREN_SetState(1);
 
-            if(TelitState.vcelRdy==1)
+            if(CellState.vcelRdy==1)
             {
                 PwrCtrlCxt.Now=PWRCTRL_TRIG_ON;
                 PwrCtrlCxt.Count.vcell=0;
                 Tick_Timer_Reset(PwrCtrlCxt.Tick);
-                __tsdbsu_t("Pwr ready: ", TELIT_VCEL_Get());
+                __tsdbsu_t("Pwr ready: ", CELL_VCEL_Get());
                 __dbs_t(", Trig on");
             }
             else if(Tick_Timer_Is_Over_Ms(PwrCtrlCxt.Tick, 1000)) // Power is not ready in 1000ms
             {
-                __tsdbsu_t("Pwr err: ", TELIT_VCEL_Get());
+                __tsdbsu_t("Pwr err: ", CELL_VCEL_Get());
                 PwrCtrlCxt.Now=PWRCTRL_INIT;
 
                 if(PwrCtrlCxt.Count.vcell<PwrCtrlCxt.Retry)
@@ -144,11 +127,11 @@ public new_simple_task_t(Telit_PwrCtrl_Tasks) // <editor-fold defaultstate="coll
             break;
 
         case PWRCTRL_TRIG_ON:
-            TELIT_ONOFF_SetState(1);
+            CELL_ONOFF_SetState(1);
 
-            if(Tick_Timer_Is_Over_Ms(PwrCtrlCxt.Tick, TelitPara.TELIT_ONOFF_PULSE))
+            if(Tick_Timer_Is_Over_Ms(PwrCtrlCxt.Tick, CellPara->CELL_ONOFF_PULSE))
             {
-                TELIT_ONOFF_SetState(0);
+                CELL_ONOFF_SetState(0);
                 PwrCtrlCxt.Now=PWRCTRL_CHECK_VAUX;
                 __tsdbs_t("Check Vaux");
             }
@@ -156,16 +139,16 @@ public new_simple_task_t(Telit_PwrCtrl_Tasks) // <editor-fold defaultstate="coll
             break;
 
         case PWRCTRL_CHECK_VAUX:
-            if(TelitState.vauxRdy==1)
+            if(CellState.vauxRdy==1)
             {
-                PwrCtrlCxt.Now=PWRCTRL_CHECK_SWRDY;
+                PwrCtrlCxt.Now=PWRCTRL_MODULE_RDY;
                 PwrCtrlCxt.Count.vaux=0;
                 Tick_Timer_Reset(PwrCtrlCxt.Tick);
                 __tsdbs_t("Check SwRdy");
             }
-            else if(Tick_Timer_Is_Over_Ms(PwrCtrlCxt.Tick, TelitPara.TELIT_VAUX_TIMEOUT)) // VAUX is not ready in TELIT_VAUX_TIMEOUT ms
+            else if(Tick_Timer_Is_Over_Ms(PwrCtrlCxt.Tick, CellPara->CELL_VAUX_TIMEOUT)) // VAUX is not ready in CELL_VAUX_TIMEOUT ms
             {
-                __tsdbsu_t("Vaux err: ", TELIT_VAUX_Get());
+                __tsdbsu_t("Vaux err: ", CELL_VAUX_Get());
                 PwrCtrlCxt.Now=PWRCTRL_INIT;
 
                 if(PwrCtrlCxt.Count.vaux<PwrCtrlCxt.Retry)
@@ -178,46 +161,23 @@ public new_simple_task_t(Telit_PwrCtrl_Tasks) // <editor-fold defaultstate="coll
             }
             break;
 
-        case PWRCTRL_CHECK_SWRDY:
-            if(TelitState.swRdy==1)
-            {
-                PwrCtrlCxt.Now=PWRCTRL_MODULE_RDY;
-                PwrCtrlCxt.Count.swrdy=0;
-                Tick_Timer_Reset(PwrCtrlCxt.Tick);
-                __tsdbs_t("SwRdy Ok");
-            }
-            else if(Tick_Timer_Is_Over_Ms(PwrCtrlCxt.Tick, TelitPara.TELIT_SWRDY_WAIT)) // SWRDY is not ready in TELIT_SWRDY_WAIT ms
-            {
-                __tsdbs_t("SwRdy err, Turn off");
-                PwrCtrlCxt.Now=PWRCTRL_TRIG_FSDN;
-
-                if(PwrCtrlCxt.Count.swrdy<PwrCtrlCxt.Retry)
-                {
-                    PwrCtrlCxt.Count.swrdy++;
-                    __dbsu_t(", retry ", PwrCtrlCxt.Count.swrdy);
-                }
-                else
-                    PwrCtrlCxt.Next=PWRCTRL_MODULE_OFF;
-            }
-            break;
-
         case PWRCTRL_MODULE_RDY:
-            if(TelitState.vcelRdy==1)
+            if(CellState.vcelRdy==1)
             {
-                if(TelitState.vauxRdy==1)
+                if(CellState.vauxRdy==1)
                 {
-                    TelitState.reboot=0;
+                    CellState.reboot=0;
                     Tick_Timer_Reset(PwrCtrlCxt.Tick);
                 }
                 else
                 {
-                    TelitState.reboot=1;
+                    CellState.reboot=1;
 
-                    if(TelitPara.TELIT_VAUX_TIMEOUT>0)
+                    if(CellPara->CELL_VAUX_TIMEOUT>0)
                     {
-                        if(Tick_Timer_Is_Over_Ms(PwrCtrlCxt.Tick, TelitPara.TELIT_VAUX_TIMEOUT)) // VAUX is not ready in TELIT_VAUX_TIMEOUT ms
+                        if(Tick_Timer_Is_Over_Ms(PwrCtrlCxt.Tick, CellPara->CELL_VAUX_TIMEOUT)) // VAUX is not ready in CELL_VAUX_TIMEOUT ms
                         {
-                            __tsdbsu_t("Vaux lost: ", TELIT_VAUX_Get());
+                            __tsdbsu_t("Vaux lost: ", CELL_VAUX_Get());
                             PwrCtrlCxt.Now=PWRCTRL_INIT;
 
                             if(PwrCtrlCxt.Count.reboot<PwrCtrlCxt.Retry)
@@ -234,35 +194,20 @@ public new_simple_task_t(Telit_PwrCtrl_Tasks) // <editor-fold defaultstate="coll
             else
             {
                 // The Status is not be updated here.
-                __tsdbsu_t("Vin low: ", TELIT_VCEL_Get());
+                __tsdbsu_t("Vin low: ", CELL_VCEL_Get());
                 __dbs_t(", Power off");
-                PwrCtrlCxt.Now=PWRCTRL_TRIG_FSDN;
-                PwrCtrlCxt.Next=PWRCTRL_MODULE_OFF;
-            }
-            break;
-
-        case PWRCTRL_TRIG_FSDN:
-            TELIT_FSDN_SetState(1);
-            Tick_Timer_Reset(PwrCtrlCxt.Tick);
-            PwrCtrlCxt.Now=PWRCTRL_RELEASE_FSDN;
-            __tsdbs_t("Trig Fsdn");
-            break;
-
-        case PWRCTRL_RELEASE_FSDN:
-            if(Tick_Timer_Is_Over_Ms(PwrCtrlCxt.Tick, TelitPara.TELIT_FSDN_PULSE))
-            {
-                TELIT_FSDN_SetState(0);
                 PwrCtrlCxt.Now=PWRCTRL_TRIG_OFF;
-                __tsdbs_t("Rel Fsdn");
+                PwrCtrlCxt.Next=PWRCTRL_MODULE_OFF;
+                Tick_Timer_Reset(PwrCtrlCxt.Tick);
             }
             break;
 
         case PWRCTRL_TRIG_OFF:
-            if(TelitState.vauxRdy==1)
+            if(CellState.vauxRdy==1)
             {
-                if(Tick_Timer_Is_Over_Ms(PwrCtrlCxt.Tick, TelitPara.TELIT_FSDN_TIMEOUT))
+                if(Tick_Timer_Is_Over_Ms(PwrCtrlCxt.Tick, CellPara->CELL_ONOFF_PULSE))
                 {
-                    TELIT_ONOFF_SetState(1);
+                    CELL_ONOFF_SetState(1);
                     PwrCtrlCxt.Now=PWRCTRL_RELEASE_OFF;
                     __tsdbs_t("Trig off");
                 }
@@ -275,44 +220,18 @@ public new_simple_task_t(Telit_PwrCtrl_Tasks) // <editor-fold defaultstate="coll
             break;
 
         case PWRCTRL_RELEASE_OFF:
-            if(Tick_Timer_Is_Over_Ms(PwrCtrlCxt.Tick, TelitPara.TELIT_ONOFF_PULSE))
+            if(Tick_Timer_Is_Over_Ms(PwrCtrlCxt.Tick, CellPara->CELL_ONOFF_PULSE))
             {
-                TELIT_ONOFF_SetState(0);
-                PwrCtrlCxt.Now=PWRCTRL_TRIG_HWSDN;
+                CELL_ONOFF_SetState(0);
+                PwrCtrlCxt.Now=PWRCTRL_PWRDISABLE;
                 __tsdbs_t("Rel off");
             }
             break;
 
-        case PWRCTRL_TRIG_HWSDN:
-            if(TelitState.vauxRdy==1)
-            {
-                if(Tick_Timer_Is_Over_Ms(PwrCtrlCxt.Tick, TelitPara.TELIT_ONOFF_TIMEOUT))
-                {
-                    TELIT_HWSDN_SetState(1);
-                    PwrCtrlCxt.Now=PWRCTRL_RELEASE_HWSDN;
-                    __tsdbs_t("Trig hwsdn");
-                }
-            }
-            else
-            {
-                Tick_Timer_Reset(PwrCtrlCxt.Tick);
-                PwrCtrlCxt.Now=PWRCTRL_PWRDISABLE;
-            }
-            break;
-
-        case PWRCTRL_RELEASE_HWSDN:
-            if(Tick_Timer_Is_Over_Ms(PwrCtrlCxt.Tick, TelitPara.TELIT_HWSDN_PULSE))
-            {
-                TELIT_HWSDN_SetState(0);
-                PwrCtrlCxt.Now=PWRCTRL_PWRDISABLE;
-                __tsdbs_t("Rel hwsdn");
-            }
-            break;
-
         case PWRCTRL_PWRDISABLE:
-            if(TelitState.vauxRdy==1)
+            if(CellState.vauxRdy==1)
             {
-                if(Tick_Timer_Is_Over_Ms(PwrCtrlCxt.Tick, TelitPara.TELIT_HWSDN_TIMEOUT))
+                if(Tick_Timer_Is_Over_Ms(PwrCtrlCxt.Tick, 3000))
                     __tsdbs_t("Force pwr dis");
                 else
                     break;
@@ -325,17 +244,16 @@ public new_simple_task_t(Telit_PwrCtrl_Tasks) // <editor-fold defaultstate="coll
     Task_Done();
 } // </editor-fold>
 
-void Telit_TurnOn(bool dischrFirst, uint8_t Retry) // <editor-fold defaultstate="collapsed" desc="Turn on the module">
+void Cell_TurnOn(bool dischrFirst, uint8_t Retry) // <editor-fold defaultstate="collapsed" desc="Turn on the module">
 {
-    if(Telit_Ready()==0)
+    if(Cell_Ready()==0)
     {
         __tsdbs("Turn on");
-        TelitState.busy=1;
-        TelitState.reboot=1;
+        CellState.busy=1;
+        CellState.reboot=1;
         PwrCtrlCxt.Retry=Retry;
         PwrCtrlCxt.Count.dischr=0;
         PwrCtrlCxt.Count.reboot=0;
-        PwrCtrlCxt.Count.swrdy=0;
         PwrCtrlCxt.Count.vaux=0;
         PwrCtrlCxt.Count.vcell=0;
         PwrCtrlCxt.Now=PWRCTRL_INIT;
@@ -345,19 +263,18 @@ void Telit_TurnOn(bool dischrFirst, uint8_t Retry) // <editor-fold defaultstate=
         else
             PwrCtrlCxt.Next=PWRCTRL_PWREN;
 
-        __dbs("\nCreate task: Telit_PwrCtrl_Tasks");
-        TaskManager_Create_NewSimpleTask(Telit_PwrCtrl_Tasks);
+        __dbs("\nCreate task: Cell_PwrCtrl_Tasks");
+        TaskManager_Create_NewSimpleTask(Cell_PwrCtrl_Tasks);
     }
     else
         __tsdbs("Already on");
 } // </editor-fold>
 
-void Telit_TurnOff(void) // <editor-fold defaultstate="collapsed" desc="Turn off the module">
+void Cell_TurnOff(void) // <editor-fold defaultstate="collapsed" desc="Turn off the module">
 {
-    if(TelitState.vauxRdy==1)
+    if(CellState.vauxRdy==1)
     {
-        TELIT_FSDN_SetState(1);
-        PwrCtrlCxt.Now=PWRCTRL_TRIG_FSDN;
+        PwrCtrlCxt.Now=PWRCTRL_MODULE_OFF;
         PwrCtrlCxt.Next=PWRCTRL_MODULE_OFF;
         __tsdbs("Turn off");
     }
@@ -371,21 +288,22 @@ void Telit_TurnOff(void) // <editor-fold defaultstate="collapsed" desc="Turn off
         __tsdbs("Already off");
 } // </editor-fold>
 
-bool Telit_PwrCtrl_IsError(void) // <editor-fold defaultstate="collapsed" desc="Check error state">
+bool Cell_PwrCtrl_IsError(void) // <editor-fold defaultstate="collapsed" desc="Check error state">
 {
-    if((TelitState.val&0b00010001)>0) // reboot & discharge error
+    if((CellState.val&0b00010001)>0) // reboot & discharge error
         return 1;
 
-    if((TelitState.val&0b00001110)<0b00001110)// no Sw Rdy, no VAUX, no Vcel
+    if((CellState.val&0b00001110)<0b00001110)// no Sw Rdy, no VAUX, no Vcel
         return 1;
 
     return 0;
 } // </editor-fold>
 
-void Telit_PwrCtrl_Init(void) // <editor-fold defaultstate="collapsed" desc="Initialize">
+void Cell_PwrCtrl_Init(void) // <editor-fold defaultstate="collapsed" desc="Initialize">
 {
+    CellPara=CELL_HAL_Init();
     Tick_Timer_Reset(PwrCtrlCxt.Tick);
-    TelitState.val=0;
+    CellState.val=0;
     PwrCtrlCxt.Now=PWRCTRL_INIT;
     PwrCtrlCxt.Next=PWRCTRL_MODULE_OFF;
 } // </editor-fold>
