@@ -76,34 +76,34 @@ public void Tick_Timer_Init(simple_fnc_t pFnc) // <editor-fold defaultstate="col
     Tick_Timer_SetFncCallInDelay(pFnc);
 } // </editor-fold>
 
-inline void Tick_Reset(tick_timer_t *pTick)
+public void Tick_Reset(tick_timer_t *pTick)
 {
     pTick->Timeout=2;
 }
 
-inline tick_t Tick_Per_Sec(void)
+public tick_t Tick_Per_Sec(void)
 {
     return pTickPara->TICK_PER_SEC;
 }
 
-inline tick_t Tick_Per_Ms(void)
+public tick_t Tick_Per_Ms(void)
 {
     return pTickPara->TICK_PER_MS;
 }
 
 #ifdef TICK_32BIT
-inline tick_t Tick_Per_Us(void)
+public tick_t Tick_Per_Us(void)
 {
     return pTickPara->TICK_PER_US;
 }
 #endif
 
-inline tick_t Tick_GetTimeMs(void)
+public tick_t Tick_GetTimeMs(void)
 {
     return (Tick_Timer_Get_TickVal()/pTickPara->TICK_PER_MS);
 }
 
-inline tick_t Tick_GetTimeSec(void)
+public tick_t Tick_GetTimeSec(void)
 {
     return (Tick_Timer_Get_TickVal()/pTickPara->TICK_PER_SEC);
 }
@@ -124,7 +124,7 @@ tick_t Tick_Dif(tick_t Tk0, tick_t Tk1, tick_timer_type_t TickType)
 
 #ifdef TICK_32BIT
 
-inline tick_t Tick_GetTimeUs(void)
+public tick_t Tick_GetTimeUs(void)
 {
     return (Tick_Timer_Get_TickVal()/pTickPara->TICK_PER_US);
 }
