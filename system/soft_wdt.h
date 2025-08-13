@@ -5,9 +5,6 @@
 #include "project_cfg.h"
 #include "task_manager.h"
 
-extern volatile uint32_t softWdtCount;
-extern volatile uint32_t softWdtCountMax;
-
 /* **************************************************************** PROTOTYPE */
 void softWDT_TmrSetInterruptHandler(simple_fnc_t fnc);
 void softWDT_LedSetState(uint8_t state);

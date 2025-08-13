@@ -21,12 +21,7 @@ typedef struct {
     void (*HoldPressCallback)(void);
 } bt_cxt_t;
 
-extern bt_cxt_t ModeBtCxt;
-
-#define BUTTON_Init(pBtCxt, pCbSF, pCbDF, pCbHF) do{pBtCxt.DoNext=NOT_PRESS; \
-        pBtCxt.SinglePressCallback=pCbSF; pBtCxt.DoublePressCallback=pCbDF;  \
-        pBtCxt.HoldPressCallback=pCbHF;}while(0)
-
+void BUTTON_Init(bt_cxt_t *pBtCxt, void (*pCbSF)(void), void (*pCbDF)(void), void (*pCbHF)(void));
 bt_stt_t BUTTON_GetState(bt_cxt_t *pBtCxt, bool preInput);
 
 #ifndef SINGLE_PRESS_INTERVAL

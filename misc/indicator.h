@@ -25,8 +25,8 @@ typedef __PACKED_STRUCT IND_CXT_T{
 ind_cxt_t;
 
 // Defined in Indicator_Cfg.c
-extern ind_cxt_t IndCfg0;
-
+ind_cxt_t *Indicator_Hal_Init(void);
+/* ************************************************************************** */
 #define IND_LOOP_FOREVER        0xFFFF
 #define Indicator_SetHigh(idx)  Indicator_SetState(idx, 1, 0, IND_LOOP_FOREVER)
 #define Indicator_SetLow(idx)   Indicator_SetState(idx, 0, 1, IND_LOOP_FOREVER)

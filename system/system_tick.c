@@ -108,7 +108,7 @@ public tick_t Tick_GetTimeSec(void)
     return (Tick_Timer_Get_TickVal()/pTickPara->TICK_PER_SEC);
 }
 
-tick_t Tick_Dif(tick_t Tk0, tick_t Tk1, tick_timer_type_t TickType)
+tick_t Tick_Dif(tick_t Tk1, tick_t Tk0, tick_timer_type_t TickType)
 {
     if(TickType==SEC)
         return (Tk1-Tk0)/pTickPara->TICK_PER_SEC;

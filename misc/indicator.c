@@ -5,7 +5,7 @@ static ind_cxt_t *pInd=NULL;
 
 private new_simple_task_t(Indicator_Tasks)
 {
-    pInd=&IndCfg0;
+    pInd=Indicator_Hal_Init();
 
     while(pInd!=NULL)
     {
@@ -44,7 +44,7 @@ private new_simple_task_t(Indicator_Tasks)
 
 public void Indicator_Init(void)
 {
-    pInd=&IndCfg0;
+    pInd=Indicator_Hal_Init();
 
     while(pInd!=NULL)
     {
@@ -56,14 +56,13 @@ public void Indicator_Init(void)
         pInd=pInd->Next;
     }
 
-    pInd=&IndCfg0;
     TaskManager_Create_NewSimpleTask(Indicator_Tasks);
 }
 
 public void Indicator_SetState(uint8_t Idx, uint16_t TOn, uint16_t TOff, uint16_t Loop)
 {
     uint8_t cnt;
-    ind_cxt_t *p=&IndCfg0;
+    ind_cxt_t *p=Indicator_Hal_Init();
 
     cnt=0;
 
@@ -103,7 +102,7 @@ public void Indicator_SetState(uint8_t Idx, uint16_t TOn, uint16_t TOff, uint16_
 public void Indicator_Stop(uint8_t Idx)
 {
     uint8_t cnt;
-    ind_cxt_t *p=&IndCfg0;
+    ind_cxt_t *p=Indicator_Hal_Init();
 
     cnt=0;
 

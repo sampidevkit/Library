@@ -1,7 +1,14 @@
 #include "button.h"
 #include "system/system_tick.h"
 
-bt_cxt_t ModeBtCxt={NOT_PRESS, 0, NULL, NULL, NULL};
+void BUTTON_Init(bt_cxt_t *pBtCxt,
+                 void (*pCbSF)(void), void (*pCbDF)(void), void (*pCbHF)(void)) // <editor-fold defaultstate="collapsed" desc="Button init">
+{
+    pBtCxt->DoNext=NOT_PRESS;
+    pBtCxt->SinglePressCallback=pCbSF;
+    pBtCxt->DoublePressCallback=pCbDF;
+    pBtCxt->HoldPressCallback=pCbHF;
+} // </editor-fold>
 
 bt_stt_t BUTTON_GetState(bt_cxt_t *pBtCxt, bool preInput) // <editor-fold defaultstate="collapsed" desc="Button UP">
 {
@@ -18,7 +25,7 @@ bt_stt_t BUTTON_GetState(bt_cxt_t *pBtCxt, bool preInput) // <editor-fold defaul
         case SINGLE_PRESS:
             if(preInput==1)
             {
-                if(Tick_Dif(Tick_Get(), pBtCxt->Begin)>=(TICK_PER_MS*SINGLE_PRESS_INTERVAL))
+                if(Tick_Dif(Tick_Get(), pBtCxt->Begin, MS)>=SINGLE_PRESS_INTERVAL)
                 {
                     pBtCxt->DoNext=NEXT_PRESS;
                     pBtCxt->Begin=Tick_Get();
@@ -29,7 +36,7 @@ bt_stt_t BUTTON_GetState(bt_cxt_t *pBtCxt, bool preInput) // <editor-fold defaul
                     break;
                 }
             }
-            else if(Tick_Dif(Tick_Get(), pBtCxt->Begin)>=(TICK_PER_MS*HOLD_PRESS_INTERVAL))
+            else if(Tick_Dif(Tick_Get(), pBtCxt->Begin, MS)>=HOLD_PRESS_INTERVAL)
             {
                 pBtCxt->DoNext=WAIT_RELEASE;
 
@@ -46,7 +53,7 @@ bt_stt_t BUTTON_GetState(bt_cxt_t *pBtCxt, bool preInput) // <editor-fold defaul
                 pBtCxt->Begin=Tick_Get();
                 pBtCxt->DoNext=DOUBLE_PRESS;
             }
-            else if(Tick_Dif(Tick_Get(), pBtCxt->Begin)>=(TICK_PER_MS*BUTTON_RELEASE_INTERVAL))
+            else if(Tick_Dif(Tick_Get(), pBtCxt->Begin, MS)>=BUTTON_RELEASE_INTERVAL)
             {
                 pBtCxt->DoNext=NOT_PRESS;
 
@@ -67,7 +74,7 @@ bt_stt_t BUTTON_GetState(bt_cxt_t *pBtCxt, bool preInput) // <editor-fold defaul
 
                 return DOUBLE_PRESS;
             }
-            else if(Tick_Dif(Tick_Get(), pBtCxt->Begin)>=(TICK_PER_MS*HOLD_PRESS_INTERVAL))
+            else if(Tick_Dif(Tick_Get(), pBtCxt->Begin, MS)>=HOLD_PRESS_INTERVAL)
             {
                 pBtCxt->DoNext=WAIT_RELEASE;
 

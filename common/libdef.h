@@ -59,8 +59,65 @@
 #define __attribute_aligned8__          __attribute__((aligned(8)))
 #define __attribute_aligned16__         __attribute__((aligned(16)))
 #else
-#define __attribute_packed__
-#define __attribute_aligned4__
+#define __attribute_packed__            
+#define __attribute_aligned4__          
+#define __attribute_aligned8__          
+#define __attribute_aligned16__         
+#endif
+
+#define NO_INIT                        __attribute__((section(".no_init")))
+#define SECTION(a)                     __attribute__((__section__(a)))
+
+#ifndef   __ASM
+    #define __ASM                      __asm__
+#endif
+
+#ifndef   __INLINE
+    #define __INLINE                   __inline__
+#endif
+
+#ifndef   __STATIC_INLINE
+    #define __STATIC_INLINE            static __inline__
+#endif
+
+#ifndef   __STATIC_FORCEINLINE
+    #define __STATIC_FORCEINLINE       __attribute__((always_inline)) static __inline__
+#endif
+
+#ifndef   __NO_RETURN
+    #define __NO_RETURN                __attribute__((__noreturn__))
+#endif
+
+#ifndef   __USED
+    #define __USED                     __attribute__((used))
+#endif
+
+#ifndef   __WEAK
+    #define __WEAK                     __attribute__((weak))
+#endif
+
+#ifndef   __PACKED
+    #define __PACKED                   __attribute__((packed, aligned(1)))
+#endif
+
+#ifndef   __PACKED_STRUCT
+    #define __PACKED_STRUCT            struct __attribute__((packed, aligned(1)))
+#endif
+
+#ifndef   __PACKED_UNION
+    #define __PACKED_UNION             union __attribute__((packed, aligned(1)))
+#endif
+
+#ifndef   __COHERENT
+    #define __COHERENT                 __attribute__((coherent))
+#endif
+
+#ifndef   __ALIGNED
+    #define __ALIGNED(x)               __attribute__((aligned(x)))
+#endif
+
+#ifndef   __RESTRICT
+    #define __RESTRICT                 __restrict__
 #endif
 
 #ifndef rslt_t

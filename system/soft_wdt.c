@@ -10,15 +10,18 @@ volatile uint32_t softWdtCountMax=NO_WDT;
 
 public void SYS_SoftReset(void) // <editor-fold defaultstate="collapsed" desc="Software reset">
 {
-    uint32_t dummy;
+    uint32_t dummy=0;
 
+#ifdef __PIC32MM
     SYSKEY=0x0; //write invalid key to force lock
     SYSKEY=0xAA996655; //write Key1 to SYSKEY
     SYSKEY=0x556699AA; //write Key2 to SYSKEY
     RSWRSTSET=1;
     /* read RSWRST register to trigger reset */
     dummy=RSWRST;
-
+#elif defined(__AVR_ARCH__)
+    _PROTECTED_WRITE(RSTCTRL.SWRR, RSTCTRL_SWRST_bm);
+#endif
     while(1)
         dummy--;
 } // </editor-fold>
@@ -35,13 +38,7 @@ public void softWDT_Isr(void)
         if(CbFnc)
             CbFnc();
 
-        SYSKEY=0x0; //write invalid key to force lock
-        SYSKEY=0xAA996655; //write Key1 to SYSKEY
-        SYSKEY=0x556699AA; //write Key2 to SYSKEY
-        RSWRSTSET=1;
-        /* read RSWRST register to trigger reset */
-        softWdtCount=RSWRST;
-        while(1);
+        SYS_SoftReset();
     }
 }
 

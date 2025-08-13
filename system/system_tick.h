@@ -47,7 +47,7 @@ tick_t Tick_Per_Sec(void);
 tick_t Tick_Per_Ms(void);
 tick_t Tick_GetTimeMs(void);
 tick_t Tick_GetTimeSec(void);
-tick_t Tick_Dif(tick_t Tk0, tick_t Tk1, tick_timer_type_t TickType);
+tick_t Tick_Dif(tick_t Tk1, tick_t Tk0, tick_timer_type_t TickType);
 
 #define Tick_Timer_Reset(x)                 Tick_Reset(&(x))
 #define Tick_Get()                          Tick_Timer_Get_TickVal()
