@@ -3,7 +3,6 @@
 
 #include "libdef.h"
 #include "project_cfg.h"
-#include "system/system_tick.h"
 
 #if !defined(__PICC18__) && !defined(__PICC__) && !defined(__PICCLITE__)
 #include "system/task_manager.h"
