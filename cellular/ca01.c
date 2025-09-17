@@ -1,4 +1,5 @@
 #include "at_cmd.h"
+#include "misc/util.h"
 
 int8_t ATCMD_ReportOn(void)
 {

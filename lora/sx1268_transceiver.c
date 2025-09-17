@@ -15,13 +15,12 @@ static uint8_t txBusy=0;
 
 void sx1268_interface_receive_callback(uint16_t type, uint8_t *buf, uint16_t len)
 {
-    __dbsu("\r\nsx1268 irq ", type);
-
     switch(type)
     {
         case SX1268_IRQ_TX_DONE:
         {
             txBusy=0;
+            __dbsu("\r\nsx1268 irq ", type);
             __dbs(": tx done.");
             break;
         }
@@ -30,6 +29,8 @@ void sx1268_interface_receive_callback(uint16_t type, uint8_t *buf, uint16_t len
         {
             uint16_t i;
             sx1268_bool_t enable;
+            
+            __dbsu("\r\nsx1268 irq ", type);
             __dbs(": rx ready.");
 
             /* check the error */
