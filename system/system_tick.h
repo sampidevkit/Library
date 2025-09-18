@@ -55,10 +55,10 @@ tick_t Tick_Dif(tick_t Tk1, tick_t Tk0, tick_timer_type_t TickType);
 #define Tick_DifSec(Tk0, Tk1)               Tick_Dif(Tk0, Tk1, SEC)
 
 #ifndef __delay_ms
-#define __delay_ms(t)                       Delay_Ms(t)
+#define __delay_ms(t)                       Delay(t, MS)
 #endif
 
-#define __delay_sec(t)                      Delay_Sec(t)
+#define __delay_sec(t)                      Delay(t, SEC)
 
 #define Tick_Timer_Is_Over_Sec(pTick, Time) Tick_Timer_Is_Over(&pTick, Time, SEC)
 #define Tick_Timer_Is_Over_Ms(pTick, Time)  Tick_Timer_Is_Over(&pTick, Time, MS)
@@ -69,7 +69,7 @@ tick_t Tick_GetTimeUs(void);
 #define Tick_DifUs(Tk0, Tk1)                Tick_Dif(Tk0, Tk1, US)
 
 #ifndef __delay_us
-#define __delay_us(t)                       Delay_Us(t)
+#define __delay_us(t)                       Delay(t, US)
 #endif
 
 #define Tick_Timer_Is_Over_Us(pTick, Time)  Tick_Timer_Is_Over(&pTick, Time, US)
