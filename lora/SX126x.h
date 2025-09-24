@@ -29,11 +29,6 @@
 #define ERR_IDLE_TIMEOUT                20
 #define ERR_SPI_TRANSACTION             21
 
-// SX126X physical layer properties
-#define XTAL_FREQ                       ( double )32000000
-#define FREQ_DIV                        ( double )pow( 2.0, 25.0 )
-#define FREQ_STEP                       ( double )( XTAL_FREQ / FREQ_DIV )
-
 #define LOW                             0
 #define HIGH                            1
 #define BUSY_WAIT                       5000
@@ -236,7 +231,7 @@
 #define SX126X_DIO3_OUTPUT_3_3                        0x07        //  7     0                                   3.3 V
 
 //Radio complete Wake-up Time with TCXO stabilisation time
-#define RADIO_TCXO_SETUP_TIME                         5000        // [us]
+#define RADIO_TCXO_SETUP_TIME                         5000000     // [ns]
 
 //SX126X_CMD_SET_PACKET_TYPE
 #define SX126X_PACKET_TYPE_GFSK                       0x00        //  7     0     packet type: GFSK
@@ -375,53 +370,51 @@
 
 // Public function
 void LoRaInit(void);
-int16_t LoRaBegin(uint32_t frequencyInHz, int8_t txPowerInDbm, float tcxoVoltage, bool useRegulatorLDO);
+int16_t LoRaBegin(uint32_t frequencyInHz, int8_t txPowerInDbm, int32_t tcxo_mV, bool useRegLDO);
 void LoRaConfig(uint8_t spreadingFactor, uint8_t bandwidth, uint8_t codingRate, uint16_t preambleLength, uint8_t payloadLen, bool crcOn, bool invertIrq);
 uint8_t LoRaReceive(uint8_t *pData, int16_t len);
 bool LoRaSend(uint8_t *pData, int16_t len, uint8_t mode);
-void LoRaDebugPrint(bool enable);
-void LoRaError(int error);
 
 // Private function
 
-bool SX126x_ReceiveMode(void);
-void SX126x_GetPacketStatus(int8_t *rssiPacket, int8_t *snrPacket);
-void SX126x_SetTxPower(int8_t txPowerInDbm);
+public bool SX126x_IsInReceiveMode(void);
+public void SX126x_GetPacketStatus(int8_t *rssiPacket, int8_t *snrPacket);
+public void SX126x_SetTxPower(int8_t txPowerInDbm);
 
-void SX126x_FixInvertedIQ(uint8_t iqConfig);
-void SetDio3AsTcxoCtrl(float voltage, uint32_t delay);
-void SetDio2AsRfSwitchCtrl(uint8_t enable);
-void SX126x_Reset(void);
-void SX126x_SetStandby(uint8_t mode);
-void SX126x_SetRfFrequency(uint32_t frequency);
-void SX126x_Calibrate(uint8_t calibParam);
-void SX126x_CalibrateImage(uint32_t frequency);
-void SX126x_SetRegulatorMode(uint8_t mode);
-void SX126x_SetBufferBaseAddress(uint8_t txBaseAddress, uint8_t rxBaseAddress);
-void SX126x_SetPowerConfig(int8_t power, uint8_t rampTime);
-void SX126x_SetOvercurrentProtection(float currentLimit);
-void SX126x_SetSyncWord(int16_t sync);
-void SX126x_SetPaConfig(uint8_t paDutyCycle, uint8_t hpMax, uint8_t deviceSel, uint8_t paLut);
-void SX126x_SetDioIrqParams(uint16_t IrqMask, uint16_t dio1Mask, uint16_t dio2Mask, uint16_t dio3Mask);
-void SX126x_SetStopRxTimerOnPreambleDetect(bool enable);
-void SX126x_SetLoRaSymbNumTimeout(uint8_t SymbNum);
-void SX126x_SetPacketType(uint8_t packetType);
-void SX126x_SetModulationParams(uint8_t spreadingFactor, uint8_t bandwidth, uint8_t codingRate, uint8_t lowDataRateOptimize);
-void SX126x_SetCadParams(uint8_t cadSymbolNum, uint8_t cadDetPeak, uint8_t cadDetMin, uint8_t cadExitMode, uint32_t cadTimeout);
-void SX126x_SetCad(void);
-uint8_t SX126x_GetStatus(void);
-uint16_t SX126x_GetIrqStatus(void);
-void SX126x_ClearIrqStatus(uint16_t Irq);
-void SX126x_SetTxEnable(void);
-void SX126x_SetRxEnable(void);
-void SX126x_SetRx(uint32_t timeout);
-void SX126x_SetTx(uint32_t timeoutInMs);
-int SX126x_GetPacketLost(void);
+public void SX126x_FixInvertedIQ(uint8_t iqConfig);
+public void SetDio3AsTcxoCtrl(int32_t tcxo_mV, uint32_t delay_ns);
+public void SX126x_SetDio2AsRfSwitchCtrl(bool enable);
+public void SX126x_Reset(void);
+public void SX126x_SetStandby(uint8_t mode);
+public void SX126x_SetRfFrequency(uint16_t frequency_mhz);
+public void SX126x_Calibrate(uint8_t calibParam);
+public void SX126x_CalibrateImage(uint16_t frequency_mhz);
+public void SX126x_SetRegulatorMode(uint8_t mode);
+public void SX126x_SetBufferBaseAddress(uint8_t txBaseAddress, uint8_t rxBaseAddress);
+public void SX126x_SetPowerConfig(int8_t power, uint8_t rampTime);
+public void SX126x_SetOvercurrentProtection(uint16_t currentLimit_mA);
+public void SX126x_SetSyncWord(uint16_t sync);
+public void SX126x_SetPaConfig(uint8_t paDutyCycle, uint8_t hpMax, uint8_t deviceSel, uint8_t paLut);
+public void SX126x_SetDioIrqParams(uint16_t IrqMask, uint16_t dio1Mask, uint16_t dio2Mask, uint16_t dio3Mask);
+public void SX126x_SetStopRxTimerOnPreambleDetect(bool enable);
+public void SX126x_SetLoRaSymbNumTimeout(uint8_t SymbNum);
+public void SX126x_SetPacketType(uint8_t packetType);
+public void SX126x_SetModulationParams(uint8_t spreadingFactor, uint8_t bandwidth, uint8_t codingRate, uint8_t lowDataRateOptimize);
+public void SX126x_SetCadParams(uint8_t cadSymbolNum, uint8_t cadDetPeak, uint8_t cadDetMin, uint8_t cadExitMode, uint32_t cadTimeout);
+public void SX126x_SetCad(void);
+public uint8_t SX126x_GetStatus(void);
+public uint16_t SX126x_GetIrqStatus(void);
+public void SX126x_ClearIrqStatus(uint16_t Irq);
+public void SX126x_SetRxEnable(void);
+public void SX126x_SetRx(uint32_t timeout);
+public void SX126x_SetTxEnable(void);
+public void SX126x_SetTx(uint32_t timeoutInMs);
+public uint16_t SX126x_GetPacketLost(void);
 uint8_t SX126x_GetRssiInst(void);
 void SX126x_GetRxBufferStatus(uint8_t *payloadLength, uint8_t *rxStartBufferPointer);
-void SX126x_Wakeup(void);
+public void SX126x_Wakeup(void);
 void SX126x_WaitForIdleBegin(uint32_t timeout, char *text);
-bool SX126x_WaitForIdle(uint32_t timeout, char *text, bool stop);
+public bool SX126x_WaitForIdle(uint32_t timeout, const char *text, bool stop);
 uint8_t SX126x_ReadBuffer(uint8_t *rxData, int16_t rxDataLen);
 void SX126x_WriteBuffer(uint8_t *txData, int16_t txDataLen);
 void SX126x_WriteRegister(uint16_t reg, uint8_t* data, uint8_t numBytes);
@@ -433,23 +426,17 @@ void SX126x_SPItransfer(uint8_t cmd, bool write, uint8_t* dataOut, uint8_t* data
 
 /* ********************************************************************** HAL */
 typedef enum {
-    SX126x_SPI_SELECT = 0,
-    SX126x_RESET,
-    SX126x_BUSY,
-    SX126x_TXEN,
-    SX126x_RXEN
+    SX126x_NSS = 0, // SPI Slave Select
+    SX126x_RESET, // Reset signal, active low
+    SX126x_BUSY, // Busy indicator
+    SX126x_TXEN, // RF switch power control
+    SX126x_IRQ // Interrupt signal, connects to DIO1 pin
 } sx126x_gpio_pin_t;
 
-typedef enum {
-    GPIO_MODE_OUTPUT = 0,
-    GPIO_MODE_INPUT
-} sx126x_gpio_mode_t;
-
-void sx126x_gpio_reset_pin(sx126x_gpio_pin_t pin);
-void sx126x_gpio_set_direction(sx126x_gpio_pin_t pin, sx126x_gpio_mode_t mode);
 void sx126x_gpio_set_level(sx126x_gpio_pin_t pin, bool level);
 bool sx126x_gpio_get_level(sx126x_gpio_pin_t pin);
-void sx126x_spi_exchange(const uint8_t* Datain, uint8_t* Dataout, size_t DataLength);
+void sx126x_spi_exchange(const uint8_t *Datain, uint8_t *Dataout, uint16_t DataLength);
 uint32_t sx126x_get_system_tick_ms(void);
+void sx126x_error(int error); // defined in your app or may be skipped
 
 #endif
