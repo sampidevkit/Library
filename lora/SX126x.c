@@ -36,7 +36,7 @@ public void LoRaInit(void) // <editor-fold defaultstate="collapsed" desc="LoRa i
     sx126x_gpio_set_level(SX126x_TXEN, 0);
 } // </editor-fold>
 
-public int16_t LoRaBegin(uint32_t frequencyInHz, int8_t txPowerInDbm,
+public int16_t LoRaBegin(uint16_t frequencyInMHz, int8_t txPowerInDbm,
                          int32_t tcxo_mV, bool useRegLDO) // <editor-fold defaultstate="collapsed" desc="LoRa begin">
 {
     uint8_t wk[2];
@@ -84,7 +84,7 @@ public int16_t LoRaBegin(uint32_t frequencyInHz, int8_t txPowerInDbm,
     SX126x_SetPaConfig(0x04, 0x07, 0x00, 0x01); // PA Optimal Settings +22 dBm
     SX126x_SetOvercurrentProtection(60.0); // current max 60mA for the whole device
     SX126x_SetPowerConfig(txPowerInDbm, SX126X_PA_RAMP_200U); //0 fuer Empfaenger
-    SX126x_SetRfFrequency(frequencyInHz);
+    SX126x_SetRfFrequency(frequencyInMHz);
     SX126x_SetBufferBaseAddress(0, 0);
     SX126x_SetDio2AsRfSwitchCtrl(true); // Set as RX mode
 
@@ -163,7 +163,7 @@ public void LoRaConfig(uint8_t spreadingFactor, uint8_t bandwidth,
     SX126x_SetRx(0xFFFFFF);
 } // </editor-fold>
 
-public uint8_t LoRaReceive(uint8_t *pData, int16_t len) // <editor-fold defaultstate="collapsed" desc="LoRa receive">
+public uint8_t LoRaReceive(uint8_t *pData, uint8_t len) // <editor-fold defaultstate="collapsed" desc="LoRa receive">
 {
     uint8_t rxLen=0;
     uint16_t IrqRegs=SX126x_GetIrqStatus();
@@ -177,7 +177,7 @@ public uint8_t LoRaReceive(uint8_t *pData, int16_t len) // <editor-fold defaults
     return rxLen;
 } // </editor-fold>
 
-public bool LoRaSend(uint8_t *pData, int16_t len, uint8_t mode) // <editor-fold defaultstate="collapsed" desc="LoRa send">
+public bool LoRaSend(uint8_t *pData, uint8_t len, uint8_t mode) // <editor-fold defaultstate="collapsed" desc="LoRa send">
 {
     uint16_t IrqStatus;
     bool rv=false;
@@ -264,6 +264,7 @@ public void SX126x_GetPacketStatus(int8_t *rssiPacket, int8_t *snrPacket) // <ed
     uint8_t buf[4];
 
     SX126x_ReadCommand(SX126X_CMD_GET_PACKET_STATUS, buf, 4); // 0x14
+    //Signal power in dBm = ?RssiInst/2 (dBm)
     *rssiPacket=(~(buf[3]>>1)+1); // (*rssiPacket=(buf[3]>>1) * -1;
 
     if(buf[2]<128)
@@ -633,34 +634,46 @@ public uint16_t SX126x_GetPacketLost(void) // <editor-fold defaultstate="collaps
     return txLost;
 } // </editor-fold>
 
-uint8_t SX126x_GetRssiInst(void)
+public int8_t SX126x_GetRssiInst(void) // <editor-fold defaultstate="collapsed" desc="Get RSSI">
 {
     uint8_t buf[2];
-    SX126x_ReadCommand(SX126X_CMD_GET_RSSI_INST, buf, 2); // 0x15
-    return buf[1];
-}
 
-void SX126x_GetRxBufferStatus(uint8_t *payloadLength, uint8_t *rxStartBufferPointer)
+    SX126x_ReadCommand(SX126X_CMD_GET_RSSI_INST, buf, 2); // 0x15
+    // Signal power in dBm = ?RssiInst/2 (dBm)
+    return (int8_t) (~(buf[1]>>1)+1);
+} // </editor-fold>
+
+public void SX126x_GetRxBufferStatus(uint8_t *payloadLength, uint8_t *rxStartBufferPointer) // <editor-fold defaultstate="collapsed" desc="Get RX buffer status">
 {
     uint8_t buf[3];
+
     SX126x_ReadCommand(SX126X_CMD_GET_RX_BUFFER_STATUS, buf, 3); // 0x13
     *payloadLength=buf[1];
     *rxStartBufferPointer=buf[2];
-}
+} // </editor-fold>
 
-void SX126x_WaitForIdleBegin(uint32_t timeout_ms, char *text)
+public void SX126x_WaitForIdleBegin(uint32_t timeout_ms, char *text) // <editor-fold defaultstate="collapsed" desc="Waiting for idle begin">
 {
-    // ensure BUSY is low (state meachine ready)
+    // ensure BUSY is low (state machine ready)
+    int retry;
     bool stop=false;
-    for(int retry=0; retry<10; retry++)
+
+    for(retry=0; retry<10; retry++)
     {
-        if(retry==9) stop=true;
-        bool ret=SX126x_WaitForIdle(BUSY_WAIT, text, stop);
-        if(ret==true) break;
-        __dbsi(DEBUG_PREFIX "SX126x_WaitForIdle fail retry=", retry);
+        bool ret;
+
+        if(retry==9)
+            stop=true;
+
+        ret=SX126x_WaitForIdle(BUSY_WAIT, text, stop);
+
+        if(ret==true)
+            break;
+
+        __dbsi(DEBUG_PREFIX "WaitForIdle fail retry=", retry);
         system_wait();
     }
-}
+} // </editor-fold>
 
 public bool SX126x_WaitForIdle(uint32_t timeout_ms, const char *text, bool stop) // <editor-fold defaultstate="collapsed" desc="Waiting for idle">
 {
@@ -687,173 +700,161 @@ public bool SX126x_WaitForIdle(uint32_t timeout_ms, const char *text, bool stop)
     return ret;
 } // </editor-fold>
 
-uint8_t SX126x_ReadBuffer(uint8_t *rxData, int16_t rxDataLen)
+public uint8_t SX126x_ReadBuffer(uint8_t *rxData, uint8_t rxDataLen) // <editor-fold defaultstate="collapsed" desc="Read buffer">
 {
-    uint8_t offset=0;
-    uint8_t payloadLength=0;
+    uint8_t buf[LORA_MSG_LEN_MAX+3];
+    uint8_t offset=0, payloadLength=0;
+
     SX126x_GetRxBufferStatus(&payloadLength, &offset);
+
     if(payloadLength>rxDataLen)
     {
-        __dbsu(DEBUG_PREFIX "SX126x_ReadBuffer rxDataLen too small. payloadLength=", payloadLength);
-        __dbsi(" rxDataLen=", rxDataLen);
+        __dbsu(DEBUG_PREFIX "ReadBuffer rxDataLen too small. payloadLength=", payloadLength);
+        __dbsu(">rxDataLen=", rxDataLen);
 
         return 0;
     }
 
+    if(payloadLength>LORA_MSG_LEN_MAX)
+    {
+        __dbsu(DEBUG_PREFIX "ReadBuffer LORA_MSG_LEN_MAX too small. payloadLength=", payloadLength);
+        __dbsu(">LORA_MSG_LEN_MAX=", LORA_MSG_LEN_MAX);
+
+        return 0;
+    }
     // ensure BUSY is low (state meachine ready)
-    SX126x_WaitForIdle(BUSY_WAIT, "start SX126x_ReadBuffer", true);
-
+    SX126x_WaitForIdle(BUSY_WAIT, "start ReadBuffer", true);
     // start transfer
-    uint8_t *buf;
-    buf=malloc(payloadLength+3);
-    if(buf!=NULL)
-    {
-        buf[0]=SX126X_CMD_READ_BUFFER; // 0x1E
-        buf[1]=offset; // offset in rx fifo
-        buf[2]=SX126X_CMD_NOP;
-        memset(&buf[3], SX126X_CMD_NOP, payloadLength);
-        sx126x_spi_exchange(buf, buf, payloadLength+3);
-        memcpy(rxData, &buf[3], payloadLength);
-        free(buf);
-    }
-    else
-    {
-        __dbs(DEBUG_PREFIX "SX126x_ReadBuffer malloc fail");
-        payloadLength=0;
-    }
-
+    buf[0]=SX126X_CMD_READ_BUFFER; // 0x1E
+    buf[1]=offset; // offset in rx fifo
+    buf[2]=SX126X_CMD_NOP;
+    memset(&buf[3], SX126X_CMD_NOP, payloadLength);
+    sx126x_spi_exchange(buf, buf, payloadLength+3);
+    memcpy(rxData, &buf[3], payloadLength);
     // wait for BUSY to go low
-    SX126x_WaitForIdle(BUSY_WAIT, "end SX126x_ReadBuffer", false);
+    SX126x_WaitForIdle(BUSY_WAIT, "end ReadBuffer", false);
 
     return payloadLength;
-}
+} // </editor-fold>
 
-void SX126x_WriteBuffer(uint8_t *txData, int16_t txDataLen)
+public void SX126x_WriteBuffer(uint8_t *txData, uint8_t txDataLen) // <editor-fold defaultstate="collapsed" desc="Write buffer">
 {
     uint8_t buf[LORA_MSG_LEN_MAX+2];
 
     if(txDataLen>LORA_MSG_LEN_MAX)
     {
-        __dbs(DEBUG_PREFIX "SX126x_WriteBuffer out of memory");
+        __dbs(DEBUG_PREFIX "WriteBuffer out of memory");
+
         return;
     }
-
-    // ensure BUSY is low (state meachine ready)
-    SX126x_WaitForIdle(BUSY_WAIT, "start SX126x_WriteBuffer", true);
-
+    // ensure BUSY is low (state machine ready)
+    SX126x_WaitForIdle(BUSY_WAIT, "start WriteBuffer", true);
     // start transfer
     buf[0]=SX126X_CMD_WRITE_BUFFER; // 0x0E
     buf[1]=0; // offset in tx fifo
-    memcpy(&buf[2], txData, (size_t) txDataLen);
-    sx126x_spi_exchange(buf, NULL, (size_t) (txDataLen+2));
+    memcpy(&buf[2], txData, txDataLen);
+    sx126x_spi_exchange(buf, NULL, (txDataLen+2));
     // wait for BUSY to go low
-    SX126x_WaitForIdle(BUSY_WAIT, "end SX126x_WriteBuffer", false);
-}
+    SX126x_WaitForIdle(BUSY_WAIT, "end WriteBuffer", false);
+} // </editor-fold>
 
-void SX126x_WriteRegister(uint16_t reg, uint8_t* data, uint8_t numBytes)
+public void SX126x_WriteRegister(uint16_t reg, uint8_t* data, uint8_t numBytes) // <editor-fold defaultstate="collapsed" desc="Write register">
 {
+    uint8_t n, buf[16];
     // ensure BUSY is low (state meachine ready)
-    SX126x_WaitForIdle(BUSY_WAIT, "start SX126x_WriteRegister", true);
+    SX126x_WaitForIdle(BUSY_WAIT, "start WriteRegister", true);
 
-    if(debugPrint)
+    __dbs(DEBUG_PREFIX "WriteRegister: REG=");
+    __dbh2(reg);
+    __dbs(", DataOut: ");
+
+    for(n=0; n<numBytes; n++)
     {
-        __dbs(DEBUG_PREFIX "SX126x_WriteRegister: REG=");
-        __dbh2(reg);
+        if(n>0)
+            __dbs(", ");
 
-        for(uint8_t n=0; n<numBytes; n++)
-        {
-            __dbs(DEBUG_PREFIX "DataOut:");
-            __dbh2(data[n]);
-        }
+        __dbh2(data[n]);
     }
-
     // start transfer
-    uint8_t buf[16];
     buf[0]=SX126X_CMD_WRITE_REGISTER;
     buf[1]=(reg&0xFF00)>>8;
     buf[2]=reg&0xff;
     memcpy(&buf[3], data, numBytes);
-    sx126x_spi_exchange(buf, NULL, (size_t) (3+numBytes));
-
+    sx126x_spi_exchange(buf, NULL, (3+numBytes));
     // wait for BUSY to go low
-    SX126x_WaitForIdle(BUSY_WAIT, "end SX126x_WriteRegister", false);
-}
+    SX126x_WaitForIdle(BUSY_WAIT, "end WriteRegister", false);
+} // </editor-fold>
 
-void SX126x_ReadRegister(uint16_t reg, uint8_t* data, uint8_t numBytes)
+public void SX126x_ReadRegister(uint16_t reg, uint8_t* data, uint8_t numBytes) // <editor-fold defaultstate="collapsed" desc="Read register">
 {
-    // ensure BUSY is low (state meachine ready)
-    SX126x_WaitForIdle(BUSY_WAIT, "start SX126x_ReadRegister", true);
+    uint8_t n, buf[16];
 
-    if(debugPrint)
-    {
-        __dbs(DEBUG_PREFIX "SX126x_ReadRegister: REG=");
-        __dbh2(reg);
-    }
+    // ensure BUSY is low (state meachine ready)
+    SX126x_WaitForIdle(BUSY_WAIT, "start ReadRegister", true);
+
+    __dbs(DEBUG_PREFIX "ReadRegister: REG=");
+    __dbh2(reg);
 
     // start transfer
-    uint8_t buf[16];
     memset(buf, SX126X_CMD_NOP, sizeof (buf));
     buf[0]=SX126X_CMD_READ_REGISTER;
     buf[1]=(reg&0xFF00)>>8;
     buf[2]=reg&0xff;
     sx126x_spi_exchange(buf, buf, 4+numBytes);
     memcpy(data, &buf[4], numBytes);
-    if(debugPrint)
+    __dbs(DEBUG_PREFIX "DataIn: ");
+
+    for(n=0; n<numBytes; n++)
     {
-        for(uint8_t n=0; n<numBytes; n++)
-        {
-            __dbs(DEBUG_PREFIX "DataIn:");
-            __dbh2(data[n]);
-        }
+        if(n>0)
+            __dbs(", ");
+
+        __dbh2(data[n]);
     }
-
     // wait for BUSY to go low
-    SX126x_WaitForIdle(BUSY_WAIT, "end SX126x_ReadRegister", false);
-}
+    SX126x_WaitForIdle(BUSY_WAIT, "end ReadRegister", false);
+} // </editor-fold>
 
-// SX126x_WriteCommand with retry
-
-void SX126x_WriteCommand(uint8_t cmd, uint8_t* data, uint8_t numBytes)
+public void SX126x_WriteCommand(uint8_t cmd, uint8_t* data, uint8_t numBytes) // <editor-fold defaultstate="collapsed" desc="Write command with retry">
 {
-    uint8_t status;
-    for(int retry=1; retry<10; retry++)
+    uint8_t status, retry;
+
+    for(retry=1; retry<10; retry++)
     {
         status=SX126x_WriteCommand2(cmd, data, numBytes);
         __dbs(DEBUG_PREFIX "status=");
         __dbh2(status);
 
-        if(status==0) break;
-        __dbs(DEBUG_PREFIX "SX126x_WriteCommand2 status=");
+        if(status==0)
+            break;
+
+        __dbs(DEBUG_PREFIX "WriteCommand status=");
         __dbh2(status);
         __dbsi(" retry=", retry);
     }
+
     if(status!=0)
     {
         __dbs(DEBUG_PREFIX "SPI Transaction error:");
         __dbh2(status);
         sx126x_error(ERR_SPI_TRANSACTION);
     }
-}
+} // </editor-fold>
 
-uint8_t SX126x_WriteCommand2(uint8_t cmd, uint8_t* data, uint8_t numBytes)
+public uint8_t SX126x_WriteCommand2(uint8_t cmd, uint8_t* data, uint8_t numBytes) // <editor-fold defaultstate="collapsed" desc="Write command 2 with retry">
 {
-    // ensure BUSY is low (state meachine ready)
-    SX126x_WaitForIdle(BUSY_WAIT, "start SX126x_WriteCommand2", true);
-
-    if(debugPrint)
-    {
-        __dbs(DEBUG_PREFIX "SX126x_WriteCommand: CMD=");
-        __dbh2(cmd);
-    }
+    uint8_t status, cmd_status, buf[16];
+    // ensure BUSY is low (state machine ready)
+    SX126x_WaitForIdle(BUSY_WAIT, "start WriteCommand2", true);
+    __dbs(DEBUG_PREFIX "SX126x_WriteCommand: CMD=");
+    __dbh2(cmd);
 
     // start transfer
-    uint8_t buf[16];
     buf[0]=cmd;
     memcpy(&buf[1], data, numBytes);
     sx126x_spi_exchange(buf, buf, numBytes+1);
-
-    uint8_t status=0;
-    uint8_t cmd_status=buf[1]&0xe;
+    status=0;
+    cmd_status=buf[1]&0xe;
 
     switch(cmd_status)
     {
@@ -867,34 +868,35 @@ uint8_t SX126x_WriteCommand2(uint8_t cmd, uint8_t* data, uint8_t numBytes)
         case 7:
             status=SX126X_STATUS_SPI_FAILED;
             break;
-            // default: break; // success
+
+        default:
+            break; // success
     }
 
     // wait for BUSY to go low
-    SX126x_WaitForIdle(BUSY_WAIT, "end SX126x_WriteCommand2", false);
+    SX126x_WaitForIdle(BUSY_WAIT, "end WriteCommand2", false);
+
     return status;
-}
+} // </editor-fold>
 
-void SX126x_ReadCommand(uint8_t cmd, uint8_t* data, uint8_t numBytes)
+public void SX126x_ReadCommand(uint8_t cmd, uint8_t* data, uint8_t numBytes) // <editor-fold defaultstate="collapsed" desc="Read command">
 {
-    // ensure BUSY is low (state meachine ready)
-    SX126x_WaitForIdleBegin(BUSY_WAIT, "start SX126x_ReadCommand");
+    uint8_t buf[16];
+    // ensure BUSY is low (state machine ready)
+    SX126x_WaitForIdleBegin(BUSY_WAIT, "start ReadCommand");
 
-    if(debugPrint)
-    {
-        __dbs(DEBUG_PREFIX "SX126x_ReadCommand: CMD=");
-        __dbh2(cmd);
-    }
+    __dbs(DEBUG_PREFIX "ReadCommand: CMD=");
+    __dbh2(cmd);
 
     // start transfer
-    uint8_t buf[16];
     memset(buf, SX126X_CMD_NOP, sizeof (buf));
     buf[0]=cmd;
     sx126x_spi_exchange(buf, buf, 1+numBytes);
+
     if(data!=NULL&&numBytes)
         memcpy(data, &buf[1], numBytes);
 
     // wait for BUSY to go low
     system_wait();
-    SX126x_WaitForIdle(BUSY_WAIT, "end SX126x_ReadCommand", false);
-}
+    SX126x_WaitForIdle(BUSY_WAIT, "end ReadCommand", false);
+} // </editor-fold>

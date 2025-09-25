@@ -358,7 +358,6 @@
 #define SX126X_RC13M_CALIB_ERR                        0b000000010  //  1     1                    RC13M calibration failed
 #define SX126X_RC64K_CALIB_ERR                        0b000000001  //  0     0                    RC64K calibration failed
 
-
 // SX126X SPI register variables
 //SX126X_REG_LORA_SYNC_WORD_MSB + LSB
 #define SX126X_SYNC_WORD_PUBLIC                       0x3444
@@ -368,19 +367,16 @@
 #define SX126x_TXMODE_SYNC                            0x02
 #define SX126x_TXMODE_BACK2RX                         0x04
 
-// Public function
 void LoRaInit(void);
-int16_t LoRaBegin(uint32_t frequencyInHz, int8_t txPowerInDbm, int32_t tcxo_mV, bool useRegLDO);
-void LoRaConfig(uint8_t spreadingFactor, uint8_t bandwidth, uint8_t codingRate, uint16_t preambleLength, uint8_t payloadLen, bool crcOn, bool invertIrq);
-uint8_t LoRaReceive(uint8_t *pData, int16_t len);
-bool LoRaSend(uint8_t *pData, int16_t len, uint8_t mode);
-
-// Private function
+int16_t LoRaBegin(uint16_t frequencyInMHz, int8_t txPowerInDbm, int32_t tcxo_mV, bool useRegLDO);
+void LoRaConfig(uint8_t spreadingFactor, uint8_t bandwidth, uint8_t codingRate,
+        uint16_t preambleLength, uint8_t payloadLen, bool crcOn, bool invertIrq);
+uint8_t LoRaReceive(uint8_t *pData, uint8_t len);
+bool LoRaSend(uint8_t *pData, uint8_t len, uint8_t mode);
 
 public bool SX126x_IsInReceiveMode(void);
 public void SX126x_GetPacketStatus(int8_t *rssiPacket, int8_t *snrPacket);
 public void SX126x_SetTxPower(int8_t txPowerInDbm);
-
 public void SX126x_FixInvertedIQ(uint8_t iqConfig);
 public void SetDio3AsTcxoCtrl(int32_t tcxo_mV, uint32_t delay_ns);
 public void SX126x_SetDio2AsRfSwitchCtrl(bool enable);
@@ -394,13 +390,17 @@ public void SX126x_SetBufferBaseAddress(uint8_t txBaseAddress, uint8_t rxBaseAdd
 public void SX126x_SetPowerConfig(int8_t power, uint8_t rampTime);
 public void SX126x_SetOvercurrentProtection(uint16_t currentLimit_mA);
 public void SX126x_SetSyncWord(uint16_t sync);
-public void SX126x_SetPaConfig(uint8_t paDutyCycle, uint8_t hpMax, uint8_t deviceSel, uint8_t paLut);
-public void SX126x_SetDioIrqParams(uint16_t IrqMask, uint16_t dio1Mask, uint16_t dio2Mask, uint16_t dio3Mask);
+public void SX126x_SetPaConfig(uint8_t paDutyCycle, uint8_t hpMax,
+        uint8_t deviceSel, uint8_t paLut);
+public void SX126x_SetDioIrqParams(uint16_t IrqMask, uint16_t dio1Mask,
+        uint16_t dio2Mask, uint16_t dio3Mask);
 public void SX126x_SetStopRxTimerOnPreambleDetect(bool enable);
 public void SX126x_SetLoRaSymbNumTimeout(uint8_t SymbNum);
 public void SX126x_SetPacketType(uint8_t packetType);
-public void SX126x_SetModulationParams(uint8_t spreadingFactor, uint8_t bandwidth, uint8_t codingRate, uint8_t lowDataRateOptimize);
-public void SX126x_SetCadParams(uint8_t cadSymbolNum, uint8_t cadDetPeak, uint8_t cadDetMin, uint8_t cadExitMode, uint32_t cadTimeout);
+public void SX126x_SetModulationParams(uint8_t spreadingFactor, uint8_t bandwidth,
+        uint8_t codingRate, uint8_t lowDataRateOptimize);
+public void SX126x_SetCadParams(uint8_t cadSymbolNum, uint8_t cadDetPeak,
+        uint8_t cadDetMin, uint8_t cadExitMode, uint32_t cadTimeout);
 public void SX126x_SetCad(void);
 public uint8_t SX126x_GetStatus(void);
 public uint16_t SX126x_GetIrqStatus(void);
@@ -410,19 +410,18 @@ public void SX126x_SetRx(uint32_t timeout);
 public void SX126x_SetTxEnable(void);
 public void SX126x_SetTx(uint32_t timeoutInMs);
 public uint16_t SX126x_GetPacketLost(void);
-uint8_t SX126x_GetRssiInst(void);
-void SX126x_GetRxBufferStatus(uint8_t *payloadLength, uint8_t *rxStartBufferPointer);
+public int8_t SX126x_GetRssiInst(void);
+public void SX126x_GetRxBufferStatus(uint8_t *payloadLength, uint8_t *rxStartBufferPointer);
 public void SX126x_Wakeup(void);
-void SX126x_WaitForIdleBegin(uint32_t timeout, char *text);
+public void SX126x_WaitForIdleBegin(uint32_t timeout, char *text);
 public bool SX126x_WaitForIdle(uint32_t timeout, const char *text, bool stop);
-uint8_t SX126x_ReadBuffer(uint8_t *rxData, int16_t rxDataLen);
-void SX126x_WriteBuffer(uint8_t *txData, int16_t txDataLen);
-void SX126x_WriteRegister(uint16_t reg, uint8_t* data, uint8_t numBytes);
-void SX126x_ReadRegister(uint16_t reg, uint8_t* data, uint8_t numBytes);
-void SX126x_WriteCommand(uint8_t cmd, uint8_t* data, uint8_t numBytes);
-uint8_t SX126x_WriteCommand2(uint8_t cmd, uint8_t* data, uint8_t numBytes);
-void SX126x_ReadCommand(uint8_t cmd, uint8_t* data, uint8_t numBytes);
-void SX126x_SPItransfer(uint8_t cmd, bool write, uint8_t* dataOut, uint8_t* dataIn, uint8_t numBytes, bool waitForBusy);
+public uint8_t SX126x_ReadBuffer(uint8_t *rxData, uint8_t rxDataLen);
+public void SX126x_WriteBuffer(uint8_t *txData, uint8_t txDataLen);
+public void SX126x_WriteRegister(uint16_t reg, uint8_t* data, uint8_t numBytes);
+public void SX126x_ReadRegister(uint16_t reg, uint8_t* data, uint8_t numBytes);
+public void SX126x_WriteCommand(uint8_t cmd, uint8_t* data, uint8_t numBytes);
+public uint8_t SX126x_WriteCommand2(uint8_t cmd, uint8_t* data, uint8_t numBytes);
+public void SX126x_ReadCommand(uint8_t cmd, uint8_t* data, uint8_t numBytes);
 
 /* ********************************************************************** HAL */
 typedef enum {
