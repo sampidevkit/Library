@@ -31,9 +31,9 @@ static void sx126x_delay_ms(uint32_t ms) // <editor-fold defaultstate="collapsed
 
 public void LoRaInit(void) // <editor-fold defaultstate="collapsed" desc="LoRa initialize">
 {
-    sx126x_gpio_set_level(SX126x_NSS, 1);
-    sx126x_gpio_set_level(SX126x_RESET, 0);
-    sx126x_gpio_set_level(SX126x_TXEN, 0);
+    sx126x_gpio_set_level(SX126x_NSS, HIGH);
+    sx126x_gpio_set_level(SX126x_RESET, LOW);
+    sx126x_gpio_set_level(SX126x_TXEN, LOW);
 } // </editor-fold>
 
 public int16_t LoRaBegin(uint16_t frequencyInMHz, int8_t txPowerInDbm,
@@ -184,7 +184,7 @@ public bool LoRaSend(uint8_t *pData, uint8_t len, uint8_t mode) // <editor-fold 
 
     if(sx126x_gpio_get_level(SX126x_TXEN)==false)
     {
-        sx126x_gpio_set_level(SX126x_TXEN, 1);
+        sx126x_gpio_set_level(SX126x_TXEN, HIGH);
 
         if(PacketParams[2]==0x00) // Variable length packet (explicit header)
             PacketParams[3]=(uint8_t) len;
@@ -218,7 +218,7 @@ public bool LoRaSend(uint8_t *pData, uint8_t len, uint8_t mode) // <editor-fold 
                 __dbs(DEBUG_PREFIX "SX126X_IRQ_TIMEOUT");
             }
 
-            sx126x_gpio_set_level(SX126x_TXEN, 0);
+            sx126x_gpio_set_level(SX126x_TXEN, LOW);
             SX126x_SetRx(0xFFFFFF);
 
             if(IrqStatus&SX126X_IRQ_TX_DONE)
@@ -251,7 +251,7 @@ public bool SX126x_IsInReceiveMode(void) // <editor-fold defaultstate="collapsed
         if(Irq&(SX126X_IRQ_TX_DONE|SX126X_IRQ_TIMEOUT))
         {
             SX126x_SetRx(0xFFFFFF);
-            sx126x_gpio_set_level(SX126x_TXEN, 0);
+            sx126x_gpio_set_level(SX126x_TXEN, LOW);
             rv=true;
         }
     }
@@ -281,11 +281,11 @@ public void SX126x_SetTxPower(int8_t txPowerInDbm) // <editor-fold defaultstate=
 public void SX126x_Reset(void) // <editor-fold defaultstate="collapsed" desc="Reset chip">
 {
     sx126x_delay_ms(10);
-    sx126x_gpio_set_level(SX126x_RESET, 0);
+    sx126x_gpio_set_level(SX126x_RESET, LOW);
     sx126x_delay_ms(20);
-    sx126x_gpio_set_level(SX126x_RESET, 1);
+    sx126x_gpio_set_level(SX126x_RESET, HIGH);
     sx126x_delay_ms(10);
-    // ensure BUSY is low (state meachine ready)
+    // ensure BUSY is low (state machine ready)
     SX126x_WaitForIdle(BUSY_WAIT, "Chip Reset", true);
 } // </editor-fold>
 
@@ -569,6 +569,9 @@ public void SX126x_SetRx(uint32_t timeout_ms) // <editor-fold defaultstate="coll
     SX126x_SetStandby(SX126X_STANDBY_RC);
     SX126x_SetRxEnable();
 
+    if(timeout_ms>16777215)
+        timeout_ms=16777215;
+
     buf[0]=(uint8_t) ((timeout_ms>>16)&0xFF);
     buf[1]=(uint8_t) ((timeout_ms>>8)&0xFF);
     buf[2]=(uint8_t) (timeout_ms&0xFF);
@@ -600,10 +603,15 @@ public void SX126x_SetTx(uint32_t timeout_ms) // <editor-fold defaultstate="coll
 
     SX126x_SetStandby(SX126X_STANDBY_RC);
     SX126x_SetTxEnable();
-    //tout=timeout_us/15.625us=timeout_ms*1000us/15.625us
-    //tout=timeout_ms*8/125=(timeout_ms<<3)/125
-    timeout_ms=(timeout_ms<<3);
-    timeout_ms/=125;
+    // Timeout duration (us) = Timeout * 15.625 (us)
+    // Timeout duration (ms) = Timeout * 0.015625 (ms)
+    // Timeout=Timeout duration (ms)/0.015625 (ms)
+    // Timeout=Timeout duration (ms)*64 (ms)
+    timeout_ms<<=6;//timeout_ms*=64;
+
+    if(timeout_ms>16777215)
+        timeout_ms=16777215;
+
     buf[0]=(uint8_t) ((timeout_ms>>16)&0xFF);
     buf[1]=(uint8_t) ((timeout_ms>>8)&0xFF);
     buf[2]=(uint8_t) (timeout_ms&0xFF);
@@ -722,7 +730,7 @@ public uint8_t SX126x_ReadBuffer(uint8_t *rxData, uint8_t rxDataLen) // <editor-
 
         return 0;
     }
-    // ensure BUSY is low (state meachine ready)
+    // ensure BUSY is low (state machine ready)
     SX126x_WaitForIdle(BUSY_WAIT, "start ReadBuffer", true);
     // start transfer
     buf[0]=SX126X_CMD_READ_BUFFER; // 0x1E
@@ -761,7 +769,7 @@ public void SX126x_WriteBuffer(uint8_t *txData, uint8_t txDataLen) // <editor-fo
 public void SX126x_WriteRegister(uint16_t reg, uint8_t* data, uint8_t numBytes) // <editor-fold defaultstate="collapsed" desc="Write register">
 {
     uint8_t n, buf[16];
-    // ensure BUSY is low (state meachine ready)
+    // ensure BUSY is low (state machine ready)
     SX126x_WaitForIdle(BUSY_WAIT, "start WriteRegister", true);
 
     __dbs(DEBUG_PREFIX "WriteRegister: REG=");
@@ -789,7 +797,7 @@ public void SX126x_ReadRegister(uint16_t reg, uint8_t* data, uint8_t numBytes) /
 {
     uint8_t n, buf[16];
 
-    // ensure BUSY is low (state meachine ready)
+    // ensure BUSY is low (state machine ready)
     SX126x_WaitForIdle(BUSY_WAIT, "start ReadRegister", true);
 
     __dbs(DEBUG_PREFIX "ReadRegister: REG=");

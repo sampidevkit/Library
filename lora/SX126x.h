@@ -367,12 +367,12 @@
 #define SX126x_TXMODE_SYNC                            0x02
 #define SX126x_TXMODE_BACK2RX                         0x04
 
-void LoRaInit(void);
-int16_t LoRaBegin(uint16_t frequencyInMHz, int8_t txPowerInDbm, int32_t tcxo_mV, bool useRegLDO);
-void LoRaConfig(uint8_t spreadingFactor, uint8_t bandwidth, uint8_t codingRate,
+public void LoRaInit(void);
+public int16_t LoRaBegin(uint16_t frequencyInMHz, int8_t txPowerInDbm, int32_t tcxo_mV, bool useRegLDO);
+public void LoRaConfig(uint8_t spreadingFactor, uint8_t bandwidth, uint8_t codingRate,
         uint16_t preambleLength, uint8_t payloadLen, bool crcOn, bool invertIrq);
-uint8_t LoRaReceive(uint8_t *pData, uint8_t len);
-bool LoRaSend(uint8_t *pData, uint8_t len, uint8_t mode);
+public uint8_t LoRaReceive(uint8_t *pData, uint8_t len);
+public bool LoRaSend(uint8_t *pData, uint8_t len, uint8_t mode);
 
 public bool SX126x_IsInReceiveMode(void);
 public void SX126x_GetPacketStatus(int8_t *rssiPacket, int8_t *snrPacket);
