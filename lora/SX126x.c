@@ -29,6 +29,16 @@ static void sx126x_delay_ms(uint32_t ms) // <editor-fold defaultstate="collapsed
         system_wait();
 } // </editor-fold>
 
+static uint8_t sx126x_rfsw_getstate(void) // <editor-fold defaultstate="collapsed" desc="Get RF SW state">
+{
+    uint8_t state=sx126x_gpio_get_level(SX126x_TXEN);
+    
+    state<<=1;
+    state|=1;
+
+    return state;
+} // </editor-fold>
+
 public void LoRaInit(void) // <editor-fold defaultstate="collapsed" desc="LoRa initialize">
 {
     sx126x_gpio_set_level(SX126x_NSS, HIGH);
@@ -43,12 +53,6 @@ public int16_t LoRaBegin(uint16_t frequencyInMHz, int8_t txPowerInDbm,
     uint16_t syncWord;
 
     SX126x_Reset();
-
-    if(txPowerInDbm>22)
-        txPowerInDbm=22;
-    else if(txPowerInDbm < -3)
-        txPowerInDbm= -3;
-
     SX126x_ReadRegister(SX126X_REG_LORA_SYNC_WORD_MSB, wk, 2); // 0x0740
     syncWord=wk[0]; //(wk[0]<<8)+wk[1];
     syncWord<<=8;
@@ -60,7 +64,8 @@ public int16_t LoRaBegin(uint16_t frequencyInMHz, int8_t txPowerInDbm,
         return ERR_INVALID_MODE;
     }
 
-    SX126x_SetStandby(SX126X_STANDBY_RC);
+    //SX126x_SetStandby(SX126X_STANDBY_RC);
+    SX126x_SetStandby(SX126X_STANDBY_XOSC);
 
     if(tcxo_mV>0)
         SetDio3AsTcxoCtrl(tcxo_mV, RADIO_TCXO_SETUP_TIME); // Configure the radio to use a TCXO controlled by DIO3
@@ -71,8 +76,7 @@ public int16_t LoRaBegin(uint16_t frequencyInMHz, int8_t txPowerInDbm,
             |SX126X_CALIBRATE_ADC_PULSE_ON
             |SX126X_CALIBRATE_PLL_ON
             |SX126X_CALIBRATE_RC13M_ON
-            |SX126X_CALIBRATE_RC64K_ON
-            );
+            |SX126X_CALIBRATE_RC64K_ON);
 
     if(useRegLDO)
         SX126x_SetRegulatorMode(SX126X_REGULATOR_LDO); // set regulator mode: LDO
@@ -80,13 +84,12 @@ public int16_t LoRaBegin(uint16_t frequencyInMHz, int8_t txPowerInDbm,
         SX126x_SetRegulatorMode(SX126X_REGULATOR_DC_DC); // set regulator mode: DC-DC
 
     //SX126x_SetPaConfig(0x06, 0x00, 0x01, 0x01); // PA Optimal Settings +15 dBm
-    //SX126x_SetPaConfig(0x04, 0x07, 0x00, 0x01); // PA Optimal Settings +22 dBm
     SX126x_SetPaConfig(0x04, 0x07, 0x00, 0x01); // PA Optimal Settings +22 dBm
-    SX126x_SetOvercurrentProtection(60.0); // current max 60mA for the whole device
-    SX126x_SetPowerConfig(txPowerInDbm, SX126X_PA_RAMP_200U); //0 fuer Empfaenger
+    SX126x_SetOvercurrentProtection(140); // current max 140mA for the whole device
+    //SX126x_SetPowerConfig(txPowerInDbm, SX126X_PA_RAMP_200U); //0 fuer Empfaenger
+    SX126x_SetPowerConfig(txPowerInDbm, SX126X_PA_RAMP_800U); //0 fuer Empfaenger
     SX126x_SetRfFrequency(frequencyInMHz);
     SX126x_SetBufferBaseAddress(0, 0);
-    SX126x_SetDio2AsRfSwitchCtrl(true); // Set as RX mode
 
     return ERR_NONE;
 } // </editor-fold>
@@ -182,7 +185,7 @@ public bool LoRaSend(uint8_t *pData, uint8_t len, uint8_t mode) // <editor-fold 
     uint16_t IrqStatus;
     bool rv=false;
 
-    if(sx126x_gpio_get_level(SX126x_TXEN)==false)
+    if(sx126x_gpio_get_level(SX126x_TXEN)==true)
     {
         sx126x_gpio_set_level(SX126x_TXEN, HIGH);
 
@@ -242,7 +245,7 @@ public bool SX126x_IsInReceiveMode(void) // <editor-fold defaultstate="collapsed
     uint16_t Irq;
     bool rv=false;
 
-    if(sx126x_gpio_get_level(SX126x_TXEN)==false)
+    if(sx126x_gpio_get_level(SX126x_TXEN)==true)
         rv=true;
     else
     {
@@ -594,7 +597,10 @@ public void SX126x_SetRx(uint32_t timeout_ms) // <editor-fold defaultstate="coll
 
 public void SX126x_SetRxEnable(void) // <editor-fold defaultstate="collapsed" desc="Set RX enable">
 {
-    sx126x_gpio_set_level(SX126x_TXEN, LOW);
+    // Complementary-pin Control Logic
+    // RFC to RF2
+    sx126x_gpio_set_level(SX126x_TXEN, HIGH);
+    SX126x_SetDio2AsRfSwitchCtrl(false); // Set as RX mode
 } // </editor-fold>
 
 public void SX126x_SetTx(uint32_t timeout_ms) // <editor-fold defaultstate="collapsed" desc="Set TX with timeout">
@@ -634,7 +640,10 @@ public void SX126x_SetTx(uint32_t timeout_ms) // <editor-fold defaultstate="coll
 
 public void SX126x_SetTxEnable(void) // <editor-fold defaultstate="collapsed" desc="Set TX enable">
 {
-    sx126x_gpio_set_level(SX126x_TXEN, HIGH);
+    // Complementary-pin Control Logic
+    // RFC to RF1
+    sx126x_gpio_set_level(SX126x_TXEN, LOW);
+    SX126x_SetDio2AsRfSwitchCtrl(true); // Set as TX mode
 } // </editor-fold>
 
 public uint16_t SX126x_GetPacketLost(void) // <editor-fold defaultstate="collapsed" desc="Get packet lost">
