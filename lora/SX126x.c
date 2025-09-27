@@ -12,6 +12,7 @@
 // Global Stuff
 static uint8_t PacketParams[6];
 static uint16_t txLost=0;
+static bool rfswTxEn=0;
 
 void __attribute__((weak)) sx126x_error(int error) // <editor-fold defaultstate="collapsed" desc="Default error indicator function">
 {
@@ -29,16 +30,6 @@ static void sx126x_delay_ms(uint32_t ms) // <editor-fold defaultstate="collapsed
         system_wait();
 } // </editor-fold>
 
-static uint8_t sx126x_rfsw_getstate(void) // <editor-fold defaultstate="collapsed" desc="Get RF SW state">
-{
-    uint8_t state=sx126x_gpio_get_level(SX126x_TXEN);
-    
-    state<<=1;
-    state|=1;
-
-    return state;
-} // </editor-fold>
-
 public void LoRaInit(void) // <editor-fold defaultstate="collapsed" desc="LoRa initialize">
 {
     sx126x_gpio_set_level(SX126x_NSS, HIGH);
@@ -53,12 +44,14 @@ public int16_t LoRaBegin(uint16_t frequencyInMHz, int8_t txPowerInDbm,
     uint16_t syncWord;
 
     SX126x_Reset();
+    SX126x_SetSyncWord(SX126X_SYNC_WORD_PRIVATE);
     SX126x_ReadRegister(SX126X_REG_LORA_SYNC_WORD_MSB, wk, 2); // 0x0740
     syncWord=wk[0]; //(wk[0]<<8)+wk[1];
     syncWord<<=8;
     syncWord+=wk[1];
 
-    if((syncWord!=SX126X_SYNC_WORD_PUBLIC)&&(syncWord!=SX126X_SYNC_WORD_PRIVATE))
+    //if((syncWord!=SX126X_SYNC_WORD_PUBLIC)&&(syncWord!=SX126X_SYNC_WORD_PRIVATE))
+    if(syncWord!=SX126X_SYNC_WORD_PRIVATE)
     {
         __dbs(DEBUG_PREFIX "Sync Word error, maybe no SPI connection");
         return ERR_INVALID_MODE;
@@ -85,9 +78,9 @@ public int16_t LoRaBegin(uint16_t frequencyInMHz, int8_t txPowerInDbm,
 
     //SX126x_SetPaConfig(0x06, 0x00, 0x01, 0x01); // PA Optimal Settings +15 dBm
     SX126x_SetPaConfig(0x04, 0x07, 0x00, 0x01); // PA Optimal Settings +22 dBm
-    SX126x_SetOvercurrentProtection(140); // current max 140mA for the whole device
-    //SX126x_SetPowerConfig(txPowerInDbm, SX126X_PA_RAMP_200U); //0 fuer Empfaenger
-    SX126x_SetPowerConfig(txPowerInDbm, SX126X_PA_RAMP_800U); //0 fuer Empfaenger
+    SX126x_SetOvercurrentProtection(60); // current max 60mA for the whole device
+    SX126x_SetPowerConfig(txPowerInDbm, SX126X_PA_RAMP_200U); //0 fuer Empfaenger
+    //SX126x_SetPowerConfig(txPowerInDbm, SX126X_PA_RAMP_800U); //0 fuer Empfaenger
     SX126x_SetRfFrequency(frequencyInMHz);
     SX126x_SetBufferBaseAddress(0, 0);
 
@@ -185,10 +178,8 @@ public bool LoRaSend(uint8_t *pData, uint8_t len, uint8_t mode) // <editor-fold 
     uint16_t IrqStatus;
     bool rv=false;
 
-    if(sx126x_gpio_get_level(SX126x_TXEN)==true)
+    if(rfswTxEn==false)
     {
-        sx126x_gpio_set_level(SX126x_TXEN, HIGH);
-
         if(PacketParams[2]==0x00) // Variable length packet (explicit header)
             PacketParams[3]=(uint8_t) len;
 
@@ -245,7 +236,7 @@ public bool SX126x_IsInReceiveMode(void) // <editor-fold defaultstate="collapsed
     uint16_t Irq;
     bool rv=false;
 
-    if(sx126x_gpio_get_level(SX126x_TXEN)==true)
+    if(rfswTxEn==false)
         rv=true;
     else
     {
@@ -601,6 +592,7 @@ public void SX126x_SetRxEnable(void) // <editor-fold defaultstate="collapsed" de
     // RFC to RF2
     sx126x_gpio_set_level(SX126x_TXEN, HIGH);
     SX126x_SetDio2AsRfSwitchCtrl(false); // Set as RX mode
+    rfswTxEn=false;
 } // </editor-fold>
 
 public void SX126x_SetTx(uint32_t timeout_ms) // <editor-fold defaultstate="collapsed" desc="Set TX with timeout">
@@ -644,6 +636,7 @@ public void SX126x_SetTxEnable(void) // <editor-fold defaultstate="collapsed" de
     // RFC to RF1
     sx126x_gpio_set_level(SX126x_TXEN, LOW);
     SX126x_SetDio2AsRfSwitchCtrl(true); // Set as TX mode
+    rfswTxEn=true;
 } // </editor-fold>
 
 public uint16_t SX126x_GetPacketLost(void) // <editor-fold defaultstate="collapsed" desc="Get packet lost">
@@ -682,7 +675,7 @@ public void SX126x_WaitForIdleBegin(uint32_t timeout_ms, char *text) // <editor-
         if(retry==9)
             stop=true;
 
-        ret=SX126x_WaitForIdle(BUSY_WAIT, text, stop);
+        ret=SX126x_WaitForIdle(timeout_ms, text, stop);
 
         if(ret==true)
             break;
