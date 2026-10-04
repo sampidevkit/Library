@@ -507,7 +507,7 @@ extern USB_HANDLE USBMSDOutHandle;
 extern USB_HANDLE USBMSDInHandle;
 extern volatile USB_MSD_CBW msd_cbw;
 extern volatile USB_MSD_CSW msd_csw;
-extern volatile char msd_buffer[64]; //!!! 
+extern volatile char msd_buffer[512]; //!!! 
 extern bool SoftDetach[MAX_LUN + 1];
 extern volatile CTRL_TRF_SETUP SetupPkt;
 extern volatile uint8_t CtrlTrfData[USB_EP0_BUFF_SIZE];

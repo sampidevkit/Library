@@ -1,5 +1,7 @@
-#include "libcomp.h"
-#include "kit_usb_device_msd.h"
+#include "project_cfg.h"
+#include "app_usb_device_msd.h"
+#include "usb_device_msd.h"
+#include "system/task_manager.h"
 
 //The LUN variable definition is critical to the MSD function driver.  This
 //  array is a structure of function pointers that are the functions that

@@ -1,4 +1,4 @@
-#include "libcomp.h"
+#include "project_cfg.h"
 #include "usb_device_msd.h"
 
 #if MAX_LUN == 0
@@ -42,7 +42,7 @@ volatile USB_MSD_CSW msd_csw MSD_CSW_ADDR_TAG; //Must be located in USB module a
 #if defined(__18CXX) || defined(__XC8)
 volatile char msd_buffer[64] MSD_BUFFER_ADDRESS_TAG;
 #else
-volatile char msd_buffer[64];
+volatile char msd_buffer[512];
 #endif
 
 //State machine variables
