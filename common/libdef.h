@@ -1,5 +1,5 @@
 #ifndef LIBDEF_H
-#define LIBDEF_H
+#define	LIBDEF_H
 
 #if (defined(__PCH__)||defined(__ISNT_CCS__))
 #include <xc.h>
@@ -18,6 +18,10 @@
 #include <wincrypt.h>
 #endif
 
+#ifdef __AVR__
+#define AVR_SoftReset() _PROTECTED_WRITE(RSTCTRL.SWRR, RSTCTRL_SWRST_bm)
+#endif
+
 /* Application Definitions */
 #ifdef public
 #undef  public
@@ -33,20 +37,20 @@
 #define private static
 #endif
 
-#ifndef BYTE
-#define BYTE uint8_t
+#ifndef	BYTE
+#define	BYTE uint8_t
 #endif
 
-#ifndef WORD
-#define WORD uint16_t
+#ifndef	WORD
+#define	WORD uint16_t
 #endif
 
-#ifndef DWORD
-#define DWORD uint32_t
+#ifndef	DWORD
+#define	DWORD uint32_t
 #endif
 
-#ifndef QWORD
-#define QWORD uint64_t
+#ifndef	QWORD
+#define	QWORD uint64_t
 #endif
 
 #ifndef ROM
@@ -59,75 +63,18 @@
 #define __attribute_aligned8__          __attribute__((aligned(8)))
 #define __attribute_aligned16__         __attribute__((aligned(16)))
 #else
-#define __attribute_packed__            
-#define __attribute_aligned4__          
-#define __attribute_aligned8__          
-#define __attribute_aligned16__         
-#endif
-
-#define NO_INIT                        __attribute__((section(".no_init")))
-#define SECTION(a)                     __attribute__((__section__(a)))
-
-#ifndef   __ASM
-    #define __ASM                      __asm__
-#endif
-
-#ifndef   __INLINE
-    #define __INLINE                   __inline__
-#endif
-
-#ifndef   __STATIC_INLINE
-    #define __STATIC_INLINE            static __inline__
-#endif
-
-#ifndef   __STATIC_FORCEINLINE
-    #define __STATIC_FORCEINLINE       __attribute__((always_inline)) static __inline__
-#endif
-
-#ifndef   __NO_RETURN
-    #define __NO_RETURN                __attribute__((__noreturn__))
-#endif
-
-#ifndef   __USED
-    #define __USED                     __attribute__((used))
-#endif
-
-#ifndef   __WEAK
-    #define __WEAK                     __attribute__((weak))
-#endif
-
-#ifndef   __PACKED
-    #define __PACKED                   __attribute__((packed, aligned(1)))
-#endif
-
-#ifndef   __PACKED_STRUCT
-    #define __PACKED_STRUCT            struct __attribute__((packed, aligned(1)))
-#endif
-
-#ifndef   __PACKED_UNION
-    #define __PACKED_UNION             union __attribute__((packed, aligned(1)))
-#endif
-
-#ifndef   __COHERENT
-    #define __COHERENT                 __attribute__((coherent))
-#endif
-
-#ifndef   __ALIGNED
-    #define __ALIGNED(x)               __attribute__((aligned(x)))
-#endif
-
-#ifndef   __RESTRICT
-    #define __RESTRICT                 __restrict__
+#define __attribute_packed__
+#define __attribute_aligned4__
 #endif
 
 #ifndef rslt_t
 typedef int8_t rslt_t;
-#define rslt_t                          __int8_t
+#define	rslt_t                          __int8_t
 #endif
 
 typedef struct tm tm_t;
-typedef const char *far_string_t;
-
+typedef const char* far_string_t;
+typedef unsigned long long time64_t;
 #endif
 
 // Result code
@@ -135,15 +82,19 @@ typedef const char *far_string_t;
 #define PROC_BUSY                       1
 #define PROC_REMAIN                     2
 #define PROC_CONT                       3
-#define PROC_ERR                        (-1)
-#define PROC_DRV_ERR                    (-2)
+#define PROC_ERR                        (-1) // software error
+#define PROC_DRV_ERR                    (-2) // hardware error
+#define PROC_PT_ERR                     (-3) // pointer error
 
-#define RESULT_DONE                     0
+#define RESULT_DONE                     0 // 100% finish
 #define RESULT_ACK                      0
+#define RESULT_ALMOST_DONE              1 // finish with some incompleted tasks 
 #define RESULT_NACK                     1
 #define RESULT_BUSY                     2
 #define RESULT_REBOOT                   3
-#define RESULT_ERR                      (-1)
+#define RESULT_ERR                      (-1) // software error
+#define RESULT_DRV_ERR                  (-2) // hardware error
+#define RESULT_PT_ERR                   (-3) // pointer error
 
 #ifdef __XC32
 #include "sys/attribs.h"
@@ -155,10 +106,6 @@ typedef const char *far_string_t;
 #ifndef PA_TO_KVA0
 #define PA_TO_KVA0(pa)                  ((void*)((pa)|0x80000000))
 #endif
-#endif
-
-#ifndef BitTest
-#define BitTest(x, i)                   ((x>>i)&1)
 #endif
 
 #define bittest(x, i)                   ((x>>i)&1)
@@ -180,19 +127,27 @@ typedef const char *far_string_t;
 #define bit_is_clear(sfr, bit)          (((x>>i)&1)==0)
 #endif
 
+#ifndef BitTest
+#define BitTest(x, i)                   ((x>>i)&1)
+#endif
+
+#define BitSet(x, i)                    x=x|(1<<i)
+#define BitClear(x, i)                  x=x&(~(1<<i))
+
 #define membersof(a)                    (sizeof(a)/sizeof((a)[0])) // Get the number of elements in an array.
 #define indexof(e_p, a)                 (e_p-&(a)[0]) // Get the index of given element in an array.
-
+#ifndef container_of
 #define container_of(ptr, type, member) ({const typeof(((type *)0)->member ) *__mptr=(ptr); \
                                         (type *)((char *)__mptr-offsetof(type,member));})
-
+#endif
 #define DIV_CEIL(n, d)                  (((n)+(d)-1)/(d)) // Integer division that rounds the result up.
 #define DIV_ROUND(n, d)                 (((n)+(d/2))/(d)) // Integer division that rounds the result to the closest integer.
 
 #define MIN(a, b)                       (((a)<(b))?(a):(b))
 #define MAX(a, b)                       (((a)>(b))?(a):(b))
-
+#ifndef BIT
 #define BIT(pos)                        (1<<(pos))
+#endif
 #define BITFIELD_SET(name, value)       (((value)<<name ## _POS)&name ## _MASK)
 #define BITFIELD_GET(name, value)       (((value)&name ## _MASK)>>name ## _POS)
 
@@ -201,7 +156,6 @@ typedef const char *far_string_t;
 #define NO_INIT                        __attribute__((section(".no_init")))
 #define SECTION(a)                     __attribute__((__section__(a)))
 
-#ifdef __XC32
 #ifndef   __ASM
 #define __ASM                      __asm__
 #endif
@@ -240,47 +194,6 @@ typedef const char *far_string_t;
 #endif
 #ifndef   __RESTRICT
 #define __RESTRICT                 __restrict__
-#endif
-#elif defined(__WIN32)
-#ifndef   __ASM
-#define __ASM                      __asm__
-#endif
-#ifndef   __INLINE
-#define __INLINE                   __inline__
-#endif
-#ifndef   __STATIC_INLINE
-#define __STATIC_INLINE            static __inline__
-#endif
-#ifndef   __STATIC_FORCEINLINE
-#define __STATIC_FORCEINLINE       __attribute__((always_inline)) static __inline__
-#endif
-#ifndef   __NO_RETURN
-#define __NO_RETURN                __attribute__((__noreturn__))
-#endif
-#ifndef   __USED
-#define __USED                     __attribute__((used))
-#endif
-#ifndef   __WEAK
-#define __WEAK                     __attribute__((weak))
-#endif
-#ifndef   __PACKED
-#define __PACKED                   __attribute__((packed, aligned(4)))
-#endif
-#ifndef   __PACKED_STRUCT
-#define __PACKED_STRUCT            struct __attribute__((packed, aligned(4)))
-#endif
-#ifndef   __PACKED_UNION
-#define __PACKED_UNION             union __attribute__((packed, aligned(4)))
-#endif
-#ifndef   __COHERENT
-#define __COHERENT                 __attribute__((coherent))
-#endif
-#ifndef   __ALIGNED
-#define __ALIGNED(x)               __attribute__((aligned(x)))
-#endif
-#ifndef   __RESTRICT
-#define __RESTRICT                 __restrict__
-#endif
 #endif
 
 #define CACHE_LINE_SIZE                (4u)
@@ -405,9 +318,20 @@ typedef uintptr_t DRV_HANDLE;
 
 #define DRV_HANDLE_INVALID  (((DRV_HANDLE) -1))
 
+#define APP_FNC_BUSY 1
+#define APP_FNC_FREE 0
+#define APP_FNC_EXIT (-1)
+
+typedef struct
+{
+    bool (*init)(void); // initialize
+    void (*deinit)(void); // deinitialize
+    int8_t (*loop)(void); // main process, return 0: free, 1: busy, (-1) error/exit
+} app_fnc_t;
+
 #define __make_str(str) #str
 #define __make_xstr(str) __make_str(str)
 
-typedef void (*simple_fnc_t) (void);
+#define two_complement_of(n) ((~(n))+1)
 
 #endif

@@ -1,27 +1,94 @@
 #include "debug.h"
 
-#if !defined(__PICC18__) && !defined(__PICC__) && !defined(__PICCLITE__)
+#ifdef USE_SYSTIME_STAMP
+#include "Drivers/timer/SystemTick.h"
+#endif
+
+#ifdef TASKMANAGER_H
 public sem_declare(debug);
 #endif
 
 /* ********************************************************** Local variables */
 static int8_t _i;
 static int8_t _idx;
-static uint8_t _digit[10];
+static uint8_t _digit[16];
+
+#ifdef USE_SOFTUART_DEBUG
+static char cSREG;
+
+#ifdef __AVR__
+#define SysInt_Backup()     do{cSREG=SREG; /* store SREG value */ cli();}while(0)
+#define SysInt_Restore()    SREG=cSREG; /* restore SREG value (I-bit) */
+#elif defined(__PIC__)
+
+#else
+#error "Please define SysInt_Backup() and SysInt_Restore() in debug_cfg.h"
+#endif
+
+void debug_port_write(uint8_t c) // <editor-fold defaultstate="collapsed" desc="SoftUART put a char">
+{
+    char i;
+
+    SysInt_Backup();
+    // Start bit
+    DBG_TX_SetLow();
+    //DBG_TX_TRIS=0;
+    __debug_bit_delay();
+    // Data bits
+    for(i=0; i<8; i++)
+    {
+        if(c&1)
+            DBG_TX_SetHigh();
+        else
+            DBG_TX_SetLow();
+
+        c>>=1;
+        __debug_bit_delay();
+    }
+    // Stop bit
+    DBG_TX_SetHigh();
+    __debug_bit_delay();
+    SysInt_Restore();
+} // </editor-fold>
+#endif
+
+#ifdef NUM_OF_DEBUG_PORT
+dbg_port_cxt_t DebugPort[NUM_OF_DEBUG_PORT]; // External variables
+static dbg_port_cxt_t *ActivePort=NULL;
+
+void debug_port_sel(uint8_t portIdx)
+{
+    if(portIdx<NUM_OF_DEBUG_PORT)
+        ActivePort=&DebugPort[portIdx];
+}
+
+void debug_port_write(uint8_t c)
+{
+    while(!ActivePort->IsTxReady());
+    ActivePort->Write(c);
+    while(!ActivePort->IsTxDone());
+    ClrWdt();
+}
+#endif
+
+#ifdef USE_SYSTIME_STAMP
 
 void debug_systime_stamp(void)
 {
     debug_port_write('\n');
     debug_port_write('[');
-    debug_u32(debug_tickget_ms());
+    debug_u32((uint32_t) Tick_Get()/TICK_PER_MS);
     debug_port_write(']');
     debug_port_write(' ');
 }
+#endif
 
 void debug(const char *str, bool tsEn)
 {
+#ifdef USE_SYSTIME_STAMP
     if(tsEn==1)
         debug_systime_stamp();
+#endif
 
     while(*str!=0x00)
         debug_port_write(*str++);
@@ -54,7 +121,7 @@ void debug_hex(uint32_t b, uint8_t dgcount)
 
     for(_i=0, _idx=8; _i<8; _i++)
     {
-        if((_digit[_i]=='0')&&(_idx>dgcount))
+        if((_digit[_i]=='0')&&(_idx>(int8_t) dgcount))
         {
             _idx--;
             continue;
@@ -65,45 +132,31 @@ void debug_hex(uint32_t b, uint8_t dgcount)
     }
 }
 
-void debug_hexf(const uint8_t *pSource, int Size, int NumOfCol)
+void debug_hexs(uint8_t *pD, int len_n_opt)
 {
-    int i;
-    int j;
+    bool hex_opt=((len_n_opt&DISPLAY_HEX_HEADER)==DISPLAY_HEX_HEADER);
 
-    debug("\n         ", 0);
+    len_n_opt&=(~DISPLAY_HEX_HEADER);
 
-    for(i=0; i<NumOfCol; i++)
-        debug_hex((uint32_t)i, 0x82);
-
-    j=0;
-    debug_port_write('\n');
-    debug_hex((uint32_t)j, 0x88);
-
-    for(i=0; i<Size; i++)
+    if(hex_opt==0)
     {
-        if((j>0)&&(j%NumOfCol)==0)
+        while(len_n_opt>0)
         {
-            debug_port_write('\n');
-            debug_hex((uint32_t)j, 0x88);
+            debug_hex(*pD++, 0x02);
+            len_n_opt--;
+        }
+    }
+    else
+    {
+        while(len_n_opt>1)
+        {
+            debug_hex(*pD++, 0x82);
+            debug_port_write(' ');
+            len_n_opt--;
         }
 
-        j++;
-        debug_hex(pSource[i], 0x82);
+        debug_hex(*pD++, 0x82);
     }
-
-    debug_port_write('\n');
-}
-
-void debug_hexs(uint8_t *pD, int len)
-{
-    while(len>1)
-    {
-        debug_hex(*pD++, 2|HEX_HEADER);
-        debug_port_write(' ');
-        len--;
-    }
-
-    debug_hex(*pD++, 2|HEX_HEADER);
 }
 
 void debug_u32(uint32_t b)
