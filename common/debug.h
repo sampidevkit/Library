@@ -2,7 +2,7 @@
 #define DEBUG_H
 
 #include "libdef.h"
-#include "project.h"
+#include "project_cfg.h"
 
 #ifdef USE_TASKMANAGER
 #include "Tasks/TaskManager.h"
@@ -221,6 +221,9 @@ extern sem_declare_t(debug);
 #endif
 #endif
 #else
+
+#define debug_init()
+#define debug_deinit()
 
 #define __dbc(...)                    
 #define __dbs(...)                  

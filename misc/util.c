@@ -1,8 +1,16 @@
-#include "util.h"
+#include "Util.h"
 
 // <editor-fold defaultstate="collapsed" desc="String Processing">
 
-void mymemset(uint8_t *pD, uint8_t init, uint16_t len) // <editor-fold defaultstate="collapsed" desc="8-bit array memory set">
+public int8_t is_number(uint8_t c) // <editor-fold defaultstate="collapsed" desc="Check number">
+{
+    if((c>='0')&&(c<='9'))
+        return (int8_t) (c-'0');
+
+    return (-1);
+} // </editor-fold>
+
+public void mymemset(uint8_t *pD, uint8_t init, uint16_t len) // <editor-fold defaultstate="collapsed" desc="8-bit array memory set">
 {
     while(len>0)
     {
@@ -12,7 +20,7 @@ void mymemset(uint8_t *pD, uint8_t init, uint16_t len) // <editor-fold defaultst
     }
 } // </editor-fold>
 
-void mymemcpy(uint8_t *pDes, const uint8_t *pSrc, uint16_t size) // <editor-fold defaultstate="collapsed" desc="8-bit array memory copy">
+public void mymemcpy(uint8_t *pDes, const uint8_t *pSrc, uint16_t size) // <editor-fold defaultstate="collapsed" desc="8-bit array memory copy">
 {
     while(size>0)
     {
@@ -23,12 +31,12 @@ void mymemcpy(uint8_t *pDes, const uint8_t *pSrc, uint16_t size) // <editor-fold
     }
 } // </editor-fold>
 
-char *mystrchr(const char *pStr, char c) // <editor-fold defaultstate="collapsed" desc="find a char in a string">
+public const char *mystrchr(const char *pStr, char c) // <editor-fold defaultstate="collapsed" desc="find a char in a string">
 {
     while(*pStr!=0x00)
     {
         if(*pStr==c)
-            return (char *) pStr;
+            return pStr;
 
         pStr++;
     }
@@ -36,7 +44,7 @@ char *mystrchr(const char *pStr, char c) // <editor-fold defaultstate="collapsed
     return NULL;
 } // </editor-fold>
 
-void mystrcpy(char *pDes, const char *pSrc) // <editor-fold defaultstate="collapsed" desc="copy a string">
+public void mystrcpy(char *pDes, const char *pSrc) // <editor-fold defaultstate="collapsed" desc="copy a string">
 {
     while(*pSrc!=0x00)
     {
@@ -163,7 +171,7 @@ LOOP:
     return 0;
 } // </editor-fold>
 
-uint16_t Copy_Str2Break(const uint8_t *pDatain, uint8_t break_byte, uint8_t *pDataout) // <editor-fold defaultstate="collapsed" desc="Copy a string to break byte">
+public uint16_t Copy_Str2Break(const uint8_t *pDatain, uint8_t break_byte, uint8_t *pDataout) // <editor-fold defaultstate="collapsed" desc="Copy a string to break byte">
 {
     uint16_t lenout=0;
 
@@ -176,7 +184,7 @@ uint16_t Copy_Str2Break(const uint8_t *pDatain, uint8_t break_byte, uint8_t *pDa
     return lenout;
 } // </editor-fold>
 
-uint16_t str_len2break(const uint8_t *pData, uint8_t break_byte) // <editor-fold defaultstate="collapsed" desc="Length from start to break character">
+public uint16_t str_len2break(const uint8_t *pData, uint8_t break_byte) // <editor-fold defaultstate="collapsed" desc="Length from start to break character">
 {
     uint16_t i;
 
@@ -201,13 +209,9 @@ uint16_t str_len2break(const uint8_t *pData, uint8_t break_byte) // <editor-fold
 public bool str_cmp(const char *pDatain, const char *pSample) // <editor-fold defaultstate="collapsed" desc="Compare sub-string in string">
 {
     int i;
-    int l1=(int)slen(pDatain);
-    int l2=(int)slen(pSample);
-    
-    if(l1!=l2)
-        return 0;
+    int l=(int) slen(pSample);
 
-    for(i=0; i<l1; i++)
+    for(i=0; i<l; i++)
     {
         if(pDatain[i]!=pSample[i])
             return 0;
@@ -449,36 +453,36 @@ public int str_n_index(const char *p, char c, int count) // <editor-fold default
     return (i-1);
 } // </editor-fold>
 
-public const char *str_1st_contain(const char *sub, const char *str) // <editor-fold defaultstate="collapsed" desc="Get pointer of the 1st sub-string">
+public const char *str_1st_contain(const char *str, const char *sub) // <editor-fold defaultstate="collapsed" desc="Get pointer of the 1st sub-string">
 {
     int i, j;
-    int sl=(int) slen(sub);
+    int sl=(int) slen(str);
 
-    if(sl>0)
+    //printf("\nstr: %s", str);
+    //printf("\nsub: %s", sub);
+
+    for(i=0, j=0; i<sl; i++)
     {
-        i=0;
-        j=0;
-
-        while(str[i]!=0)
-        {
 LOOP:
-            if(str[i]==sub[j])
-            {
-                if(++j>=sl)
-                    return (&str[i-sl+1]);
-            }
-            else if(j>0)
-            {
-                j=0;
-                goto LOOP;
-            }
-            else
-                j=0;
+        //printf("\ni=%d, j=%d, str=%c, sub=%c", i, j, str[i], sub[j]);
 
-            i++;
+        if(str[i]==sub[j])
+        {
+            j++;
+
+            if(sub[j]==0x00)
+                return (&str[i-j+1]);
         }
+        else if(j>0)
+        {
+            j=0;
+            goto LOOP;
+        }
+        else
+            j=0;
     }
 
+    //printf("\nNot found");
     return NULL;
 } // </editor-fold>
 
@@ -583,7 +587,7 @@ public int str_sub(char *des, const char *src, char c1, int count1, int offset1,
         return 0;
     }
 
-    mymemcpy((uint8_t *) des, (uint8_t *)&src[begin], (uint16_t)end);
+    mymemcpy((uint8_t *) des, (const uint8_t *) &src[begin], (uint16_t) end);
     des[end]=0;
 
     return end;
@@ -603,7 +607,7 @@ public int str_sub_between_2sub(char *des, const char *src, const char *sub1, co
 
         if(psub2!=NULL)
         {
-            len=(int) (psub2-psub1)+1;
+            len=(int) (psub2-psub1);
 
             for(i=0; i<len; i++)
                 des[i]=psub1[i];
@@ -658,6 +662,8 @@ public int32_t IntParse(const char *c) // <editor-fold defaultstate="collapsed" 
         c++;
         minus=1;
     }
+    else if(*c=='+')
+        c++;
 
     while((*c>='0')&&(*c<='9'))
     {
@@ -685,6 +691,50 @@ public uint32_t UIntParse(const char *c) // <editor-fold defaultstate="collapsed
         res+=(*c-'0');
         c++;
     }
+
+    return res;
+} // </editor-fold>
+
+public float FloatParse(const char *c) // <editor-fold defaultstate="collapsed" desc="String to float">
+{
+    int32_t ip, dv;
+    float res;
+
+    if(c==NULL)
+        return 0.0;
+
+    if(*c=='-')
+    {
+        dv=-1;
+        c++;
+    }
+    else
+        dv=1;
+
+    ip=0;
+
+    while((*c>='0')&&(*c<='9'))
+    {
+        ip*=10;
+        ip+=(*c-'0');
+        c++;
+    }
+
+    if((*c!='.')&&(*c!=','))
+        return (float) ip;
+
+    c++;
+
+    while((*c>='0')&&(*c<='9'))
+    {
+        dv*=10;
+        ip*=10;
+        ip+=(*c-'0');
+        c++;
+    }
+
+    res=(float) ip;
+    res/=(float) dv;
 
     return res;
 } // </editor-fold>
@@ -724,7 +774,7 @@ public uint32_t HexParse(const char *c) // <editor-fold defaultstate="collapsed"
     return res;
 } // </editor-fold>
 
-bool is_hex_data(uint8_t b) // <editor-fold defaultstate="collapsed" desc="Check Intel hex valid data">
+public bool is_hex_data(uint8_t b) // <editor-fold defaultstate="collapsed" desc="Check Intel hex valid data">
 {
     if(b==':')
         return 1;
@@ -749,6 +799,14 @@ public bool is_printable(uint8_t c) // <editor-fold defaultstate="collapsed" des
     return 0;
 } // </editor-fold>
 
+public bool is_visible(char c) // <editor-fold defaultstate="collapsed" desc="Check visible character">
+{
+    if((c>='!')&&(c<='~'))
+        return 1;
+
+    return 0;
+} // </editor-fold>
+
 public int8_t StrCmp(strcmp_t *pCxt, uint8_t c) // <editor-fold defaultstate="collapsed" desc="Compare 2 strings">
 {
     if(c!=pCxt->pStr[pCxt->idx++])
@@ -765,76 +823,19 @@ public int8_t StrCmp(strcmp_t *pCxt, uint8_t c) // <editor-fold defaultstate="co
 
     return 0; // to be continued
 } // </editor-fold>
+
+public int32_t Float2Int(float f) // <editor-fold defaultstate="collapsed" desc="Float to Integer">
+{
+    if(f>0.0)
+        f+=0.5;
+    else if(f<0.0)
+        f-=0.5;
+
+    return (int32_t) f;
+} // </editor-fold>
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Cryptography Processing">
-#ifdef USE_FAST_CRC_CCITT
-private const uint16_t ccitt_tab[]={
-    0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7,
-    0x8108, 0x9129, 0xa14a, 0xb16b, 0xc18c, 0xd1ad, 0xe1ce, 0xf1ef,
-    0x1231, 0x0210, 0x3273, 0x2252, 0x52b5, 0x4294, 0x72f7, 0x62d6,
-    0x9339, 0x8318, 0xb37b, 0xa35a, 0xd3bd, 0xc39c, 0xf3ff, 0xe3de,
-    0x2462, 0x3443, 0x0420, 0x1401, 0x64e6, 0x74c7, 0x44a4, 0x5485,
-    0xa56a, 0xb54b, 0x8528, 0x9509, 0xe5ee, 0xf5cf, 0xc5ac, 0xd58d,
-    0x3653, 0x2672, 0x1611, 0x0630, 0x76d7, 0x66f6, 0x5695, 0x46b4,
-    0xb75b, 0xa77a, 0x9719, 0x8738, 0xf7df, 0xe7fe, 0xd79d, 0xc7bc,
-    0x48c4, 0x58e5, 0x6886, 0x78a7, 0x0840, 0x1861, 0x2802, 0x3823,
-    0xc9cc, 0xd9ed, 0xe98e, 0xf9af, 0x8948, 0x9969, 0xa90a, 0xb92b,
-    0x5af5, 0x4ad4, 0x7ab7, 0x6a96, 0x1a71, 0x0a50, 0x3a33, 0x2a12,
-    0xdbfd, 0xcbdc, 0xfbbf, 0xeb9e, 0x9b79, 0x8b58, 0xbb3b, 0xab1a,
-    0x6ca6, 0x7c87, 0x4ce4, 0x5cc5, 0x2c22, 0x3c03, 0x0c60, 0x1c41,
-    0xedae, 0xfd8f, 0xcdec, 0xddcd, 0xad2a, 0xbd0b, 0x8d68, 0x9d49,
-    0x7e97, 0x6eb6, 0x5ed5, 0x4ef4, 0x3e13, 0x2e32, 0x1e51, 0x0e70,
-    0xff9f, 0xefbe, 0xdfdd, 0xcffc, 0xbf1b, 0xaf3a, 0x9f59, 0x8f78,
-    0x9188, 0x81a9, 0xb1ca, 0xa1eb, 0xd10c, 0xc12d, 0xf14e, 0xe16f,
-    0x1080, 0x00a1, 0x30c2, 0x20e3, 0x5004, 0x4025, 0x7046, 0x6067,
-    0x83b9, 0x9398, 0xa3fb, 0xb3da, 0xc33d, 0xd31c, 0xe37f, 0xf35e,
-    0x02b1, 0x1290, 0x22f3, 0x32d2, 0x4235, 0x5214, 0x6277, 0x7256,
-    0xb5ea, 0xa5cb, 0x95a8, 0x8589, 0xf56e, 0xe54f, 0xd52c, 0xc50d,
-    0x34e2, 0x24c3, 0x14a0, 0x0481, 0x7466, 0x6447, 0x5424, 0x4405,
-    0xa7db, 0xb7fa, 0x8799, 0x97b8, 0xe75f, 0xf77e, 0xc71d, 0xd73c,
-    0x26d3, 0x36f2, 0x0691, 0x16b0, 0x6657, 0x7676, 0x4615, 0x5634,
-    0xd94c, 0xc96d, 0xf90e, 0xe92f, 0x99c8, 0x89e9, 0xb98a, 0xa9ab,
-    0x5844, 0x4865, 0x7806, 0x6827, 0x18c0, 0x08e1, 0x3882, 0x28a3,
-    0xcb7d, 0xdb5c, 0xeb3f, 0xfb1e, 0x8bf9, 0x9bd8, 0xabbb, 0xbb9a,
-    0x4a75, 0x5a54, 0x6a37, 0x7a16, 0x0af1, 0x1ad0, 0x2ab3, 0x3a92,
-    0xfd2e, 0xed0f, 0xdd6c, 0xcd4d, 0xbdaa, 0xad8b, 0x9de8, 0x8dc9,
-    0x7c26, 0x6c07, 0x5c64, 0x4c45, 0x3ca2, 0x2c83, 0x1ce0, 0x0cc1,
-    0xef1f, 0xff3e, 0xcf5d, 0xdf7c, 0xaf9b, 0xbfba, 0x8fd9, 0x9ff8,
-    0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0
-};
-
-uint16_t crc_ccitt(uint16_t crc, const uint8_t *buf_p, size_t size) // <editor-fold defaultstate="collapsed" desc="Fast CRC CCITT">
-{
-    size_t i;
-    const uint8_t *b_p;
-
-    b_p=buf_p;
-
-    for(i=0; i<size; i++)
-        crc=(crc<<8) ^ ccitt_tab[(crc>>8) ^ *b_p++];
-
-    return (crc);
-} // </editor-fold>
-#else
-
-public uint16_t crc_ccitt(uint16_t crc, const uint8_t *buf_p, size_t size) // <editor-fold defaultstate="collapsed" desc="CRC CCITT Calculator">
-{
-    uint16_t wh1, wh2, wh3, wh4;
-
-    while(size--)
-    {
-        wh1=(crc^*buf_p)&0xFF;
-        wh2=wh1&0x0F;
-        wh3=(wh2<<4)^wh1;
-        wh4=wh3>>4;
-        crc=(((((wh3<<1)^wh4)<<4)^wh2)<<3)^wh4^(crc>>8);
-        buf_p++;
-    }
-
-    return crc;
-} // </editor-fold>
-#endif
 
 public uint16_t Crc16_Calc(const uint8_t *pData, uint16_t len) // <editor-fold defaultstate="collapsed" desc="CRC16 Calculator">
 {
@@ -908,7 +909,6 @@ public uint8_t CalcSum8(void *pData, uint16_t len) // <editor-fold defaultstate=
 
     return sum;
 } // </editor-fold>
-
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Data Type Converter">
@@ -935,6 +935,51 @@ public uint16_t Swap_2Bytes(uint16_t Value) // <editor-fold defaultstate="collap
     result|=Value>>8;
 
     return result;
+} // </editor-fold>
+
+public uint32_t set_bigendian32(uint32_t num) // <editor-fold defaultstate="collapsed" desc="convert to bigendian 32-bit">
+{
+    uint8_t *pD=(uint8_t *)&num;
+
+    if(*pD==(uint8_t) num) // littile endian
+    {
+        return ((num>>24) & 0xff)|// Move byte 3 to byte 0
+                ((num<<8) & 0xff0000)|// Move byte 1 to byte 2
+                ((num>>8) & 0xff00)|// Move byte 2 to byte 1
+                ((num<<24) & 0xff000000); // Move byte 0 to byte 3
+    }
+
+    return num;
+} // </editor-fold>
+
+public uint16_t set_bigendian16(uint16_t num)
+{
+    uint8_t *pD=(uint8_t *)&num;
+
+    if(*pD==(uint8_t) num) // littile endian
+    {
+        return ((num>>8) & 0x00ff)|((num<<8) & 0xff00);
+    }
+
+    return num;
+}
+
+public uint32_t swap_endian(uint32_t num) // <editor-fold defaultstate="collapsed" desc="Swap endian">
+{
+    return ((num>>24) & 0xff)|// Move byte 3 to byte 0
+            ((num<<8) & 0xff0000)|// Move byte 1 to byte 2
+            ((num>>8) & 0xff00)|// Move byte 2 to byte 1
+            ((num<<24) & 0xff000000); // Move byte 0 to byte 3
+} // </editor-fold>
+
+public void swap_endian_array(uint32_t *pNum, int len) // <editor-fold defaultstate="collapsed" desc="Swap endian">
+{
+    while(len>0)
+    {
+        *pNum=swap_endian(*pNum);
+        pNum++;
+        len--;
+    }
 } // </editor-fold>
 
 public void Convert16to2x8(uint16_t Value, uint8_t *pArr) // <editor-fold defaultstate="collapsed" desc="Convert 16bit to 2x8bit">
@@ -1006,7 +1051,7 @@ public int32_t ConvertStr2Integer(const uint8_t *pArr) // <editor-fold defaultst
 public int8_t chr2int(uint8_t c) // <editor-fold defaultstate="collapsed" desc="Char to integer">
 {
     if((c>='0')&&(c<='9'))
-        return (int8_t)(c-'0');
+        return (int8_t) (c-'0');
 
     return (-1);
 } // </editor-fold>
@@ -1014,7 +1059,7 @@ public int8_t chr2int(uint8_t c) // <editor-fold defaultstate="collapsed" desc="
 public uint32_t StrHex2Int(uint8_t *p) // <editor-fold defaultstate="collapsed" desc="Convert string Hex to integer">
 {
     uint32_t value=0;
-    uint8_t x, i=(uint8_t)slen((char *) p);
+    uint8_t x, i=(uint8_t) slen((char *) p);
 
     if(i<=8&&i!=0)
     {
@@ -1129,18 +1174,18 @@ public char Bcd2AHex(uint8_t bcd) // <editor-fold defaultstate="collapsed" desc=
     }
 } // </editor-fold>
 
-public int8_t AHex2Bcd(char ahex) // <editor-fold defaultstate="collapsed" desc="Convert ASCII Hex to BCD">
+public uint8_t AHex2Bcd(char ahex) // <editor-fold defaultstate="collapsed" desc="Convert ASCII Hex to BCD">
 {
-    if((ahex>='0')&&(ahex<='9'))
-        return (int8_t)(ahex-'0');
-    else if((ahex>='A')&&(ahex<='F'))
-        return (int8_t)(ahex-'7');
-    else if((ahex>='a')&&(ahex<='f'))
-        return (int8_t)(ahex-'W');
-    else
+    if((ahex>='0')&&(ahex<='9')) // 0 to 9
+        return (uint8_t) (ahex-'0');
+    else if((ahex>='A')&&(ahex<='F')) // A to F
+        return (uint8_t) (ahex-'7');
+    else if((ahex>='a')&&(ahex<='f')) // a to f
+        return (uint8_t) (ahex-'W');
+    else // error
     {
         ahex-=10;
-        return (int8_t) (ahex+'A');
+        return (uint8_t) (ahex+'A');
     }
 } // </editor-fold>
 
@@ -1174,9 +1219,9 @@ public int AHex2Array(uint8_t *des, const char *src, int len) // <editor-fold de
     {
         uint8_t c;
 
-        c=(uint8_t)AHex2Bcd(*src++);
+        c=(uint8_t) AHex2Bcd(*src++);
         c<<=4;
-        c|=(uint8_t)AHex2Bcd(*src++);
+        c|=(uint8_t) AHex2Bcd(*src++);
         *des=c;
         des++;
     }
@@ -1186,7 +1231,7 @@ public int AHex2Array(uint8_t *des, const char *src, int len) // <editor-fold de
     return len;
 } // </editor-fold>
 
-void u32str(uint32_t b, char *pDes) // <editor-fold defaultstate="collapsed" desc="32-bit unsigned integer to string">
+public void u32str(uint32_t b, char *pDes) // <editor-fold defaultstate="collapsed" desc="32-bit unsigned integer to string">
 {
     int8_t i, idx;
     uint8_t digit[10];
@@ -1213,7 +1258,7 @@ void u32str(uint32_t b, char *pDes) // <editor-fold defaultstate="collapsed" des
         *pDes='0';
 } // </editor-fold>
 
-void i32str(int32_t b, char *pDes) // <editor-fold defaultstate="collapsed" desc="32-bit signed integer to string">
+public void i32str(int32_t b, char *pDes) // <editor-fold defaultstate="collapsed" desc="32-bit signed integer to string">
 {
     if(b<0)
     {
@@ -1225,6 +1270,47 @@ void i32str(int32_t b, char *pDes) // <editor-fold defaultstate="collapsed" desc
     u32str((uint32_t) b, pDes);
 } // </editor-fold>
 
+public uint32_t make32(const uint8_t *p) // <editor-fold defaultstate="collapsed" desc="comment">
+{
+    uint8_t i;
+    uint32_t v;
+
+    for(i=0, v=0; i<4; i++)
+    {
+        v<<=8;
+        v|=*p++;
+    }
+
+    return v;
+} // </editor-fold>
+
+public void unmake32(uint32_t Value, uint8_t *pArr) // <editor-fold defaultstate="collapsed" desc="Convert 32bit to 4x8bit">
+{
+    pArr[0]=(uint8_t) (Value>>24);
+    pArr[1]=(uint8_t) (Value>>16);
+    pArr[2]=(uint8_t) (Value>>8);
+    pArr[3]=(uint8_t) (Value);
+} // </editor-fold>
+
+public uint16_t make16(const uint8_t *p) // <editor-fold defaultstate="collapsed" desc="comment">
+{
+    uint8_t i;
+    uint16_t v;
+
+    for(i=0, v=0; i<2; i++)
+    {
+        v<<=8;
+        v|=*p++;
+    }
+
+    return v;
+} // </editor-fold>
+
+public void unmake16(uint16_t Value, uint8_t *pArr) // <editor-fold defaultstate="collapsed" desc="Convert 32bit to 4x8bit">
+{
+    pArr[0]=(uint8_t) (Value>>8);
+    pArr[1]=(uint8_t) (Value);
+} // </editor-fold>
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Date Time">
@@ -1294,3 +1380,90 @@ public uint16_t iir(uint32_t *prev, uint16_t current, uint8_t hardness) // <edit
     return (uint16_t) (*prev>>4); //(*prev/16);
 } // </editor-fold>
 // </editor-fold>
+
+public bool getBit(const uint8_t *arr, uint16_t idx)
+{
+    uint8_t byteIndex=(uint8_t) (idx>>3); // idx/8
+    uint8_t bitIndex=(uint8_t) (idx&7); // idx%8
+
+    return (bool) ((arr[byteIndex]>>bitIndex) & 1);
+}
+
+public void setBit(uint8_t *arr, uint16_t idx, bool value)
+{
+    uint8_t byteIndex=(uint8_t) (idx>>3); // idx/8
+    uint8_t bitIndex=(uint8_t) (idx&7); // idx%8
+
+    if(value==1)
+        arr[byteIndex]|=(1<<bitIndex); // set = 1
+    else
+        arr[byteIndex]&= ~(1<<bitIndex); // clear = 0
+}
+
+public uint32_t count_divisible(uint32_t Ts0, uint32_t Ts1, uint32_t k)
+{
+    if(k==0||Ts0>Ts1)
+        return 0;
+
+    uint32_t count1=Ts1/k;
+    uint32_t count0=(Ts0==0)?0:(Ts0-1)/k;
+
+    // Neu Ts0 = 0, so 0 luon chia het cho k, nen ket qua la (Ts1/k) + 1
+    return ((Ts0==0)?(count1+1):(count1-count0));
+}
+
+public int32_t value_boundary(int32_t current, int32_t min, int32_t max)
+{
+    int32_t dt;
+
+LOOP:
+    if(current>max)
+    {
+        dt=current-max-1;
+        current=min+dt;
+        goto LOOP;
+    }
+    else if(current<min)
+    {
+        dt=min-current-1;
+        current=max-dt;
+        goto LOOP;
+    }
+
+    return current;
+}
+
+public uint32_t address_boundary(uint32_t current, uint32_t min, uint32_t max, uint8_t align)
+{
+    int32_t cur_idx=current/align;
+    int32_t min_idx=min/align;
+    int32_t max_idx=max/align;
+
+    uint32_t addr=value_boundary(cur_idx, min_idx, max_idx);
+
+    addr*=align;
+
+    return addr;
+}
+
+int16_t make_int15(int16_t a)
+{
+    if(a < -16383||a>16383)
+        return 0xFFFF;
+
+    uint16_t result=0;
+
+    if(a<0)
+    {
+        uint16_t magnitude=(uint16_t) (-a);
+        result=(1<<14)|magnitude;
+    }
+    else
+    {
+        result=(uint16_t) a;
+    }
+
+    result&=0x7FFF;
+
+    return (int16_t) result;
+}

@@ -332,6 +332,7 @@ typedef struct
 #define __make_str(str) #str
 #define __make_xstr(str) __make_str(str)
 
+typedef void (*simple_fnc_t) (void);
 #define two_complement_of(n) ((~(n))+1)
 
 #endif
